@@ -1,5 +1,18 @@
-# Vue 3 + TypeScript + Vite
+# Viossa.net
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+bråtula viossa.net måde! We're here to build an informational website about Viossa.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## The Stack
+
+What will we be using to build this site?
+
+- [Vue 3](https://vuejs.org/)
+- [Vite](https://vite.dev/)
+- [Bulma](https://bulma.io/)
+- [TypeScript](https://www.typescriptlang.org/)
+
+## The Content
+
+What will be in the site?
+
+[Need a list here from all the Discord discussion]
