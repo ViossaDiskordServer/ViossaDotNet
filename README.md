@@ -6,10 +6,13 @@ bråtula viossa.net måde! We're here to build an informational website about Vi
 
 **What will we be using to build this site?**
 
+- [NodeJS](https://nodejs.org/)
 - [Vue 3](https://vuejs.org/)
 - [Vite](https://vite.dev/)
 - [Bulma](https://bulma.io/)
 - [TypeScript](https://www.typescriptlang.org/)
+
+Additionally, we will be following [**atomic design principles**](https://bradfrost.com/blog/post/atomic-web-design/) to organize the components of the project.
 
 **How do we install this project?**
 
@@ -25,4 +28,4 @@ Now, to run the site, use `npm run dev`
 
 **What will be in the site?**
 
-[Need a list here from all the Discord discussion]
+[Visit the GitHub Issues page for this repository.](https://github.com/ViossaDiskordServer/ViossaDotNet/issues)
