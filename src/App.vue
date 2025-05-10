@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import HelloWorld from './components/HelloWorld.vue'
+// import SideBar from './components/organisms/SideBar.vue'
 import './assets/style.scss'
+import 'bulma/css/bulma.css'
 </script>
 
 <template>
+  <!-- <SideBar /> -->
   <div>
     <a href="https://vite.dev" target="_blank">
       <img src="/vite.svg" class="logo" alt="Vite logo" />
@@ -12,7 +15,7 @@ import './assets/style.scss'
       <img src="./assets/vue.svg" class="logo" alt="Vue logo" />
     </a>
   </div>
-  <HelloWorld msg="Vite + Vue" />
+  <HelloWorld msg="Vite + Vue = bråtula!" />
 </template>
 
 <style scoped>
