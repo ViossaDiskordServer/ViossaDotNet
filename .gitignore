@@ -23,6 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
-**/*.sqlite
-**/credentials.json
+# Secrets and sqlite prototyping uwu
+
 **/token.json
+**/credentials.json
+**/*.sqlite
+**/*.exe
