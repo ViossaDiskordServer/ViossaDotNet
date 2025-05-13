@@ -1,0 +1,17 @@
+{
+    "experimentalTernaries": true,
+    "experimentalOperatorPosition": "start",
+    "printWidth": 80,
+    "tabWidth": 4,
+    "useTabs": true,
+    "semi": true,
+    "singleQuote": false,
+    "quoteProps": "as-needed",
+    "jsxSingleQuote": false,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "objectWrap": "collapse",
+    "bracketSameLine": false,
+    "arrowParens": "always",
+    "endOfLine": "lf"
+}

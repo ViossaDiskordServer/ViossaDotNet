@@ -1,13 +1,16 @@
-@import 'bulma/css/bulma.css';
+@import "bulma/css/bulma.css";
 
-$viossa-blue: #65B7F9;
+$viossa-blue: #65b7f9;
 
 body {
-  background-color: $viossa-blue;
-  font: normal Verdana, Arial, sans-serif;
-  color: black;
+	background-color: $viossa-blue;
+	font:
+		normal Verdana,
+		Arial,
+		sans-serif;
+	color: black;
 }
 
 h1 {
-  font-size: 48px;
+	font-size: 48px;
 }
