@@ -1,16 +1,9 @@
+<script setup lang="ts">
+import Header from "./components/organisms/Header.vue";
+</script>
+
 <template>
-	<div class="navbar">
-		<div class="navbar-menu">
-			<div class="navbar-start">
-				<div class="navbar-item">
-					<RouterLink to="/">Home</RouterLink>
-				</div>
-				<div class="navbar-item">
-					<RouterLink to="/resources">Resources</RouterLink>
-				</div>
-			</div>
-		</div>
-	</div>
+	<Header />
 	<section class="container">
 		<RouterView />
 	</section>

@@ -19,8 +19,6 @@
 import PaddingWrapper from "../components/molecules/PaddingWrapper.vue";
 import IntroSection from "../components/organisms/IntroSection.vue";
 import HistorySection from "../components/organisms/HistorySection.vue";
-import "../assets/style.scss";
-import "bulma/css/bulma.css";
 
 export default {
 	name: "app",
