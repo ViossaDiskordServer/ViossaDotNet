@@ -2,6 +2,12 @@
 
 $viossa-blue: #65b7f9;
 
+html {
+	overflow: hidden;
+	color-scheme: dark;
+}
+
+
 body {
 	background-color: $viossa-blue;
 	font:
@@ -9,6 +15,7 @@ body {
 		Arial,
 		sans-serif;
 	color: black;
+	overflow: hidden;
 }
 
 h1 {

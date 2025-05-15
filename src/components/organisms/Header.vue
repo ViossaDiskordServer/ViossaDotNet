@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useMobile } from "../../composables/useMobile.ts";
 
-let navActive = ref(false);
+const navActive = ref(false);
+const mobile = useMobile();
 
 const toggleNav = () => {
 	console.log("hello");
@@ -10,8 +12,14 @@ const toggleNav = () => {
 </script>
 
 <template>
-	<div class="navbar">
-		<div class="navbar-brand p-2">
+	<div
+		:class="[
+			'navbar',
+			'is-gap-2',
+			mobile ? ['px-5', 'py-3'] : ['px-3', 'py-1'],
+		]"
+	>
+		<div class="navbar-brand">
 			<h1
 				class="title m-0 is-align-self-center"
 				:style="{ transform: 'translate(0, -0.125rem)' }"
@@ -31,7 +39,7 @@ const toggleNav = () => {
 				<span aria-hidden="true"></span>
 			</a>
 		</div>
-		<div :class="{ 'navbar-menu': true, 'is-active': navActive }">
+		<div :class="['navbar-menu', navActive && 'is-active']">
 			<div class="navbar-start">
 				<div class="navbar-item">
 					<RouterLink to="/">Home</RouterLink>

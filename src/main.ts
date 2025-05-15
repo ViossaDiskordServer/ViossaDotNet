@@ -4,7 +4,6 @@ import App from "./App.vue";
 import { createRouter, createWebHistory } from "vue-router";
 import { routes } from "vue-router/auto-routes";
 import "./assets/style.scss";
-import "bulma/css/bulma.css";
 
 const router = createRouter({ history: createWebHistory(), routes: routes });
 

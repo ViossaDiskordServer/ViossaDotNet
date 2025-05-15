@@ -1,6 +1,9 @@
 #app {
 	width: 100svw;
-	min-height: 100svw;
+	height: 100svh;
+	max-height: 100svh;
 	margin-top: 0;
 	margin-bottom: auto;
+	overflow: hidden;
+	display: flex;
 }
