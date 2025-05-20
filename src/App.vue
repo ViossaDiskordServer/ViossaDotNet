@@ -4,45 +4,18 @@
       <RouterLink to="/">Home</RouterLink>
       <RouterLink to="/resources">Resources</RouterLink>
     </nav>
-
     <RouterView />
-
-    <section class="section">
-      <h1 class="title has-text-black p-6">BRÅTULA VIOSSA.NET MÅDE</h1>
-    </section>
-
-    <section class="section">
-      <HomeSectionWrapper 
-        v-for="(section, index) in sectionList" 
-        :key="index"
-        :title="section.title"
-        :text="section.text"
-        :image="section.image"
-        :alt="section.alt"
-        :reverse="index % 2 !== 0"
-      />
-    </section>
   </div>
 </template>
 
-<script lang="ts">
-import PaddingWrapper from './components/molecules/PaddingWrapper.vue'
-import IntroSection from './components/organisms/IntroSection.vue'
-import HistorySection from './components/organisms/HistorySection.vue'
+<script setup lang="ts">
+// import HomeSectionWrapper from './components/molecules/HomeSectionWrapper.vue'
 import './assets/style.scss'
 import 'bulma/css/bulma.css'
+// import { useI18n } from 'vue-i18n'
+// import type { MessageSchema } from './i18n/types'
 
-export default {
-  name: 'app',
-  components: {
-    PaddingWrapper,
-    IntroSection,
-    HistorySection
-  },
-  data() {
-    return {
-      sectionList: ['IntroSection', 'HistorySection']
-    }
-  }
-}
+// const { t, tm } = useI18n()
+
+// console.log(sectionList.value)
 </script>
