@@ -8,7 +8,7 @@
           <h2 class="title is-4">{{ title }}</h2>
           <p class="has-text-white">{{ text }}</p>
         </div>
-        <div class="column is-one-quarter">
+        <div class="column is-one-quarter" v-if="image">
           <figure class="image">
             <img :src="image" :alt="alt" />
           </figure>
@@ -16,7 +16,7 @@
       </template>
 
       <template v-else>
-        <div class="column is-one-quarter">
+        <div class="column is-one-quarter" v-if="image">
           <figure class="image">
             <img :src="image" :alt="alt" />
           </figure>
@@ -41,8 +41,8 @@
 defineProps({
   title: String,
   text: String,
-  image: String,
-  alt: String,
+  image: { type: String, required: false },
+  alt: { type: String, required: false },
   reverse: Boolean,
 })
 </script>
