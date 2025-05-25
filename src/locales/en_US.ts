@@ -16,5 +16,14 @@ export default {
       "title": "Community",
       "text": "The Viossa community is rich and colourful, drawing from many global traditions due to its worldwide online membership. Since the teaching culture puts an emphasis on linguistic immersion, and discourages prescriptivism, the culture of Viossa is as diverse and varied as the language and the people who speak it. For many, their personal dialect is a key form of identity and expression. The fluid nature of Viossa and lack of defined meanings makes Viossa popular for creative purposes, such as poetry and songwriting.",
     }
+  ],
+  "resources": [
+    {
+      "title": "Discord Server",
+      "desc": "This is where most of the action happens! Hop on in!",
+      "link": "https://discord.gg/g3mG2gYjZD",
+      "image": "discord.png",
+      "alt": "Discord logo"
+    }
   ]
 }
