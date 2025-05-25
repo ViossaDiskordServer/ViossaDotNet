@@ -2,15 +2,19 @@ export default {
   "sections": [
     {
       "title": "What is Viossa?",
-      "text": "Cat ipsum dolor sit amet, be superior eats owners hair then claws head gimme attention gimme attention gimme attention gimme attention gimme attention gimme attention just kidding i don't want it anymore meow bye. Avoid the new toy and just play with the box it came in floof tum, tickle bum, jellybean footies curly toes curl up and sleep on the freshly laundered towels hiss and stare at nothing then run suddenly away. Need to check on human, have not seen in an hour might be dead oh look, human is alive, hiss at human, feed me attack the dog then pretend like nothing happened jump on human and sleep on her all night long be long in the bed, purr in the morning and then give a bite to every human around for not waking up request food, purr loud scratch the walls, the floor, the windows, the humans eat prawns daintily with a claw then lick paws clean wash down prawns with a lap of carnation milk then retire to the warmest spot on the couch to claw at the fabric before taking a catnap steal raw zucchini off kitchen counter...",
+      "text": "Viossa is a community-created artificial pidgin language, created to simulate the formation of natural pidgin languages. Viossa is characterized by its lack of standardization, with each speaker developing a personal idiolect. Spelling and pronunciation can vary greatly, and serve as a form of personal self-expression. Viossa is learnt and taught entirely by immersion — translation is prohibited while learning.",
       "image": "/src/assets/flakka.png",
       "alt": "Flag of the Viossa Language"
     },
     {
       "title": "History of Viossa",
-      "text": "Knock over christmas tree... If it fits i sits, jump five feet high and sideways when a shadow moves, rub face on owner and sometimes switches in french and say \"miaou\" just because well why not. Good morning sunshine, pet a cat, rub its belly, endure blood and agony, quietly weep, keep rubbing belly. Chase ball of string stares at human while pushing stuff off a table ooooh feather moving feather! jump up to edge of bath, fall in then scramble in a mad panic to get out slap kitten brother with paw for chase mice. Have a lot of grump in yourself because you can't forget to be grumpy and not be like king grumpy cat mmmmmmmmmeeeeeeeeooooooooowwwwwwww but cough furball into food bowl then scratch owner for a new one. Scream at teh bath open the door, let me out, let me out, let me-out, let me-aow, let meaow, meaow!",
+      "text": "Viossa began as a Skype group in 2014, created by members of the r/conlangs community on Reddit, as an experiment to simulate the formation of a pidgin language. Pidgins are simplified languages resulting from contact between populations with no shared common language. Unlike most pidgins, which usually have two to three contributor languages, Viossa comes from many diverse languages. This is because people from all around the world helped to contribute to Viossa's vocabulary.",
       "image": "/src/assets/flakka.png",
       "alt": "Flag of the Viossa Language"
+    },
+    {
+      "title": "Community",
+      "text": "The Viossa community is rich and colourful, drawing from many global traditions due to its worldwide online membership. Since the teaching culture puts an emphasis on linguistic immersion, and discourages prescriptivism, the culture of Viossa is as diverse and varied as the language and the people who speak it. For many, their personal dialect is a key form of identity and expression. The fluid nature of Viossa and lack of defined meanings makes Viossa popular for creative purposes, such as poetry and songwriting.",
     }
   ]
 }
