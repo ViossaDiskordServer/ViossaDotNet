@@ -3,13 +3,13 @@ export default {
     {
       "title": "What is Viossa?",
       "text": "Viossa is a community-created artificial pidgin language, created to simulate the formation of natural pidgin languages. Viossa is characterized by its lack of standardization, with each speaker developing a personal idiolect. Spelling and pronunciation can vary greatly, and serve as a form of personal self-expression. Viossa is learnt and taught entirely by immersion — translation is prohibited while learning.",
-      "image": "/src/assets/flakka.png",
+      "image": "flakka.png",
       "alt": "Flag of the Viossa Language"
     },
     {
       "title": "History of Viossa",
       "text": "Viossa began as a Skype group in 2014, created by members of the r/conlangs community on Reddit, as an experiment to simulate the formation of a pidgin language. Pidgins are simplified languages resulting from contact between populations with no shared common language. Unlike most pidgins, which usually have two to three contributor languages, Viossa comes from many diverse languages. This is because people from all around the world helped to contribute to Viossa's vocabulary.",
-      "image": "/src/assets/flakka.png",
+      "image": "flakka.png",
       "alt": "Flag of the Viossa Language"
     },
     {

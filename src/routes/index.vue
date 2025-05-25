@@ -7,7 +7,7 @@
 
     <section class="section">
       <HomeSectionWrapper 
-        v-for="(section, index) in sectionList" 
+        v-for="(section, index) in sectionsWithImages" 
         :key="index"
         :title="section.title"
         :text="section.text"
@@ -29,6 +29,16 @@ import { computed } from 'vue'
 
 const { tm } = useI18n()
 const sectionList = computed<MessageSchema['sections']>(() => tm('sections'))
+const sectionsWithImages = computed(() =>
+  sectionList.value.map(section => {
+    if (!section.image) return section
+
+    return {
+      ...section,
+      image: new URL(`../assets/${section.image}`, import.meta.url).href
+    }
+  })
+)
 
 console.log(sectionList.value)
 </script>
