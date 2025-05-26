@@ -8,7 +8,9 @@
     <div class="column">
       <h2 class="title">{{ title }}</h2>
       <p class="has-text-white is-size-4 mb-4">{{ desc }}</p>
-      <h3 class="is-size-3"><a href="{{ link }}">{{ link }}</a></h3>
+      <h3 class="is-size-3">
+        <a :href="link" target="_blank" rel="noopener noreferrer nofollow">{{ link }}</a>
+      </h3>
     </div>
   </div>
 </template>
