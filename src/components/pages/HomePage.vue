@@ -24,7 +24,7 @@ import HomeSectionWrapper from '@/components/molecules/HomeSectionWrapper.vue'
 import '@/assets/style.scss'
 import 'bulma/css/bulma.css'
 import { useI18n } from 'vue-i18n'
-import type { MessageSchema } from '../i18n/types'
+import type { MessageSchema } from '@/i18n/types'
 import { computed } from 'vue'
 
 const { tm } = useI18n()
@@ -35,7 +35,7 @@ const sectionsWithImages = computed(() =>
 
     return {
       ...section,
-      image: new URL(`../assets/${section.image}`, import.meta.url).href
+      image: new URL(`../../assets/${section.image}`, import.meta.url).href
     }
   })
 )

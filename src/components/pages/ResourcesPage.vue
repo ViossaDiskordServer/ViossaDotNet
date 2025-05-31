@@ -24,7 +24,7 @@ import LearningResourceWrapper from '@/components/molecules/LearningResourceWrap
 import '@/assets/style.scss'
 import 'bulma/css/bulma.css'
 import { useI18n } from 'vue-i18n'
-import type { MessageSchema } from '../i18n/types'
+import type { MessageSchema } from '@/i18n/types'
 import { computed } from 'vue'
 
 const { tm } = useI18n()
@@ -35,7 +35,7 @@ const resourcesWithImages = computed(() =>
 
     return {
       ...resource,
-      image: new URL(`../assets/${resource.image}`, import.meta.url).href
+      image: new URL(`../../assets/${resource.image}`, import.meta.url).href
     }
   })
 )
