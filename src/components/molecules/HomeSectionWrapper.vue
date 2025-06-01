@@ -1,8 +1,6 @@
 <template>
-  <div class="box my-6 px-4 py-5">
-
-    <div v-if="image" class="columns is-vcentered">
-
+  <div class="box my-6 px-4 py-5 columns is-vcentered">
+    
       <template v-if="reverse">
         <div class="column">
           <h2 class="title is-4">{{ title }}</h2>
@@ -26,13 +24,6 @@
           <p class="has-text-white">{{ text }}</p>
         </div>
       </template>
-
-    </div>
-
-    <div v-else class="is-vcentered">
-      <h2 class="title is-4">{{ title }}</h2>
-      <p class="has-text-white">{{ text }}</p>
-    </div>
 
   </div>
 </template>
