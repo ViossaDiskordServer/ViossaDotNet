@@ -1,16 +1,21 @@
 <template>
-  <div class="box m-3 p-3 columns">
+  <div class="box m-3 p-3 columns is-vcentered">
     <div class="column is-one-quarter" v-if="image">
-      <figure class="image">
+      <figure class="image is-128x128">
         <img :src="image" :alt="alt" />
       </figure>
     </div>
     <div class="column">
-      <h2 class="title">{{ title }}</h2>
-      <p class="has-text-white is-size-4 mb-4">{{ desc }}</p>
-      <h3 class="is-size-3">
-        <a :href="link" target="_blank" rel="noopener noreferrer nofollow">{{ link }}</a>
-      </h3>
+      <h4 class="title">{{ title }}</h4>
+      <p class="has-text-white is-size-5 mb-3">{{ desc }}</p>
+      <a
+        :href="link"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        class="button is-link is-medium has-text-white"
+      >
+        {{ link }}
+      </a>
     </div>
   </div>
 </template>

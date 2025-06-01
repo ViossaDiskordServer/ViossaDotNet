@@ -1,8 +1,8 @@
 <template>
-	<div class="min-h-screen flex flex-col" style="gap: 4rem">
+	<div class="min-h-screen flex flex-col">
 		<!-- Main application wrapper -->
     <section class="section">
-      <h1 class="title has-text-black p-6">BRÅTULA VIOSSA.NET MÅDE</h1>
+      <h1 class="title has-text-black p-3">BRÅTULA VIOSSA.NET MÅDE</h1>
     </section>
 
     <section class="section">

@@ -1,6 +1,6 @@
 <template>
-  <div class="box my-6 px-4 py-5 columns is-vcentered">
-    
+  <div class="box my-5 px-4 py-3 columns is-vcentered">
+
       <template v-if="reverse">
         <div class="column">
           <h2 class="title is-4">{{ title }}</h2>
