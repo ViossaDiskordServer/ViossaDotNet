@@ -22,7 +22,6 @@
 <script setup lang="ts">
 import LearningResourceWrapper from '@/components/molecules/LearningResourceWrapper.vue'
 import '@/assets/style.scss'
-import 'bulma/css/bulma.css'
 import { useI18n } from 'vue-i18n'
 import type { MessageSchema } from '@/i18n/types'
 import { computed } from 'vue'

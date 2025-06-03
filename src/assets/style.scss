@@ -1,16 +1,26 @@
-@import "bulma/css/bulma.css";
+@use "bulma";
 
-$viossa-blue: #65b7f9;
+:root {
+  --bulma-primary-h: 195deg;
+  --bulma-primary-l: 65%;
+  --bulma-scheme-h: 195;
+  --bulma-family-primary: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
+  --bulma-family-secondary: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
+  --bulma-burger-h: 195deg;
+  --bulma-body-family: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
+};
 
-body {
-	background-color: $viossa-blue;
-	font:
-		normal Verdana,
-		Arial,
-		sans-serif;
-	color: black;
-}
+//$viossa-blue: #65b7f9;
 
-h1 {
-	font-size: 48px;
-}
+// body {
+// 	background-color: $viossa-blue;
+// 	font:
+// 		normal Verdana,
+// 		Arial,
+// 		sans-serif;
+// 	color: black;
+// }
+
+// h1 {
+// 	font-size: 48px;
+// }
