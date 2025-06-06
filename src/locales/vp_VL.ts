@@ -23,7 +23,7 @@ export default {
       "subtitle": "This is where most of the action happens! Hop on in!",
       "desc": "Originally started in 2015 something something read the rules here, then click the link below to join!",
       "link": "https://discord.gg/g3mG2gYjZD",
-      "rulesLink": "https://discord.gg/g3mG2gYjZD",
+      "rulesLink": "https://viossadiskordserver.github.io/rules",
       "image": "discord.png",
       "alt": "Discord logo",
       "joinText": "Join",

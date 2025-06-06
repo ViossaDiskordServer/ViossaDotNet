@@ -18,14 +18,14 @@
           :text="joinText">
         </a>
 
-        <a :href="link" 
+        <a :href="``" 
           target="_blank" 
           rel="noopener noreferrer nofollow"
           class="button is-info is-outlined is-medium" 
           :text="rulesText">
         </a>
 
-        <a :href="link" 
+        <a :href="rulesLink" 
           target="_blank" 
           rel="noopener noreferrer nofollow"
           class="button is-warning is-outlined is-medium" 
