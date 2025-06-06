@@ -1,20 +1,22 @@
 <template>
-	<div class="min-h-screen flex flex-col" style="gap: 4rem">
-		<!-- Main application wrapper -->
+	<div>
     <section class="section">
       <h1 class="title">Learning Resources</h1>
     </section>
 
-    <section class="section">
-      <LearningResourceWrapper class="is-one-quarter" 
+    <section class="section container">
+      <LearningResourceWrapper 
         v-for="(resource, index) in resourcesWithImages" 
         :key="index"
         :title="resource.title"
+        :subtitle="resource.subtitle"
         :desc="resource.desc"
 				:link="resource.link"
+				:rulesLink="resource.rulesLink"
         :image="resource.image"
         :alt="resource.alt"
-        :linkText="resource.linkText"
+        :joinText="resource.joinText"
+        :rulesText="resource.rulesText"
       />
     </section>
 	</div>

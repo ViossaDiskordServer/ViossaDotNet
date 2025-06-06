@@ -1,6 +1,5 @@
 <template>
-	<div class="min-h-screen flex flex-col">
-		<!-- Main application wrapper -->
+	<div>
     <section class="hero is-primary">
       <div class="hero-body">
         <div class="title">BRÅTULA VIOSSA.NET MÅDE</div>
@@ -8,7 +7,7 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section container">
       <HomeSectionWrapper 
         v-for="(section, index) in sectionsWithImages" 
         :key="index"
