@@ -1,8 +1,8 @@
 export default {
   "sections": [
     {
-      "title": "What is Viossa?",
-      "text": "Viossa is a community-created artificial pidgin language, created to simulate the formation of natural pidgin languages. Viossa is characterized by its lack of standardization, with each speaker developing a personal idiolect. Spelling and pronunciation can vary greatly, and serve as a form of personal self-expression. Viossa is learnt and taught entirely by immersion — translation is prohibited while learning.",
+      "title": "Kafaen afto Viossa",
+      "text": "Viossa tte glossa mahena grun vi nai vil fshtojena na bakadjin, grun vi svinnur ja! De aldjin zovti lera ne",
       "image": "flakka.png",
       "alt": "Flag of the Viossa Language"
     },

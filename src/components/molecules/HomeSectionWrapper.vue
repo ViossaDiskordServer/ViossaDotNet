@@ -8,7 +8,7 @@
         </div>
         <div class="column is-one-quarter" v-if="image">
           <figure class="image">
-            <img :src="image" :alt="alt" />
+            <img :src="image" :alt="alt" :title="alt" />
           </figure>
         </div>
       </template>
@@ -16,7 +16,7 @@
       <template v-else>
         <div class="column is-one-quarter" v-if="image">
           <figure class="image">
-            <img :src="image" :alt="alt" />
+            <img :src="image" :alt="alt" :title="alt" />
           </figure>
         </div>
         <div class="column">

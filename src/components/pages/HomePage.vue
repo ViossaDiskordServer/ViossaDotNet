@@ -1,11 +1,13 @@
 <template>
-	<div class="min-h-screen flex flex-col">
-		<!-- Main application wrapper -->
-    <section class="section">
-      <h1 class="title has-text-black p-3">BRÅTULA VIOSSA.NET MÅDE</h1>
+	<div>
+    <section class="hero is-primary">
+      <div class="hero-body">
+        <div class="title">BRÅTULA VIOSSA.NET MÅDE</div>
+        <div class="subtitle">Hadjiplas per lera para Viossa – glossa fu vi</div>
+      </div>
     </section>
 
-    <section class="section">
+    <section class="section container">
       <HomeSectionWrapper 
         v-for="(section, index) in sectionsWithImages" 
         :key="index"
