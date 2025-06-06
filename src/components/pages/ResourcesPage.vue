@@ -2,7 +2,7 @@
 	<div class="min-h-screen flex flex-col" style="gap: 4rem">
 		<!-- Main application wrapper -->
     <section class="section">
-      <h1 class="title has-text-black p-3">Learning Resources</h1>
+      <h1 class="title">Learning Resources</h1>
     </section>
 
     <section class="section">
@@ -14,6 +14,7 @@
 				:link="resource.link"
         :image="resource.image"
         :alt="resource.alt"
+        :linkText="resource.linkText"
       />
     </section>
 	</div>

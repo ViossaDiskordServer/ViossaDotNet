@@ -23,7 +23,8 @@ export default {
       "desc": "This is where most of the action happens! Hop on in!",
       "link": "https://discord.gg/g3mG2gYjZD",
       "image": "discord.png",
-      "alt": "Discord logo"
+      "alt": "Discord logo",
+      "linkText": "Join"
     }
   ]
 }

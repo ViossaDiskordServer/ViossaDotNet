@@ -1,26 +1,26 @@
-@use "bulma";
+@use "./bulma.css";
 
-:root {
-  --bulma-primary-h: 195deg;
-  --bulma-primary-l: 65%;
-  --bulma-scheme-h: 195;
+* {
+  --bulma-primary-h: 196deg;
+  --bulma-primary-l: 50%;
+  --bulma-primary-s: 100%;
+
+  --bulma-link-h: 293deg;
+  --bulma-link-l: 50%;
+  --bulma-link-s: 45%;
+
+  --bulma-warning-h: 31deg;
+  --bulma-warning-l: 75%;
+  --bulma-warning-s: 100%;
+
+  --bulma-info-h: 90deg;
+  --bulma-info-l: 50%;
+  --bulma-info-s: 45%;
+
+  
+
+
   --bulma-family-primary: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
   --bulma-family-secondary: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
-  --bulma-burger-h: 195deg;
   --bulma-body-family: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
 };
-
-//$viossa-blue: #65b7f9;
-
-// body {
-// 	background-color: $viossa-blue;
-// 	font:
-// 		normal Verdana,
-// 		Arial,
-// 		sans-serif;
-// 	color: black;
-// }
-
-// h1 {
-// 	font-size: 48px;
-// }
