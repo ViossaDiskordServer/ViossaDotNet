@@ -1,9 +1,13 @@
 <template>
   <div class="min-h-screen flex flex-col "><!-- Main application wrapper -->
-    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+    <header
+    style="backdrop-filter: blur(8px); background-color: color-mix(in srgb, var(--bulma-navbar-background-color) 80%, transparent);"
+    class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
 
       <div class="navbar-brand">
-        <RouterLink class="navbar-item has-text-weight-bold" to="/"><img src="@/assets/ViossaFlagRect.svg" alt=""/></RouterLink>
+        <RouterLink class="navbar-item has-text-weight-bold p-0" to="/" >
+          <img src="@/assets/ViossaFlagRect.svg" alt="Viossa flag" style="height: var(--bulma-navbar-height); max-height: none;" />
+        </RouterLink> 
 
         <div class="navbar-item">
           <button 
@@ -23,7 +27,7 @@
         </div>
       </div>
 
-    </nav>
+    </header style="backdrop-filter: blur(8px); background-color: oklab(80% var(--bulma-navbar-background-color) transparent);">
     <RouterView />
   </div>
 </template>
