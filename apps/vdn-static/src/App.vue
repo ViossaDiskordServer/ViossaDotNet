@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import "./assets/style.scss";
 import { ref, type Ref } from "vue";
+import { SAMPLE } from "@repo/common/sample";
 
 const burgerOpen: Ref<boolean> = ref<boolean>(false);
 
@@ -41,6 +42,9 @@ const toggleBurger = (): void => {
 					<RouterLink class="navbar-item" to="/resources"
 						>Resources</RouterLink
 					>
+					<RouterLink class="navbar-item" to="/resources">{{
+						SAMPLE
+					}}</RouterLink>
 				</div>
 			</div>
 		</nav>
