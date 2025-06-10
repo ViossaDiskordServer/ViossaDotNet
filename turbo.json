@@ -8,7 +8,16 @@
 		"check-types": {
 			"dependsOn": ["^check-types"]
 		},
+		"watch": {
+			"dependsOn": ["^watch"]
+		},
 		"dev": {
+			"dependsOn": ["^watch"],
+			"persistent": true,
+			"cache": false
+		},
+		"start": {
+			"dependsOn": ["^build"],
 			"persistent": true,
 			"cache": false
 		}

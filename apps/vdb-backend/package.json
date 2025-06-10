@@ -1,24 +1,29 @@
 {
-	"name": "@repo/common",
+	"name": "@repo/vdb-backend",
 	"version": "1.0.0",
 	"description": "",
 	"type": "module",
 	"exports": {
 		"./*": {
-			"types": "./src/*.ts",
+			"types": "./dist/*.d.ts",
 			"import": "./dist/*.js"
 		}
 	},
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build": "rm -rf ./dist & pnpm exec tsc",
-		"watch": "rm -rf ./dist & pnpm exec tsc --watch"
+		"build": "pnpm exec tsc",
+		"start": "pnpm exec tsx src/index"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"packageManager": "pnpm@10.11.0",
+	"dependencies": {
+		"@repo/common": "workspace:*",
+		"express": "^5.1.0"
+	},
 	"devDependencies": {
-		"typescript": "~5.8.3"
+		"@types/express": "^5.0.3",
+		"tsx": "^4.19.4"
 	}
 }
