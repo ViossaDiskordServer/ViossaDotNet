@@ -1,1 +1,1 @@
-export const SAMPLE = "Hello world from common once again!";
+export const SAMPLE = "Hello world from common once again! abcdefg";
