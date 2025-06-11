@@ -1,26 +1,43 @@
 @use "./bulma.css";
 
 * {
-  --bulma-primary-h: 196deg;
-  --bulma-primary-l: 50%;
-  --bulma-primary-s: 100%;
+	--bulma-primary-h: 196deg;
+	--bulma-primary-l: 50%;
+	--bulma-primary-s: 100%;
 
-  --bulma-link-h: 293deg;
-  --bulma-link-l: 50%;
-  --bulma-link-s: 45%;
+	--bulma-link-h: 293deg;
+	--bulma-link-l: 50%;
+	--bulma-link-s: 45%;
 
-  --bulma-warning-h: 31deg;
-  --bulma-warning-l: 75%;
-  --bulma-warning-s: 100%;
+	--bulma-warning-h: 31deg;
+	--bulma-warning-l: 75%;
+	--bulma-warning-s: 100%;
 
-  --bulma-info-h: 90deg;
-  --bulma-info-l: 50%;
-  --bulma-info-s: 45%;
+	--bulma-info-h: 90deg;
+	--bulma-info-l: 50%;
+	--bulma-info-s: 45%;
 
-  
+	--bulma-family-primary:
+		Nunito, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue,
+		Helvetica, Arial, sans-serif;
+	--bulma-family-secondary:
+		Nunito, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue,
+		Helvetica, Arial, sans-serif;
+	--bulma-body-family:
+		Nunito, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue,
+		Helvetica, Arial, sans-serif;
+}
 
+#viosa-flag {
+	height: var(--bulma-navbar-height);
+	max-height: none;
+}
 
-  --bulma-family-primary: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
-  --bulma-family-secondary: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
-  --bulma-body-family: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
-};
+header {
+	backdrop-filter: blur(8px);
+	background-color: color-mix(
+		in srgb,
+		var(--bulma-navbar-background-color) 80%,
+		transparent
+	);
+}

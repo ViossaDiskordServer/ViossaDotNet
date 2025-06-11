@@ -1,11 +1,10 @@
 <template>
   <header
-    style="backdrop-filter: blur(8px); background-color: color-mix(in srgb, var(--bulma-navbar-background-color) 80%, transparent);"
     class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
 
       <div class="navbar-brand">
         <RouterLink class="navbar-item has-text-weight-bold p-0" to="/" >
-          <img src="@/assets/ViossaFlagRect.svg" alt="Viossa flag" style="height: var(--bulma-navbar-height); max-height: none;" />
+          <img src="@/assets/ViossaFlagRect.svg" id="viossa-flag" alt="Viossa flag" />
         </RouterLink> 
 
         <div class="navbar-item">
