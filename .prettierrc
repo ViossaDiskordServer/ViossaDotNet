@@ -13,5 +13,6 @@
 	"objectWrap": "collapse",
 	"bracketSameLine": true,
 	"arrowParens": "always",
-	"endOfLine": "lf"
+	"endOfLine": "lf",
+	"htmlWhitespaceSensitivity": "css"
 }

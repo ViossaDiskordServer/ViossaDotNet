@@ -11,14 +11,15 @@
 	},
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build": "rm -rf ./dist & pnpm exec tsc",
-		"watch": "rm -rf ./dist & pnpm exec tsc --watch"
+		"build": "pnpm exec rimraf ./dist & pnpm exec tsc",
+		"watch": "pnpm exec rimraf ./dist & pnpm exec tsc --watch"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"packageManager": "pnpm@10.11.0",
 	"devDependencies": {
+		"rimraf": "^6.0.1",
 		"typescript": "~5.8.3"
 	}
 }

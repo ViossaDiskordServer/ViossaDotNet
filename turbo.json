@@ -12,7 +12,7 @@
 			"dependsOn": ["^watch"]
 		},
 		"dev": {
-			"dependsOn": ["^watch"],
+			"with": ["watch"],
 			"persistent": true,
 			"cache": false
 		},
