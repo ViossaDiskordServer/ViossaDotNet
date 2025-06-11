@@ -31,7 +31,7 @@ Additionally, we will be following [**atomic design principles**](https://bradfr
 ## Setup/Installation
 **How do we install this project?**
 
-1. Download and install NodeJS and pnpm
+1. Download and install Node.js and pnpm
    - [Node.js installation instructions](https://nodejs.org/en/download)
    - [pnpm installation instructions](https://pnpm.io/installation)
 1. Open your favourite command line terminal
