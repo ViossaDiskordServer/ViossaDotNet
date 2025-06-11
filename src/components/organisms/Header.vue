@@ -27,3 +27,13 @@
 
     </header style="backdrop-filter: blur(8px); background-color: oklab(80% var(--bulma-navbar-background-color) transparent);">
 </template>
+
+<script setup lang="ts">
+  import { ref, type Ref } from 'vue'
+
+  const burgerOpen: Ref<Boolean> = ref<Boolean>(false);
+
+  function toggleBurger(): void {
+    burgerOpen.value = !burgerOpen.value;
+  }
+</script>
