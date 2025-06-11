@@ -56,7 +56,7 @@ This project uses Turborepo for task management/caching. Install Turborepo globa
 2. Move into the app's directory: `cd apps/vdb-backend`
 3. Now, to run the site, use `turbo start`. This will build all of the app's dependencies and then start the application.
    1. **NOTE:** Backend apps are not watched/hot-refreshed like frontend apps! If you make changes, you must kill the app by spamming Ctrl+C in the terminal it is running in, before rerunning it with the changes applied.
-4. To view a sample response from the backend API, visit visit http://localhost:1225/ in your browser!
+4. To view a sample response from the backend API, visit http://localhost:1225/sample in your browser!
 
 ## The Content
 
