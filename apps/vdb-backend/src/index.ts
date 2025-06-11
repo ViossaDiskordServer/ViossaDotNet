@@ -1,7 +1,7 @@
 import { SAMPLE } from "@repo/common/sample";
 import express from "express";
 
-const PORT = 1224;
+const PORT = 1225;
 
 const app = express();
 
