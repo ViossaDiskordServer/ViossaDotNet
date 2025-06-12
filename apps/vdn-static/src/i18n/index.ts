@@ -9,7 +9,7 @@ export type Locale = keyof typeof locales;
 
 const i18n = createI18n<[MessageSchema], Locale>({
 	legacy: false,
-	locale: "vp_VL" satisfies Locale,
+	locale: "en_US" satisfies Locale,
 	fallbackLocale: "en_US" satisfies Locale,
 	messages: locales,
 });
