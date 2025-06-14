@@ -1,44 +1,28 @@
 <script setup lang="ts">
 import { LOCALE_IDS, localeId, useLocale, type LocaleId } from "@/i18n";
-import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import { ref } from "vue";
+import { vOnClickOutside } from "@vueuse/components";
 
 const isOpen = ref<boolean>(false);
-const dropdownRef = useTemplateRef("dropdown");
 
 const toggleOpen = (): void => {
 	isOpen.value = !isOpen.value;
 };
 
+const close = (): void => {
+	isOpen.value = false;
+};
+
 const setLocaleId = (id: LocaleId): void => {
 	localeId.value = id;
+	close();
 };
-
-const detectFocus = (e: MouseEvent) => {
-	if (!isOpen) {
-		return;
-	}
-
-	const dropdown = dropdownRef.value;
-	if (!dropdown) {
-		return;
-	}
-
-	const { target } = e;
-	const focused =
-		target instanceof Node
-		&& (dropdown === target || dropdown.contains(target));
-
-	if (!focused) {
-		isOpen.value = false;
-	}
-};
-
-onMounted(() => window.addEventListener("click", detectFocus));
-onUnmounted(() => window.removeEventListener("click", detectFocus));
 </script>
 
 <template>
-	<div :class="['dropdown', isOpen && 'is-active']" ref="dropdown">
+	<div
+		:class="['dropdown', isOpen && 'is-active']"
+		v-on-click-outside="close">
 		<div class="dropdown-trigger">
 			<button
 				class="button"
