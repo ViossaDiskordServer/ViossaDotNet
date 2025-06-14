@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import "./assets/style.scss";
 import { ref, type Ref } from "vue";
-import { SAMPLE } from "@repo/common/sample";
 import LocalePicker from "./components/organisms/LocalePicker.vue";
 import { vOnClickOutside } from "@vueuse/components";
 
@@ -53,12 +52,6 @@ const closeBurger = (): void => {
 						to="/resources"
 						@click="closeBurger()"
 						>Resources</RouterLink
-					>
-					<RouterLink
-						class="navbar-item"
-						to="/resources"
-						@click="closeBurger()"
-						>{{ SAMPLE }}</RouterLink
 					>
 					<LocalePicker />
 				</div>

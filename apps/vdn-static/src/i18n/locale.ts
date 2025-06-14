@@ -5,7 +5,7 @@ export interface Locale {
 }
 
 export interface Layout<T> {
-	layout: (keyof T)[];
+	layout: (keyof T)[] | null;
 	data: { [K in keyof T]: T[K] | null };
 }
 
