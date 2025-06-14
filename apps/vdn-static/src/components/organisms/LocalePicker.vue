@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { LOCALE_IDS, localeId, useLocale, type LocaleId } from "@/i18n";
-import { ref } from "vue";
+import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 
 const isOpen = ref<boolean>(false);
+const dropdownRef = useTemplateRef("dropdown");
 
 const toggleOpen = (): void => {
 	isOpen.value = !isOpen.value;
@@ -11,10 +12,33 @@ const toggleOpen = (): void => {
 const setLocaleId = (id: LocaleId): void => {
 	localeId.value = id;
 };
+
+const detectFocus = (e: MouseEvent) => {
+	if (!isOpen) {
+		return;
+	}
+
+	const dropdown = dropdownRef.value;
+	if (!dropdown) {
+		return;
+	}
+
+	const { target } = e;
+	const focused =
+		target instanceof Node
+		&& (dropdown === target || dropdown.contains(target));
+
+	if (!focused) {
+		isOpen.value = false;
+	}
+};
+
+onMounted(() => window.addEventListener("click", detectFocus));
+onUnmounted(() => window.removeEventListener("click", detectFocus));
 </script>
 
 <template>
-	<div :class="['dropdown', isOpen && 'is-active']">
+	<div :class="['dropdown', isOpen && 'is-active']" ref="dropdown">
 		<div class="dropdown-trigger">
 			<button
 				class="button"
