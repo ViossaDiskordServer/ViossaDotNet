@@ -1,6 +1,6 @@
 import en_US from "../locales/en_US";
 import vp_VL from "../locales/vp_VL";
-import { computed, reactive, readonly, ref } from "vue";
+import { computed, readonly, ref } from "vue";
 import type { Locale } from "./locale";
 
 export const LOCALE_IDS = ["en_US", "vp_VL"] as const;
@@ -18,7 +18,7 @@ export function useLocale(opt: UseLocaleOptions = {}) {
 		);
 	});
 
-	return readonly(reactive(locale));
+	return readonly(locale);
 }
 
 export interface UseLocaleOptions {
