@@ -2,6 +2,7 @@
 import "./assets/style.scss";
 import { ref, type Ref } from "vue";
 import { SAMPLE } from "@repo/common/sample";
+import LocalePicker from "./components/organisms/LocalePicker.vue";
 
 const burgerOpen: Ref<boolean> = ref<boolean>(false);
 
@@ -45,6 +46,7 @@ const toggleBurger = (): void => {
 					<RouterLink class="navbar-item" to="/resources">{{
 						SAMPLE
 					}}</RouterLink>
+					<LocalePicker />
 				</div>
 			</div>
 		</nav>

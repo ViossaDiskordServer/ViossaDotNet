@@ -1,17 +1,56 @@
-import { createI18n } from "vue-i18n";
 import en_US from "../locales/en_US";
 import vp_VL from "../locales/vp_VL";
-import type { MessageSchema } from "./types";
+import { computed, reactive, readonly, ref } from "vue";
+import type { Locale } from "./locale";
 
-const locales = { en_US, vp_VL } as const;
+export const LOCALE_IDS = ["en_US", "vp_VL"] as const;
+export type LocaleId = (typeof LOCALE_IDS)[number];
 
-export type Locale = keyof typeof locales;
+const locales = { en_US, vp_VL } as const satisfies Record<LocaleId, Locale>;
 
-const i18n = createI18n<[MessageSchema], Locale>({
-	legacy: false,
-	locale: "en_US" satisfies Locale,
-	fallbackLocale: "en_US" satisfies Locale,
-	messages: locales,
-});
+export const localeId = ref<LocaleId>("en_US");
 
-export default i18n;
+export function useLocale(opt: UseLocaleOptions = {}) {
+	const locale = computed<Locale>(() => {
+		return fallbackProxy(
+			locales[opt.locale ?? localeId.value],
+			locales["en_US"],
+		);
+	});
+
+	return readonly(reactive(locale));
+}
+
+export interface UseLocaleOptions {
+	locale?: LocaleId;
+}
+
+function fallbackProxy(obj: any, fallback: any) {
+	return new Proxy(obj, {
+		get: (target, key) => {
+			const value = target[key];
+			const fallbackValue = fallback[key];
+			if (value === undefined) {
+				return fallbackValue;
+			}
+
+			if (value === null && fallbackValue !== null) {
+				return fallbackValue;
+			}
+
+			if (
+				value === null
+				|| fallbackValue === null
+				|| typeof value !== "object"
+				|| typeof fallbackValue !== "object"
+			) {
+				return value;
+			}
+
+			return fallbackProxy(value, fallbackValue);
+		},
+		set: () => {
+			throw new Error("Cannot mutate locale at runtime");
+		},
+	});
+}
