@@ -1,25 +1,9 @@
 <script setup lang="ts">
 import LearningResourceWrapper from "@/components/molecules/LearningResourceWrapper.vue";
-import "@/assets/style.scss";
-import { useI18n } from "vue-i18n";
-import type { MessageSchema } from "@/i18n/types";
-import { computed } from "vue";
+import { useLocale } from "@/i18n";
+import { localizeLayout } from "@/utils/localizeLayout";
 
-const { tm } = useI18n();
-const resourceList = computed<MessageSchema["resources"]>(() =>
-	tm("resources"),
-);
-const resourcesWithImages = computed(() =>
-	resourceList.value.map((resource) => {
-		if (!resource.image) return resource;
-
-		return {
-			...resource,
-			image: new URL(`../../assets/${resource.image}`, import.meta.url)
-				.href,
-		};
-	}),
-);
+const locale = useLocale();
 </script>
 
 <template>
@@ -30,7 +14,7 @@ const resourcesWithImages = computed(() =>
 
 		<section class="section container">
 			<LearningResourceWrapper
-				v-for="(resource, index) in resourcesWithImages"
+				v-for="(resource, index) in localizeLayout(locale.resources)"
 				:key="index"
 				:title="resource.title"
 				:subtitle="resource.subtitle"
