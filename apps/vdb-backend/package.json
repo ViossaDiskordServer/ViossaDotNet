@@ -19,11 +19,19 @@
 	"license": "ISC",
 	"packageManager": "pnpm@10.11.0",
 	"dependencies": {
+		"@feathersjs/feathers": "^5.0.6",
+		"@google-cloud/local-auth": "^2.1.0",
 		"@repo/common": "workspace:*",
-		"express": "^5.1.0"
+		"express": "^5.1.0",
+		"google-auth-library": "^10.3.0",
+		"googleapis": "^159.0.0",
+		"reflect-metadata": "^0.2.2",
+		"sqlite3": "^5.1.7",
+		"typeorm": "0.3.26"
 	},
 	"devDependencies": {
 		"@types/express": "^5.0.3",
+		"@types/node": "^22.5.1",
 		"tsx": "^4.19.4"
 	}
 }

@@ -1,15 +1,18 @@
 {
-    "compilerOptions": {
-        "module": "nodenext",
-        "moduleResolution": "nodenext",
-        "target": "ES2022",
-        "strict": true,
-        "noUncheckedIndexedAccess": true,
-        "sourceMap": true,
-        "outDir": "dist",
-        "declaration": true,
-    },
-    "include": [
-        "src"
-    ]
+	"compilerOptions": {
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"lib": ["es5","es6"],
+		"target": "esnext",
+		"strict": true,
+		"esModuleInterop": true,
+		"strictPropertyInitialization": false,
+		"noUncheckedIndexedAccess": true,
+		"sourceMap": true,
+		"outDir": "dist",
+		"declaration": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true
+	},
+	"include": ["src"]
 }
