@@ -1,25 +1,9 @@
 <script setup lang="ts">
 import HomeSectionWrapper from "@/components/molecules/HomeSectionWrapper.vue";
-import "@/assets/style.scss";
-import { useI18n } from "vue-i18n";
-import type { MessageSchema } from "@/i18n/types";
-import { computed } from "vue";
+import { useLocale } from "@/i18n";
+import { localizeLayout } from "@/utils/localizeLayout";
 
-const { tm } = useI18n();
-const sectionList = computed<MessageSchema["sections"]>(() => tm("sections"));
-const sectionsWithImages = computed(() =>
-	sectionList.value.map((section) => {
-		if (!section.image) return section;
-
-		return {
-			...section,
-			image: new URL(`../../assets/${section.image}`, import.meta.url)
-				.href,
-		};
-	}),
-);
-
-console.log(sectionList.value);
+const locale = useLocale();
 </script>
 
 <template>
@@ -35,12 +19,12 @@ console.log(sectionList.value);
 
 		<section class="section container">
 			<HomeSectionWrapper
-				v-for="(section, index) in sectionsWithImages"
+				v-for="(section, index) in localizeLayout(locale.home)"
 				:key="index"
 				:title="section.title"
 				:text="section.text"
-				:image="section.image"
-				:alt="section.alt"
+				:image="section.image ?? undefined"
+				:alt="section.alt ?? undefined"
 				:reverse="index % 2 !== 0" />
 		</section>
 	</div>
