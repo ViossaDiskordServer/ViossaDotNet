@@ -1,10 +1,11 @@
 import "reflect-metadata";
+import fetch from "node-fetch";
 import { SAMPLE } from "@repo/common/sample";
 import express from "express";
 import { google, sheets_v4 } from "googleapis";
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client } from "google-auth-library";
 import { appDataSource } from "./config/dbconfig.js";
-import { authorize } from "./auth.js"
+import { authorize } from "./auth.js";
 import {
 	Lemma,
 	WordForm,
@@ -18,7 +19,7 @@ import {
 
 const RELOAD_SHEET_ON_START = false;
 
-
+global.fetch = fetch as any;
 
 appDataSource
 	.initialize()
@@ -39,7 +40,6 @@ appDataSource
 	})
 	.catch((error) => console.log(error));
 
-
 function initExpress() {
 	const app = express();
 	const PORT = 1225;
@@ -48,28 +48,19 @@ function initExpress() {
 	const word_form_repository = appDataSource.getRepository(WordForm);
 	const lemma_repository = appDataSource.getRepository(Lemma);
 
-	app.get("/", (req, res) => {
-		res.render("search", { title: "Suha", message: "Bratsa" });
-	});
-
 	app.get("/sample", (_req, res) => {
 		res.status(200).send(SAMPLE);
 	});
 
 	app.get("/search", async (req, res) => {
-
 		const search_term = req.query.search_term?.toString();
 
-		if(!search_term) {
+		if (!search_term) {
 			return;
 		}
 
 		const lemmas: Lemma[] = (
-			await Lemma.find({
-				relations: {
-					word_forms: { lect: true },
-				},
-			})
+			await Lemma.find({ relations: { word_forms: { lect: true } } })
 		).filter((e) => {
 			for (const wf of e.word_forms) {
 				if (wf.word_form.includes(search_term)) {
@@ -79,15 +70,34 @@ function initExpress() {
 		});
 
 		const lects = await Lect.find();
-		return res.render("search_results", {
+		res.status(200).send({
 			terms: lemmas.length,
 			results: lemmas,
 			lects: lects,
 		});
 	});
 
-	app.set("views", "./res/views");
-	app.set("view engine", "pug");
+	app.get("/lect", async (req, res) => {
+		const name = req.query.name?.toString();
+
+		if (!name) {
+			return;
+		}
+
+		const lect = await Lect.findOne({
+			where: { name: name },
+			relations: { word_forms: { lemma: true } },
+		});
+		
+		res.status(200).send({ lect });
+	});
+
+	app.get("/lects", async (req, res) => {
+		const lects = await Lect.find() 
+		res.status(200).send({ 
+			lects
+		});
+	});
 
 	app.listen(PORT, () => {
 		console.log(`Backend started @ http://localhost:${PORT} !`);
@@ -99,86 +109,101 @@ function initExpress() {
  * @param {google.auth.OAuth2Client} auth The authenticated Google OAuth client.
  */
 async function loadSheet(auth: OAuth2Client) {
-  const options: any = { version: "v4", auth };
-  const sheets = google.sheets(options);
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: "1-YkCeynx_-KYdubvt14augSPo37_20YgUv_f-i8HVwY",
-    range: "al_ko_mit_govor",
-  });
+	const lect_repository = appDataSource.getRepository(Lect);
+	const word_form_repository = appDataSource.getRepository(WordForm);
+	const lemma_repository = appDataSource.getRepository(Lemma);
+	const options: any = { version: "v4", auth };
+	const sheets = google.sheets(options);
+	const res = await sheets.spreadsheets.values.get({
+		spreadsheetId: "1-YkCeynx_-KYdubvt14augSPo37_20YgUv_f-i8HVwY",
+		range: "al_ko_mit_govor",
+	});
 
-  const rows = res.data.values;
-  
-  const keys_res = await sheets.spreadsheets.values.get({
-    spreadsheetId: "1-YkCeynx_-KYdubvt14augSPo37_20YgUv_f-i8HVwY",
-    range: "klucz",
-  });
+	const rows = res.data.values;
 
-  const keys = keys_res.data.values;
-  
-  if (!rows || rows.length === 0) {
-    console.error("No data found.");
-    return;
-  }
+	const keys_res = await sheets.spreadsheets.values.get({
+		spreadsheetId: "1-YkCeynx_-KYdubvt14augSPo37_20YgUv_f-i8HVwY",
+		range: "klucz",
+	});
 
-  if (!keys || keys.length === 0) {
-    console.error("No lemma keys found.");
-    return;
-  }
+	const keys = keys_res.data.values;
 
-  const lects = rows.shift();
+	if (!rows || rows.length === 0) {
+		console.error("No data found.");
+		return;
+	}
 
-  if (keys.length != rows.length) {
-    console.error("Lemma count doesn't match number of rows.");
-    return;
-  }
+	if (!keys || keys.length === 0) {
+		console.error("No lemma keys found.");
+		return;
+	}
 
-  if (!lects){
-	console.error("No lects found");
-	return;
-  }
+	const lects = rows.shift();
 
-  for (const lect of lects) {
-    let l = new Lect();
-    l.name = lect;
-    l.save();
-    console.log(l);
-  }
+	if (keys.length != rows.length) {
+		console.error("Lemma count doesn't match number of rows.");
+		return;
+	}
 
-  const nikolect = lects.indexOf("Nikomiko");
+	if (!lects) {
+		console.error("No lects found");
+		return;
+	}
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
+	for (const lect of lects) {
+		let l = new Lect();
+		l.name = lect;
+		l.save();
+		console.log(l);
+	}
 
-    const lemma_key = keys[i]?.[0];
-    const lemma = new Lemma();
+	const nikolect = lects.indexOf("Nikomiko");
+	const lemmas = Array<Lemma>();
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i];
 
-    if (lemma_key == null || lemma_key.length == 0) {
-      //assign a random UUID to the lemma as punishment for our failures
-      lemma.lemma_name = crypto.randomUUID();
-      console.log(`womp womp, missing lemma name, calling it ${lemma.lemma_name}`)
-    } else {
-      lemma.lemma_name = lemma_key;
-    }
+		const lemma_key = keys[i]?.[0];
+		const lemma = new Lemma();
 
-    console.log(lemma);
-    await lemma.save();
+		if (lemma_key == null || lemma_key.length == 0) {
+			//assign a random UUID to the lemma as punishment for our failures
+			lemma.lemma_name = crypto.randomUUID();
+			console.log(
+				`womp womp, missing lemma name, calling it ${lemma.lemma_name}`,
+			);
+		} else {
+			lemma.lemma_name = lemma_key;
+		}
 
-    for(let i=0; i<rows.length; i++){
-      const cell = row?.[i];
-      if (cell === null || cell === undefined || (typeof cell === "string" && cell.length === 0)) {
-        continue;
-      }
+		lemmas.push(lemma);
+		lemma.word_forms = Array<WordForm>();
 
-      for (let word_form of cell.split(";")) {
-        const f = new WordForm();
-        f.word_form = word_form;
-        f.lemma = lemma;
-        f.lect = lects[i];
-        //console.log(f);
-        await f.save();
-      }
+		for (let i = 0; i < rows.length; i++) {
+			const cell = row?.[i];
+			if (
+				cell === null
+				|| cell === undefined
+				|| (typeof cell === "string" && cell.length === 0)
+			) {
+				continue;
+			}
 
-    }
+			for (let word_form of cell.split(";")) {
+				const f = new WordForm();
+				f.word_form = word_form;
+				f.lect = lects[i];
+				//console.log(f);
+				lemma.word_forms.push(f);
+			}
+		}
+	}
 
-  }
+	for (let i = 0; i < lemmas.length; i += 100) {
+		await lemma_repository.save(lemmas.slice(i, i + 100));
+		console.log(
+			`Saved ${Math.min(i + 100, lemmas.length)} / ${lemmas.length} lemmas...`,
+		);
+	}
+
+	console.log(`Loaded ${lemmas.length} lemmas!`);
 }

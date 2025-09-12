@@ -42,9 +42,9 @@ const toggleBurger = (): void => {
 					<RouterLink class="navbar-item" to="/resources"
 						>Resources</RouterLink
 					>
-					<RouterLink class="navbar-item" to="/resources">{{
-						SAMPLE
-					}}</RouterLink>
+					<RouterLink class="navbar-item" to="/kotoba">
+						Kotoba
+					</RouterLink>
 				</div>
 			</div>
 		</nav>
