@@ -20,17 +20,19 @@
 	"packageManager": "pnpm@10.11.0",
 	"dependencies": {
 		"@feathersjs/feathers": "^5.0.6",
-		"@google-cloud/local-auth": "^2.1.0",
+		"@google-cloud/local-auth": "^3.0.1",
 		"@repo/common": "workspace:*",
 		"express": "^5.1.0",
-		"google-auth-library": "^10.3.0",
-		"googleapis": "^159.0.0",
+		"google-auth-library": "^9.15.1",
+		"googleapis": "^149.0.0",
 		"node-fetch": "^3.3.2",
 		"reflect-metadata": "^0.2.2",
 		"sqlite3": "^5.1.7",
-		"typeorm": "0.3.26"
+		"typeorm": "0.3.26",
+		"zod": "^4.1.8"
 	},
 	"devDependencies": {
+		"@total-typescript/ts-reset": "^0.6.1",
 		"@types/express": "^5.0.3",
 		"@types/node": "^22.5.1",
 		"tsx": "^4.19.4"
