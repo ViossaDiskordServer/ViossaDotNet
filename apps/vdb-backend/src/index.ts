@@ -6,16 +6,12 @@ import { google, sheets_v4 } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import { appDataSource } from "./config/dbconfig.js";
 import { authorize } from "./auth.js";
+import { Lemma, WordForm, Lect } from "./db/dbmodel.js";
 import {
-	Lemma,
-	WordForm,
-	Example,
-	Media,
-	Definition,
-	Comment,
-	PartOfSpeech,
-	Lect,
-} from "./db/dbmodel.js";
+	GoogleAuth,
+	JSONClient,
+} from "google-auth-library/build/src/auth/googleauth.js";
+import "@total-typescript/ts-reset";
 
 const RELOAD_SHEET_ON_START = false;
 
@@ -56,7 +52,7 @@ function initExpress() {
 		const search_term = req.query.search_term?.toString();
 
 		if (!search_term) {
-			return;
+			return void res.sendStatus(400);
 		}
 
 		const lemmas: Lemma[] = (
@@ -81,21 +77,21 @@ function initExpress() {
 		const name = req.query.name?.toString();
 
 		if (!name) {
-			return;
+			return void res.sendStatus(400);
 		}
 
 		const lect = await Lect.findOne({
 			where: { name: name },
 			relations: { word_forms: { lemma: true } },
 		});
-		
+
 		res.status(200).send({ lect });
 	});
 
-	app.get("/lects", async (req, res) => {
-		const lects = await Lect.find() 
-		res.status(200).send({ 
-			lects
+	app.get("/lects", async (_req, res) => {
+		const lects = await Lect.find();
+		res.status(200).send({
+			lects,
 		});
 	});
 
@@ -106,13 +102,13 @@ function initExpress() {
 }
 
 /**
- * @param {google.auth.OAuth2Client} auth The authenticated Google OAuth client.
+ * @param auth The authenticated Google OAuth client.
  */
-async function loadSheet(auth: OAuth2Client) {
+async function loadSheet(auth: OAuth2Client | GoogleAuth<JSONClient>) {
 	const lect_repository = appDataSource.getRepository(Lect);
 	const word_form_repository = appDataSource.getRepository(WordForm);
 	const lemma_repository = appDataSource.getRepository(Lemma);
-	const options: any = { version: "v4", auth };
+	const options: sheets_v4.Options = { version: "v4", auth };
 	const sheets = google.sheets(options);
 	const res = await sheets.spreadsheets.values.get({
 		spreadsheetId: "1-YkCeynx_-KYdubvt14augSPo37_20YgUv_f-i8HVwY",
@@ -181,9 +177,9 @@ async function loadSheet(auth: OAuth2Client) {
 		for (let i = 0; i < rows.length; i++) {
 			const cell = row?.[i];
 			if (
-				cell === null
-				|| cell === undefined
-				|| (typeof cell === "string" && cell.length === 0)
+				cell === null ||
+				cell === undefined ||
+				(typeof cell === "string" && cell.length === 0)
 			) {
 				continue;
 			}
@@ -201,7 +197,9 @@ async function loadSheet(auth: OAuth2Client) {
 	for (let i = 0; i < lemmas.length; i += 100) {
 		await lemma_repository.save(lemmas.slice(i, i + 100));
 		console.log(
-			`Saved ${Math.min(i + 100, lemmas.length)} / ${lemmas.length} lemmas...`,
+			`Saved ${Math.min(i + 100, lemmas.length)} / ${
+				lemmas.length
+			} lemmas...`,
 		);
 	}
 
