@@ -3,6 +3,9 @@ import "./assets/style.scss";
 import { ref, type Ref } from "vue";
 import LocalePicker from "./components/organisms/LocalePicker.vue";
 import { vOnClickOutside } from "@vueuse/components";
+import { useLocale } from "@/i18n";
+
+const locale = useLocale();
 
 const burgerOpen: Ref<boolean> = ref<boolean>(false);
 
@@ -45,13 +48,13 @@ const closeBurger = (): void => {
 						class="navbar-item"
 						to="/"
 						@click="closeBurger()"
-						>What is Viossa?</RouterLink
+						>{{locale.navbar.whatIsViossa}}</RouterLink
 					>
 					<RouterLink
 						class="navbar-item"
 						to="/resources"
 						@click="closeBurger()"
-						>Resources</RouterLink
+						>{{locale.navbar.resources}}</RouterLink
 					>
 					<RouterLink class="navbar-item" to="/kotoba">
 						Kotoba

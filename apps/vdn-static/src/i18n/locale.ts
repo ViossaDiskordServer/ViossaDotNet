@@ -1,5 +1,6 @@
 export interface Locale {
 	localeName: string;
+	navbar: Navbar;
 	home: Layout<HomeSections>;
 	resources: Layout<Resources>;
 }
@@ -7,6 +8,11 @@ export interface Locale {
 export interface Layout<T> {
 	layout: (keyof T)[] | null;
 	data: { [K in keyof T]: T[K] | null };
+}
+
+export interface Navbar {
+	whatIsViossa: string;
+	resources: string;
 }
 
 export interface HomeSections {

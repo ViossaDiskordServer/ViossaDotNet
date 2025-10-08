@@ -4,6 +4,10 @@ import discordImg from "@/assets/discord.png";
 
 export default {
 	localeName: "English",
+	navbar: {
+		whatIsViossa: "What is Viossa?",
+		resources: "Resources",
+	},
 	home: {
 		layout: ["whatIsViossa", "historyOfViossa", "community"],
 		data: {

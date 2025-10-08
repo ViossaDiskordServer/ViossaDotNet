@@ -3,6 +3,10 @@ import flakkaImg from "@/assets/flakka.png";
 
 export default {
 	localeName: "Viossa",
+	navbar: {
+		whatIsViossa: "Ka Viossa?",
+		resources: "Viktijena",
+	},
 	home: {
 		layout: null,
 		data: {
