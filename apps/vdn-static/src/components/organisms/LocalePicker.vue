@@ -21,7 +21,7 @@ const setLocaleId = (id: LocaleId): void => {
 
 <template>
 	<div
-		:class="['dropdown', isOpen && 'is-active']"
+		:class="['dropdown', isOpen && 'is-active', 'navbar-item']" 	
 		v-on-click-outside="close">
 		<div class="dropdown-trigger">
 			<button
