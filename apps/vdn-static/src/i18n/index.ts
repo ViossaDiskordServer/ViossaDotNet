@@ -1,12 +1,16 @@
+// adding a new language? add it to this list: ...
 import en_US from "../locales/en_US";
 import vp_VL from "../locales/vp_VL";
+import ar_JO from "../locales/ar_JO";
 import { computed, readonly, ref } from "vue";
 import type { Locale } from "./locale";
 
-export const LOCALE_IDS = ["en_US", "vp_VL"] as const;
+//and to this one: ...
+export const LOCALE_IDS = ["en_US", "vp_VL", "ar_JO"] as const;
 export type LocaleId = (typeof LOCALE_IDS)[number];
 
-const locales = { en_US, vp_VL } as const satisfies Record<LocaleId, Locale>;
+//and to this one:
+const locales = { en_US, vp_VL, ar_JO } as const satisfies Record<LocaleId, Locale>;
 
 export const localeId = ref<LocaleId>("en_US");
 
