@@ -3,9 +3,14 @@ import { LOCALE_IDS, localeId, useLocale, type LocaleId } from "@/i18n";
 import { ref } from "vue";
 import { vOnClickOutside } from "@vueuse/components";
 
+const locale = useLocale();
+var navbarDirection;
+console.log(locale.value);
+
 const isOpen = ref<boolean>(false);
 
 const toggleOpen = (): void => {
+	navbarDirection = locale.value.localeDir == 'rtl' ? 'is-left' : 'is-right'; 
 	isOpen.value = !isOpen.value;
 };
 
@@ -21,7 +26,7 @@ const setLocaleId = (id: LocaleId): void => {
 
 <template>
 	<div
-		:class="['dropdown', isOpen && 'is-active', 'navbar-item']" 	
+		:class="['dropdown', isOpen && 'is-active', 'navbar-item', navbarDirection]" 
 		v-on-click-outside="close">
 		<div class="dropdown-trigger">
 			<button

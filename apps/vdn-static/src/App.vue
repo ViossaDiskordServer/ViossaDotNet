@@ -19,7 +19,7 @@ const closeBurger = (): void => {
 </script>
 
 <template>
-	<div class="min-h-screen flex flex-col" v-on-click-outside="closeBurger">
+	<div :dir="`${ locale.localeDir }`" class="min-h-screen flex flex-col" v-on-click-outside="closeBurger">
 		<!-- Main application wrapper -->
 		<nav
 			class="navbar is-fixed-top"
@@ -57,8 +57,11 @@ const closeBurger = (): void => {
 						>{{locale.navbar.resources}}</RouterLink
 					>
 					<RouterLink class="navbar-item" to="/kotoba">
-						Kotoba
+						{{locale.navbar.kotoba}}
 					</RouterLink>
+					
+				</div>
+				<div class="navbar-end">
 					<LocalePicker />
 				</div>
 			</div>

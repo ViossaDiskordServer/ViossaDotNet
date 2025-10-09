@@ -1,8 +1,10 @@
 export interface Locale {
 	localeName: string;
+	localeDir: string;
 	navbar: Navbar;
 	home: Layout<HomeSections>;
 	resources: Layout<Resources>;
+	kotoba: Kotoba;
 }
 
 export interface Layout<T> {
@@ -13,6 +15,7 @@ export interface Layout<T> {
 export interface Navbar {
 	whatIsViossa: string;
 	resources: string;
+	kotoba: string;
 }
 
 export interface HomeSections {
@@ -43,3 +46,8 @@ export interface Resource {
 	joinText: string;
 	rulesText: string;
 }
+
+export interface Kotoba {
+	title: string;
+}
+

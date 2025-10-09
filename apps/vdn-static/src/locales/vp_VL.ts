@@ -3,9 +3,11 @@ import flakkaImg from "@/assets/flakka.png";
 
 export default {
 	localeName: "Viossa",
+	localeDir: "ltr",
 	navbar: {
 		whatIsViossa: "Ka Viossa?",
 		resources: "Viktijena",
+		kotoba: "Kotoba",
 	},
 	home: {
 		layout: null,
@@ -21,4 +23,5 @@ export default {
 		},
 	},
 	resources: { layout: null, data: { discord: null } },
+	kotoba: { title: "", },
 } as const satisfies Locale;

@@ -4,9 +4,11 @@ import discordImg from "@/assets/discord.png";
 
 export default {
 	localeName: "العربية",
+	localeDir: "rtl",
 	navbar: {
 		whatIsViossa: "ما هي الفيوسية؟",
 		resources: "الموارد",
+		kotoba: "كوتوبا",
 	},
 	home: {
 		layout: ["whatIsViossa", "historyOfViossa", "community"],
@@ -19,7 +21,10 @@ export default {
 			},
 			historyOfViossa: {
 				title: "تاريخ اللغة الفيوسية",
-				text: "Viossa began as a Skype group in 2014, created by members of the r/conlangs community on Reddit, as an experiment to simulate the formation of a pidgin language. Pidgins are simplified languages resulting from contact between populations with no shared common language. Unlike most pidgins, which usually have two to three contributor languages, Viossa comes from many diverse languages. This is because people from all around the world helped to contribute to Viossa's vocabulary.",
+				text: `
+				بدأ المشروع الفيوسي عبر سكايب في عام ٢٠١٤، ببب
+
+				Viossa began as a Skype group in 2014, created by members of the r/conlangs community on Reddit, as an experiment to simulate the formation of a pidgin language. Pidgins are simplified languages resulting from contact between populations with no shared common language. Unlike most pidgins, which usually have two to three contributor languages, Viossa comes from many diverse languages. This is because people from all around the world helped to contribute to Viossa's vocabulary.`,
 				image: flakkaImg,
 				alt: "Flag of the Viossa Language",
 			},
@@ -29,13 +34,14 @@ export default {
 				image: null,
 				alt: null,
 			},
+
 		},
 	},
 	resources: {
 		layout: ["discord"],
 		data: {
 			discord: {
-				title: "Discord Server",
+				title: "خادم ديسكورد",
 				subtitle:
 					"This is where most of the action happens! Hop on in!",
 				desc: "Originally started in 2015 something something read the rules here, then click the link below to join!",
@@ -44,8 +50,11 @@ export default {
 				image: discordImg,
 				alt: "Discord logo",
 				joinText: "Join",
-				rulesText: "Rules",
+				rulesText: "القوانين",
 			},
 		},
+	},
+	kotoba: {
+		title: "بحث مستقل اللهجة",
 	},
 } as const satisfies Locale;

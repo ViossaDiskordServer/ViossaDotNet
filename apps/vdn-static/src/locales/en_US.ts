@@ -4,9 +4,11 @@ import discordImg from "@/assets/discord.png";
 
 export default {
 	localeName: "English",
+	localeDir: "ltr",
 	navbar: {
 		whatIsViossa: "What is Viossa?",
 		resources: "Resources",
+		kotoba: "Kotoba",
 	},
 	home: {
 		layout: ["whatIsViossa", "historyOfViossa", "community"],
@@ -47,5 +49,8 @@ export default {
 				rulesText: "Rules",
 			},
 		},
+	},
+	kotoba: {
+		title: "Tropos-agnostic search",
 	},
 } as const satisfies Locale;
