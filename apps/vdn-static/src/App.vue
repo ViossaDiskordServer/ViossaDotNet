@@ -19,7 +19,7 @@ const closeBurger = (): void => {
 </script>
 
 <template>
-	<div :dir="`${ locale.localeDir }`" class="min-h-screen flex flex-col" v-on-click-outside="closeBurger">
+	<div :dir="`${ locale.props.dir }`" class="min-h-screen flex flex-col" v-on-click-outside="closeBurger">
 		<!-- Main application wrapper -->
 		<nav
 			class="navbar is-fixed-top"

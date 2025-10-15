@@ -3,8 +3,11 @@ import flakkaImg from "@/assets/flakka.png";
 import discordImg from "@/assets/discord.png";
 
 export default {
-	localeName: "English",
-	localeDir: "ltr",
+	props: {
+		name: "English",
+		dir: "ltr",
+		code: "en",
+	},
 	navbar: {
 		whatIsViossa: "What is Viossa?",
 		resources: "Resources",
@@ -32,6 +35,9 @@ export default {
 				alt: null,
 			},
 		},
+	},
+	resourcesPage: {
+		title: "Learning Resources",
 	},
 	resources: {
 		layout: ["discord"],

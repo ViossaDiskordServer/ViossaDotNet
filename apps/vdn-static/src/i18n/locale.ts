@@ -1,8 +1,8 @@
 export interface Locale {
-	localeName: string;
-	localeDir: string;
+	props: Props;
 	navbar: Navbar;
 	home: Layout<HomeSections>;
+	resourcesPage: ResourcesPage;
 	resources: Layout<Resources>;
 	kotoba: Kotoba;
 }
@@ -10,6 +10,12 @@ export interface Locale {
 export interface Layout<T> {
 	layout: (keyof T)[] | null;
 	data: { [K in keyof T]: T[K] | null };
+}
+
+export interface Props {
+	name: string;
+	dir: string;
+	code: string;
 }
 
 export interface Navbar {
@@ -29,6 +35,10 @@ export interface HomeSection {
 	text: string;
 	image: string | null;
 	alt: string | null;
+}
+
+export interface ResourcesPage {
+	title: string;
 }
 
 export interface Resources {

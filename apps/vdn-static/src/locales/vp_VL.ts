@@ -2,8 +2,11 @@ import type { Locale } from "@/i18n/locale";
 import flakkaImg from "@/assets/flakka.png";
 
 export default {
-	localeName: "Viossa",
-	localeDir: "ltr",
+	props: {
+		name: "Viossa",
+		dir: "ltr",
+		code: "vp",
+	},
 	navbar: {
 		whatIsViossa: "Ka Viossa?",
 		resources: "Viktijena",
@@ -22,6 +25,7 @@ export default {
 			community: null,
 		},
 	},
+	resourcesPage: { title: "", },
 	resources: { layout: null, data: { discord: null } },
 	kotoba: { title: "", },
 } as const satisfies Locale;

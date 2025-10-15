@@ -10,7 +10,7 @@ console.log(locale.value);
 const isOpen = ref<boolean>(false);
 
 const toggleOpen = (): void => {
-	navbarDirection = locale.value.localeDir == 'rtl' ? 'is-left' : 'is-right'; 
+	navbarDirection = locale.value.props.dir == 'rtl' ? 'is-left' : 'is-right'; // manually change the float direction of the dropdown :(
 	isOpen.value = !isOpen.value;
 };
 
@@ -20,6 +20,9 @@ const close = (): void => {
 
 const setLocaleId = (id: LocaleId): void => {
 	localeId.value = id;
+
+	document.documentElement.lang = locale.value.props.code; // change lang of root html tag when the locale changes (WHEN COOKIES ARE ADDED: THIS MIGHT BREAK??????)
+
 	close();
 };
 </script>
@@ -34,7 +37,7 @@ const setLocaleId = (id: LocaleId): void => {
 				aria-haspopup="true"
 				aria-controls="dropdown-menu"
 				@click="toggleOpen()">
-				<span>{{ useLocale().value.localeName }}</span>
+				<span>{{ useLocale().value.props.name }}</span>
 				<span class="icon is-small">
 					<i class="fas fa-angle-down" aria-hidden="true"></i>
 				</span>
@@ -48,7 +51,7 @@ const setLocaleId = (id: LocaleId): void => {
 					href="#"
 					:class="['dropdown-item', localeId === id && 'is-active']"
 					@click="setLocaleId(id)">
-					{{ useLocale({ locale: id }).value.localeName }}
+					{{ useLocale({ locale: id }).value.props.name }}
 				</a>
 			</div>
 		</div>

@@ -10,7 +10,7 @@ const locale = useLocale();
 	<div>
 		<section class="hero is-primary">
 			<div class="hero-body">
-				<div class="title">BRÅTULA VIOSSA.NET MÅDE</div>
+				<div class="title ignore-lang-font">BRÅTULA VIOSSA.NET MÅDE</div>
 				<div class="subtitle">
 					Hadjiplas per lera para Viossa – glossa fu vi
 				</div>

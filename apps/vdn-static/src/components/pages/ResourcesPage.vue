@@ -9,7 +9,7 @@ const locale = useLocale();
 <template>
 	<div>
 		<section class="section">
-			<h1 class="title">Learning Resources</h1>
+			<h1 class="title">{{locale.resourcesPage.title}}</h1>
 		</section>
 
 		<section class="section container">

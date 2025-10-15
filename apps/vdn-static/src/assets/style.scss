@@ -24,3 +24,11 @@
   --bulma-family-secondary: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
   --bulma-body-family: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
 };
+
+*:lang(ar):not(.ignore-lang-font) {
+  font-family: Noto Sans Arabic, Noto Sans, Arial, sans-serif;
+}
+
+.title:lang(ar):not(.ignore-lang-font) {
+  font-family: Amiri, Scheherazade, sans-serif;
+}

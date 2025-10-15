@@ -3,8 +3,11 @@ import flakkaImg from "@/assets/flakka.png";
 import discordImg from "@/assets/discord.png";
 
 export default {
-	localeName: "العربية",
-	localeDir: "rtl",
+	props: {
+		name: "العربية",
+		dir: "rtl",
+		code: "ar",
+	},
 	navbar: {
 		whatIsViossa: "ما هي الفيوسية؟",
 		resources: "الموارد",
@@ -15,27 +18,33 @@ export default {
 		data: {
 			whatIsViossa: {
 				title: "ما هي الفيوسية؟",
-				text: "اللغة الفيوسية هي لغة مسطنعة أبدعتها الجماعة لتقليد تشكُل لغات مبسطة طبيعية. تتميز الفيوسية بعدم توحيدها فيشكل كل متكلم لهجة شخصية خاصة به. يتغاير الهجاء واللفظ كثيرا فيستعملهما المتكلمون بشكل التعبير الشخصي. تُتعلّم وتُعلّم اللغة بالإنغماس فيها ويُمنع الترجمة أثناء التعلم.",
+				text: "اللغة الفيوسية هي لغة هجينة مسطنعة أبدعتها الجماعة لتقليد تشكُل لغات هجينة طبيعية. تتميز الفيوسية بعدم توحيدها فيشكل كل متكلم لهجة شخصية خاصة به. يتغاير الهجاء واللفظ كثيرا فيستعملهما المتكلمون بشكل التعبير الشخصي. تُتعلّم وتُعلّم اللغة بالإنغماس فيها ويُمنع الترجمة أثناء التعلم.",
 				image: flakkaImg,
 				alt: "Flag of the Viossa Language",
 			},
 			historyOfViossa: {
 				title: "تاريخ اللغة الفيوسية",
 				text: `
-				بدأ المشروع الفيوسي عبر سكايب في عام ٢٠١٤، ببب
+				كوّن أعضاء في مجتمع رديت r/conlangs المشروع الفيوسي عبر سكايب في عام ٢٠١٤، كتجربة تقليد تكون لغة هجينة. لغات هجينة هي لغات مبسطة تتكون من تواصل شعبين لا لغة مشتركة لهم. تتكون الفيوسية من لغات مختلفة كثيرة على عكس معظم اللغات الهجينة التي تتكون من لغتين أو ثلاثة فقط.
 
 				Viossa began as a Skype group in 2014, created by members of the r/conlangs community on Reddit, as an experiment to simulate the formation of a pidgin language. Pidgins are simplified languages resulting from contact between populations with no shared common language. Unlike most pidgins, which usually have two to three contributor languages, Viossa comes from many diverse languages. This is because people from all around the world helped to contribute to Viossa's vocabulary.`,
 				image: flakkaImg,
-				alt: "Flag of the Viossa Language",
+				alt: "علم اللغة الفيوسية",
 			},
 			community: {
-				title: "Community",
-				text: "The Viossa community is rich and colourful, drawing from many global traditions due to its worldwide online membership. Since the teaching culture puts an emphasis on linguistic immersion, and discourages prescriptivism, the culture of Viossa is as diverse and varied as the language and the people who speak it. For many, their personal dialect is a key form of identity and expression. The fluid nature of Viossa and lack of defined meanings makes Viossa popular for creative purposes, such as poetry and songwriting.",
+				title: "المجتمع",
+				text: `
+				المجتمع الفيوسي 
+
+				The Viossa community is rich and colourful, drawing from many global traditions due to its worldwide online membership. Since the teaching culture puts an emphasis on linguistic immersion, and discourages prescriptivism, the culture of Viossa is as diverse and varied as the language and the people who speak it. For many, their personal dialect is a key form of identity and expression. The fluid nature of Viossa and lack of defined meanings makes Viossa popular for creative purposes, such as poetry and songwriting.`,
 				image: null,
 				alt: null,
 			},
 
 		},
+	},
+	resourcesPage: {
+		title: "موارد التعلم",
 	},
 	resources: {
 		layout: ["discord"],
@@ -49,7 +58,7 @@ export default {
 				rulesLink: "https://viossadiskordserver.github.io/rules",
 				image: discordImg,
 				alt: "Discord logo",
-				joinText: "Join",
+				joinText: "الالتحاق",
 				rulesText: "القوانين",
 			},
 		},
