@@ -48,18 +48,14 @@ This project uses Turborepo for task management/caching. Install Turborepo globa
 ### Frontend (Viossa.net)
 1. Ensure you're in the root directory of the project (`ViossaDotNet`)
 1. Move into the app's directory: `cd apps/vdn-static`
-1. Now, to run the site, use `turbo dev`. This will set up watchers to build all libraries used by the frontend, as well as hot-refreshing the site as changes are made to it.
+1. To run the site, use `turbo dev`. This will set up watchers to build all libraries used by the frontend, as well as hot-refreshing the site as changes are made to it.
 1. To view the website running locally, visit http://localhost:1224/ in your browser!
 
 ### Backend (Viossa DB)
 1. Ensure you're in the root directory of the project (`ViossaDotNet`)
-2. Move into the app's directory: `cd apps/vdb-backend`
-3. Now, to run the site, use `turbo start`. This will build all of the app's dependencies and then start the application.
-   1. **NOTE:** Backend apps are not watched/hot-refreshed like frontend apps! If you make changes, you must kill the app by spamming Ctrl+C in the terminal it is running in, before rerunning it with the changes applied.
-4. To view a sample response from the backend API, visit http://localhost:1225/sample in your browser!
-
-## The Content
-
-**What will be in the site?**
+1. Move into the app's directory: `cd apps/vdb-backend`
+1. To run the site, use `turbo start`. This will build all of the app's dependencies and then start the application.
+   1. **NOTE:** Backend apps are not watched/hot-refreshed like frontend apps! If you make changes, you must kill the app and re-run it to apply changes.
+1. To view a sample response from the backend API, visit http://localhost:1225/sample in your browser!
 
 [Visit the GitHub Issues page for this repository.](https://github.com/ViossaDiskordServer/ViossaDotNet/issues)

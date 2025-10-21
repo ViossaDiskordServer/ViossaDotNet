@@ -3,10 +3,12 @@ import type { RouteRecordRaw } from "vue-router";
 
 import HomePage from "@/components/pages/HomePage.vue";
 import ResourcesPage from "@/components/pages/ResourcesPage.vue";
+import KotobaPage from "@/components/pages/KotobaPage.vue";
 
 const routes: RouteRecordRaw[] = [
 	{ path: "/", name: "Home", component: HomePage },
 	{ path: "/resources", name: "Resources", component: ResourcesPage },
+	{ path: "/kotoba", name: "Kotoba", component: KotobaPage },
 	// {
 	//   path: '/:pathMatch(.*)*',  // Vue Router 4 catch-all for 404s
 	//   name: 'NotFound',

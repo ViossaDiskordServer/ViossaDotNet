@@ -2,5 +2,16 @@
 	"devDependencies": {
 		"turbo": "^2.5.4"
 	},
-	"packageManager": "pnpm@10.11.0"
+	"packageManager": "pnpm@10.11.0",
+	"scripts": {
+		"build:vdb-backend": "npm run build -w apps/vdb-backend",
+		"build:vdn-static": "npm run build -w apps/vdn-static",
+		"run:dev:vdb-backend": "npm run dev -w apps/vdb-backend",
+		"run:dev:vdn-static": "npm run dev -w apps/vdn-static",
+		"run:dev:all": "run-p run:dev:vdb-backend run:dev:vdn-static"
+	},
+	"workspaces": [
+		"apps/vdb-backend",
+		"apps/vdn-static"
+	]
 }

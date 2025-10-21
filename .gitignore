@@ -23,4 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
+# Secrets
+*.secret*
 .turbo
+*.sqlite
