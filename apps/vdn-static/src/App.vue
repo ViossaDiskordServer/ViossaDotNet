@@ -56,7 +56,7 @@ const closeBurger = (): void => {
 					<RouterLink class="navbar-item" to="/kotoba">
 						Kotoba
 					</RouterLink>
-					<LocalePicker />
+					<LocalePicker class="navbar-item"/>
 				</div>
 			</div>
 		</nav>

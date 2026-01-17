@@ -5,13 +5,13 @@
 		</section>
 
 		<section class="section container">
-			<input type="text" name="text" id="aaa">
+			<p class="notification">
+				⚠under construction :3⚠
+			</p>
 		</section>
 	</div>
 </template>
 
-<!--  -->
-
-<script setup lang="ts">
+<script lang="ts">
 
 </script>
