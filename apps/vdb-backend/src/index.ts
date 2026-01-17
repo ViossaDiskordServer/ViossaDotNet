@@ -59,17 +59,13 @@ function initExpress() {
 			await Lemma.find({ relations: { word_forms: { lect: true } } })
 		).filter((e) => {
 			for (const wf of e.word_forms) {
-				if (wf.word_form.includes(search_term)) {
-					return true;
-				}
+				return wf.word_form.includes(search_term);
 			}
 		});
 
-		const lects = await Lect.find();
 		res.status(200).send({
 			terms: lemmas.length,
-			results: lemmas,
-			lects: lects,
+			results: lemmas
 		});
 	});
 
@@ -101,6 +97,8 @@ function initExpress() {
 	});
 }
 
+
+//todo: redo this without using google sheets; instead, use a local CSV or like.
 /**
  * @param auth The authenticated Google OAuth client.
  */

@@ -13,7 +13,7 @@ defineProps<{
 		<template v-if="reverse">
 			<div class="column">
 				<h2 class="title is-4">{{ title }}</h2>
-				<p class="has-text-white">{{ text }}</p>
+				<p>{{ text }}</p>
 			</div>
 			<div class="column is-one-quarter" v-if="image">
 				<figure class="image">
@@ -30,7 +30,7 @@ defineProps<{
 			</div>
 			<div class="column">
 				<h2 class="title is-4">{{ title }}</h2>
-				<p class="has-text-white">{{ text }}</p>
+				<p>{{ text }}</p>
 			</div>
 		</template>
 	</div>
