@@ -6,6 +6,9 @@ import fs from 'fs';
 ;import { appDataSource } from "./config/dbconfig.js";
 import { Lemma, WordForm, Lect } from "./db/dbmodel.js";
 import "@total-typescript/ts-reset";
+import {
+	Like
+} from "typeorm";
 
 const RELOAD_SHEET_ON_START = false;
 const SOURCE_FILE = 'res/sample.tsv'
@@ -40,13 +43,12 @@ function initExpress() {
 			return void res.sendStatus(400);
 		}
 
-		const lemmas: Lemma[] = (
-			await Lemma.find({ relations: { word_forms: { lect: true } } })
-		).filter((e) => {
-			for (const wf of e.word_forms) {
-				return wf.word_form.includes(search_term);
-			}
+		const word_forms: WordForm[] = await WordForm.find({
+			where:{word_form: Like(`%${search_term}%`)},
+			relations: { lemma: { word_forms: { lect: true }} }
 		});
+
+		const lemmas = word_forms.map(w=>w.lemma);
 
 		res.status(200).send({
 			terms: lemmas.length,
