@@ -7,7 +7,7 @@ import fs from 'fs';
 import { Lemma, WordForm, Lect } from "./db/dbmodel.js";
 import "@total-typescript/ts-reset";
 import {
-	Like
+	Like, In
 } from "typeorm";
 
 const RELOAD_SHEET_ON_START = false;
@@ -45,10 +45,15 @@ function initExpress() {
 
 		const word_forms: WordForm[] = await WordForm.find({
 			where:{word_form: Like(`%${search_term}%`)},
-			relations: { lemma: { word_forms: { lect: true }} }
+			relations: { lemma: true }
 		});
 
-		const lemmas = word_forms.map(w=>w.lemma);
+		let lemma_ids = word_forms.map(w=>w.lemma.lemma_name);
+
+		const lemmas: Lemma[] = await Lemma.find({
+			where: { lemma_name: In(lemma_ids)},
+			relations: {  word_forms: { lect: true }}
+		})
 
 		res.status(200).send({
 			terms: lemmas.length,
