@@ -7,10 +7,8 @@ import {
 	BaseEntity,
 	ManyToOne,
 	OneToMany,
-	OneToOne,
 	ManyToMany,
 	JoinTable,
-	ColumnType,
 } from "typeorm";
 
 @Entity()

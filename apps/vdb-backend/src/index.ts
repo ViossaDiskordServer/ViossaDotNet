@@ -1,21 +1,14 @@
 import "reflect-metadata";
-import fetch from "node-fetch";
 import { SAMPLE } from "@repo/common/sample";
 import express from "express";
-import { google, sheets_v4 } from "googleapis";
-import { OAuth2Client } from "google-auth-library";
-import { appDataSource } from "./config/dbconfig.js";
-import { authorize } from "./auth.js";
+import crypto from "crypto"
+import fs from 'fs';
+;import { appDataSource } from "./config/dbconfig.js";
 import { Lemma, WordForm, Lect } from "./db/dbmodel.js";
-import {
-	GoogleAuth,
-	JSONClient,
-} from "google-auth-library/build/src/auth/googleauth.js";
 import "@total-typescript/ts-reset";
 
 const RELOAD_SHEET_ON_START = false;
-
-global.fetch = fetch as any;
+const SOURCE_FILE = 'res/sample.tsv'
 
 appDataSource
 	.initialize()
@@ -23,15 +16,7 @@ appDataSource
 		initExpress();
 
 		if (RELOAD_SHEET_ON_START) {
-			const lect_repository = appDataSource.getRepository(Lect);
-			const word_form_repository = appDataSource.getRepository(WordForm);
-			const lemma_repository = appDataSource.getRepository(Lemma);
-
-			await word_form_repository.clear();
-			await lemma_repository.clear();
-			await lect_repository.clear();
-
-			authorize().then(loadSheet).catch(console.error);
+			await loadSheet();
 		}
 	})
 	.catch((error) => console.log(error));
@@ -97,42 +82,28 @@ function initExpress() {
 	});
 }
 
-
-//todo: redo this without using google sheets; instead, use a local CSV or like.
-/**
- * @param auth The authenticated Google OAuth client.
- */
-async function loadSheet(auth: OAuth2Client | GoogleAuth<JSONClient>) {
+async function loadSheet() {
 	const lect_repository = appDataSource.getRepository(Lect);
 	const word_form_repository = appDataSource.getRepository(WordForm);
 	const lemma_repository = appDataSource.getRepository(Lemma);
-	const options: sheets_v4.Options = { version: "v4", auth };
-	const sheets = google.sheets(options);
-	const res = await sheets.spreadsheets.values.get({
-		spreadsheetId: "1-YkCeynx_-KYdubvt14augSPo37_20YgUv_f-i8HVwY",
-		range: "al_ko_mit_govor",
-	});
 
-	const rows = res.data.values;
+	await word_form_repository.clear();
+	await lemma_repository.clear();
+	await lect_repository.clear();
 
-	const keys_res = await sheets.spreadsheets.values.get({
-		spreadsheetId: "1-YkCeynx_-KYdubvt14augSPo37_20YgUv_f-i8HVwY",
-		range: "klucz",
-	});
-
-	const keys = keys_res.data.values;
+		
+	const rawData: string = fs.readFileSync(SOURCE_FILE, 'utf8');
+	const rows: string[] = rawData.split('\n');
 
 	if (!rows || rows.length === 0) {
 		console.error("No data found.");
 		return;
 	}
 
-	if (!keys || keys.length === 0) {
-		console.error("No lemma keys found.");
-		return;
-	}
+	const lects = rows.shift()?.split('\t');
 
-	const lects = rows.shift();
+	const keys = rows.map(row=>row.split('\t')[0]?.split(';')[0]);
+	console.log(keys);
 
 	if (keys.length != rows.length) {
 		console.error("Lemma count doesn't match number of rows.");
@@ -154,9 +125,10 @@ async function loadSheet(auth: OAuth2Client | GoogleAuth<JSONClient>) {
 	const nikolect = lects.indexOf("Nikomiko");
 	const lemmas = Array<Lemma>();
 	for (let i = 0; i < rows.length; i++) {
-		const row = rows[i];
+		const row = rows[i]?.split('\t');
 
-		const lemma_key = keys[i]?.[0];
+		// todo
+		const lemma_key = null;
 		const lemma = new Lemma();
 
 		if (lemma_key == null || lemma_key.length == 0) {
@@ -172,7 +144,7 @@ async function loadSheet(auth: OAuth2Client | GoogleAuth<JSONClient>) {
 		lemmas.push(lemma);
 		lemma.word_forms = Array<WordForm>();
 
-		for (let i = 0; i < rows.length; i++) {
+		for (let i = 0; i < row.length; i++) {
 			const cell = row?.[i];
 			if (
 				cell === null ||
@@ -186,7 +158,6 @@ async function loadSheet(auth: OAuth2Client | GoogleAuth<JSONClient>) {
 				const f = new WordForm();
 				f.word_form = word_form;
 				f.lect = lects[i];
-				//console.log(f);
 				lemma.word_forms.push(f);
 			}
 		}
