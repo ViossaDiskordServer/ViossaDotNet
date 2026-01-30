@@ -8,6 +8,7 @@ import { Lemma, WordForm, Lect } from "./db/dbmodel.js";
 import "@total-typescript/ts-reset";
 
 const RELOAD_SHEET_ON_START = false;
+const SOURCE_FILE = 'res/sample.tsv'
 
 appDataSource
 	.initialize()
@@ -91,7 +92,7 @@ async function loadSheet() {
 	await lect_repository.clear();
 
 		
-	const rawData: string = fs.readFileSync('res/sample.tsv', 'utf8');
+	const rawData: string = fs.readFileSync(SOURCE_FILE, 'utf8');
 	const rows: string[] = rawData.split('\n');
 
 	if (!rows || rows.length === 0) {

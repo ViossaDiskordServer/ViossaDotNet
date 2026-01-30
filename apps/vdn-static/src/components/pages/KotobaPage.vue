@@ -6,7 +6,7 @@
 
 		<section class="section container">
 			<p class="notification">
-				⚠under construction :3⚠
+				⚠ Under construction :3 ⚠
 			</p>
 		</section>
 	</div>
