@@ -91,6 +91,7 @@ async function loadSheet() {
 	await lemma_repository.clear();
 	await lect_repository.clear();
 
+		
 	const rawData: string = fs.readFileSync(SOURCE_FILE, 'utf8');
 	const rows: string[] = rawData.split('\n');
 
