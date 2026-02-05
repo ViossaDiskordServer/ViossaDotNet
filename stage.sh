@@ -8,5 +8,5 @@
 
 SOURCE_DIR=$1
 
-cd "$1"|| { echo "Can't cd 😓"; exit; } 
-git fetch --all && git branch "backup-$(date +'%s')" && git reset --hard origin/main && npx turbo build
+cd "$1" || { echo "Can't cd 😓 - code $?"; exit; } 
+git fetch --all && git branch "backup-$(date +'%s')" && git checkout -f origin/main && npx turbo build
