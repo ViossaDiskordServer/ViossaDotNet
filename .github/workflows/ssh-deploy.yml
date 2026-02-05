@@ -1,4 +1,4 @@
-name: SSH Deploy
+name: SSH Deploy Staged
 
 on:
     push:
@@ -20,4 +20,4 @@ jobs:
             - name: SSH and run deployment script
               run: |
                   ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-                  'cd ${{ secrets.SOURCE_DIR }} && git pull && sh ./deploy.sh ${{ secrets.SOURCE_DIR }} ${{ secrets.HTML_DIR }}'
+                  'sh ./stage.sh'
