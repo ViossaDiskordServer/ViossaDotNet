@@ -107,7 +107,7 @@ async function loadSheet() {
 		return;
 	}
 
-	const lects = rows.shift()?.split('\t');
+	const lect_names = rows.shift()?.split('\t');
 
 	const keys = rows.map(row=>row.split('\t')[0]?.split(';')[0]);
 	console.log(keys);
@@ -117,25 +117,44 @@ async function loadSheet() {
 		return;
 	}
 
-	if (!lects) {
+	if (!lect_names) {
 		console.error("No lects found");
 		return;
 	}
 
-	for (const lect of lects) {
+	const lects = Array<Lect>();
+
+	for (const lect of lect_names) {
 		let l = new Lect();
 		l.name = lect;
 		l.save();
+		lects.push(l)
 		console.log(l);
 	}
 
-	const nikolect = lects.indexOf("Nikomiko");
 	const lemmas = Array<Lemma>();
+
 	for (let i = 0; i < rows.length; i++) {
 		const row = rows[i]?.split('\t');
+		const lect_name = lect_names[i];
 
-		// todo
-		const lemma_key = null;
+		if(!lect_name){
+			console.error("No lect name");
+			break;
+		}
+
+		if(!row){
+			console.error("Row doesn't exist");
+			continue;
+		}
+		
+		if(row.length !== lect_names.length){
+			console.error("Mismatched row size");
+			continue;
+		}
+
+		const lemma_key = row[0];
+
 		const lemma = new Lemma();
 
 		if (lemma_key == null || lemma_key.length == 0) {
@@ -151,12 +170,15 @@ async function loadSheet() {
 		lemmas.push(lemma);
 		lemma.word_forms = Array<WordForm>();
 
-		for (let i = 0; i < row.length; i++) {
-			const cell = row?.[i];
+		for (let j = 0; j < row.length; j++) {
+			const cell = row?.[j];
+			const lect = lects[j];
+
 			if (
 				cell === null ||
 				cell === undefined ||
-				(typeof cell === "string" && cell.length === 0)
+				(typeof cell === "string" && cell.length === 0) ||
+				!lect
 			) {
 				continue;
 			}
@@ -164,7 +186,7 @@ async function loadSheet() {
 			for (let word_form of cell.split(";")) {
 				const f = new WordForm();
 				f.word_form = word_form;
-				f.lect = lects[i];
+				f.lect = lect;
 				lemma.word_forms.push(f);
 			}
 		}
