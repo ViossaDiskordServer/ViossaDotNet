@@ -1,6 +1,9 @@
-name: SSH Deploy to production
+name: SSH Deploy to staging
 
-on: workflow_dispatch
+on:
+    push:
+        branches:
+            - main
 
 jobs:
     remote-update:
@@ -14,7 +17,7 @@ jobs:
                   chmod 600 ~/.ssh/id_ed25519
                   ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-            - name: SSH and run deployment script
+            - name: SSH and run staging script
               run: |
                   ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-                  'sh "${{ secrets.SOURCE_PATH }}"/deploy.sh "${{ secrets.SOURCE_PATH }}" "${{ secrets.STATIC_PATH }}" "${{ secrets.BACKEND_PATH }}"'
+                  'sh "${{ secrets.SOURCE_PATH }}"/stage.sh "${{ secrets.SOURCE_PATH }}"'
