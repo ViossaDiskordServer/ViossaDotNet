@@ -8,8 +8,8 @@
 
 SOURCE_DIR=$1
 
-npm i -g pnpm && pnpm setup || { echo "Can't npm 😓 - code $?"; exit; } 
+npm i -g pnpm && pnpm setup && pnpm i -g turbo || { echo "Can't install node dependencies 😓 - code $?"; exit; } 
 cd "$SOURCE_DIR" || { echo "Can't cd 😓 - code $?"; exit; } 
 git fetch --all && git branch "backup-$(date +'%s')" \
 && git checkout -f origin/main \
-&& pnpm i && turbo build
+&& pnpm i && npx turbo build

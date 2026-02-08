@@ -15,7 +15,7 @@ npm i -g pnpm && pnpm setup || { echo "Can't npm 😓 - code $?"; exit; }
 which pm2 || pnpm i pm2 -g  || { echo "😓 PM2 missing and can't install - run 'pnpm i pm2 -g'  code $?"; exit; } 
 cd $SOURCE_DIR || { echo "😓 can't cd - code $?"; exit; } 
 pnpm i || { echo "😓 can't pnpm i - $?"; exit; } 
-turbo build || { echo "😓 build failed - code $?"; exit; } 
+npx turbo build || { echo "😓 build failed - code $?"; exit; } 
 
 mkdir -p $STATIC_DIR || { echo "😓 Can't mkdir $STATIC_DIR  - code $?"; exit; } 
 mkdir -p $BACKEND_DIR || { echo "😓 Can't mkdir $BACKEND_DIR - code $?"; exit; } 
