@@ -17,4 +17,4 @@ jobs:
             - name: SSH and run deployment script
               run: |
                   ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-                  'sh "${{ secrets.SOURCE_PATH }}"/deploy.sh "${{ secrets.SOURCE_PATH }}" "${{ secrets.STATIC_PATH }}" "${{ secrets.BACKEND_PATH }}"'
+                  'source ~/.bashrc && sh "${{ secrets.SOURCE_PATH }}"/deploy.sh "${{ secrets.SOURCE_PATH }}" "${{ secrets.STATIC_PATH }}" "${{ secrets.BACKEND_PATH }}"'

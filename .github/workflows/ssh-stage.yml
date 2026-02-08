@@ -20,4 +20,4 @@ jobs:
             - name: SSH and run staging script
               run: |
                   ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-                  'sh "${{ secrets.SOURCE_PATH }}"/stage.sh "${{ secrets.SOURCE_PATH }}"'
+                  'source ~/.bashrc && sh "${{ secrets.SOURCE_PATH }}"/stage.sh "${{ secrets.SOURCE_PATH }}"'
