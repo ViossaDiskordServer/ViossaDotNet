@@ -8,5 +8,8 @@
 
 SOURCE_DIR=$1
 
-cd "$1" || { echo "Can't cd 😓 - code $?"; exit; } 
-git fetch --all && git branch "backup-$(date +'%s')" && git checkout -f origin/main && turbo build
+npm i -g pnpm && pnpm setup || { echo "Can't npm 😓 - code $?"; exit; } 
+cd "$SOURCE_DIR" || { echo "Can't cd 😓 - code $?"; exit; } 
+git fetch --all && git branch "backup-$(date +'%s')" \
+&& git checkout -f origin/main \
+&& pnpm i && turbo build
