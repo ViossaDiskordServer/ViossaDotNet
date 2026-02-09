@@ -1,12 +1,16 @@
 import en_US from "../locales/en_US";
 import vp_VL from "../locales/vp_VL";
+import wp_VL from "../locales/wp_VL";
 import { computed, readonly, ref } from "vue";
 import type { Locale } from "./locale";
 
-export const LOCALE_IDS = ["en_US", "vp_VL"] as const;
+export const LOCALE_IDS = ["en_US", "vp_VL", "wp_VL"] as const;
 export type LocaleId = (typeof LOCALE_IDS)[number];
 
-const locales = { en_US, vp_VL } as const satisfies Record<LocaleId, Locale>;
+const locales = { en_US, vp_VL, wp_VL } as const satisfies Record<
+	LocaleId,
+	Locale
+>;
 
 export const localeId = ref<LocaleId>("en_US");
 
