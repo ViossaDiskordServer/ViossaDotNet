@@ -19,7 +19,7 @@ const locale = useLocale();
 
 		<section class="section container">
 			<HomeSectionWrapper
-				v-for="(section, index) in localizeLayout(locale.home)"
+				v-for="(section, index) in localizeLayout(locale.home.layout)"
 				:key="index"
 				:title="section.title"
 				:text="section.text"

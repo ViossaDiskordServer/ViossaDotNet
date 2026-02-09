@@ -1,12 +1,24 @@
 export interface Locale {
 	localeName: string;
-	home: Layout<HomeSections>;
-	resources: Layout<Resources>;
+	navbar: Navbar;
+	home: HomePage;
+	resources: ResourcesPage;
+	kotoba: KotobaPage;
 }
 
 export interface Layout<T> {
-	layout: (keyof T)[] | null;
-	data: { [K in keyof T]: T[K] | null };
+	order: (keyof T)[];
+	data: { [K in keyof T]: T[K] };
+}
+
+export interface Navbar {
+	whatIsViossa: string;
+	resources: string;
+	kotoba: string;
+}
+
+export interface HomePage {
+	layout: Layout<HomeSections>;
 }
 
 export interface HomeSections {
@@ -20,6 +32,11 @@ export interface HomeSection {
 	text: string;
 	image: string | null;
 	alt: string | null;
+}
+
+export interface ResourcesPage {
+	title: string;
+	layout: Layout<Resources>;
 }
 
 export interface Resources {
@@ -36,4 +53,9 @@ export interface Resource {
 	alt: string;
 	joinText: string;
 	rulesText: string;
+}
+
+export interface KotobaPage {
+	title: string;
+	searchHelp: string;
 }

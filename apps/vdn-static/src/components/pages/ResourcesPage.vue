@@ -9,12 +9,14 @@ const locale = useLocale();
 <template>
 	<div>
 		<section class="section">
-			<h1 class="title">Learning Resources</h1>
+			<h1 class="title">{{ locale.resources.title }}</h1>
 		</section>
 
 		<section class="section container">
 			<LearningResourceWrapper
-				v-for="(resource, index) in localizeLayout(locale.resources)"
+				v-for="(resource, index) in localizeLayout(
+					locale.resources.layout,
+				)"
 				:key="index"
 				:title="resource.title"
 				:subtitle="resource.subtitle"
