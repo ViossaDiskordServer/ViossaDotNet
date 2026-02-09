@@ -11,6 +11,7 @@ STATIC_DIR=$2
 BACKEND_DIR=$3
 
 pwd
+source ~/.bashrc # make sure NPM commands etc are available
 npm i -g pnpm && pnpm setup 
 which pm2 || pnpm i pm2 -g
 cd $SOURCE_DIR
