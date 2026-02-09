@@ -30,7 +30,12 @@ export interface UseLocaleOptions {
 }
 
 function isObject(value: unknown) {
-	return value !== null && typeof value === "object";
+	return typeof value === "object" && value !== null;
+}
+
+function deepReadonly<T>(value: T): DeepReadonly<T> {
+	// SAFETY: we're just making an immutable view to the type, this isn't dangerous
+	return value as DeepReadonly<T>;
 }
 
 function fallbackProxy<T extends object>(
@@ -40,8 +45,9 @@ function fallbackProxy<T extends object>(
 	const proxy = new Proxy(fallback, {
 		get: (_target, key): DeepReadonly<T[keyof T]> => {
 			// SAFETY: typescript should ensure we're only ever trying to access keys
-			// 		   that exist on T, and if the key doesn't, we'll be returning undefined anyway
-			//         which is the expected behavior.
+			// 		   that exist on T, and if the key doesn't,
+			//         just process its fallback as if it did,
+			//         everything should work as expected still
 			const tKey = key as keyof T;
 
 			// value may not exist on mask
@@ -54,26 +60,29 @@ function fallbackProxy<T extends object>(
 			// it may still have missing properties.
 			// this only handles the case where the current value is undefined, not nested ones.
 			// thus, `finalValue` is still a `DeepPartial<T[keyof T]>` (but not undefined)
-			const finalValue: DeepPartial<T[keyof T]> =
+			const finalValue: DeepPartial<T>[keyof T] =
 				value === undefined ? fallbackValue : value;
 
-			// check if finalValue or fallbackValue is not an object
-			// (we can't deep proxy unless both of them are objects)
-			if (!isObject(finalValue) || !isObject(fallbackValue)) {
-				// SAFETY: finalValue is not an object,
-				// 		   so `DeepPartial<typeof finalValue>` == `typeof finalValue`
-				//         (it is a primitive type)
-				//         then we apply DeepReadonly to disallow mutations and to satisfy
-				//         the return type of this getter function
-				return finalValue as DeepReadonly<T[keyof T]>;
+			// check if finalValue is not an object
+			// if not, it is a primitive
+			if (!isObject(finalValue)) {
+				// SAFETY: finalValue is not an object, so it is not affected by DeepPartial
+				// 		   so `DeepPartial<T>[keyof T]` is the same as `T[keyof T]`
+				return deepReadonly(finalValue as T[keyof T]);
+			}
+
+			// else, finalValue is an object, so we need to proxy it as well
+
+			// check if fallbackValue is an object so that it can be used as finalValue's fallback
+			if (!isObject(fallbackValue)) {
+				// if not, we can't use finalValue as we'll have no fallback for it.
+				// send the fallbackValue no matter what instead
+				return deepReadonly(fallbackValue);
 			}
 
 			// else, proxy the returned object to support deep fallback proxying
 			return fallbackProxy<T[keyof T] & object>(
-				// SAFETY: we validate that finalValue is an object above.
-				// 		   I don't know why TypeScript isn't narrowing the type for us
-				//		   based on that predicate, but oh well
-				finalValue as DeepPartial<T[keyof T]> & object,
+				finalValue,
 				fallbackValue,
 			);
 		},
@@ -82,7 +91,6 @@ function fallbackProxy<T extends object>(
 		},
 	});
 
-	// SAFETY: we're just disallowing mutations to the proxy,
-	// 	       since its setter panics if used at runtime
-	return proxy as DeepReadonly<T>;
+	// we're just disallowing mutations to the proxy, since its setter panics if used at runtime
+	return deepReadonly(proxy);
 }
