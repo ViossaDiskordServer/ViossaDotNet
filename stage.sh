@@ -10,8 +10,9 @@ SOURCE_DIR=$1
 
 
 source ~/.bashrc # make sure NPM commands etc are available 
-npm i -g pnpm && pnpm setup && pnpm i -g turbo
 cd "$SOURCE_DIR"
-git fetch --all && git branch "backup-$(date +'%s')" \
-&& git checkout -f origin/main \
-&& pnpm i && npx turbo build
+git fetch --all && git branch "backup-$(date +'%s')" 
+
+npm i -g pnpm && pnpm setup && pnpm i -g turbo \
+	&& git checkout -f origin/main \
+	&& pnpm i && npx turbo build
