@@ -11,12 +11,11 @@ STATIC_DIR=$2
 BACKEND_DIR=$3
 
 pwd
-source ~/.bashrc # make sure NPM commands etc are available
 npm i -g pnpm && pnpm setup 
-which pm2 || pnpm i pm2 -g
+pnpm i -g pm2
 cd $SOURCE_DIR
 pnpm i
-npx turbo build
+turbo build
 
 mkdir -p $STATIC_DIR
 mkdir -p $BACKEND_DIR
