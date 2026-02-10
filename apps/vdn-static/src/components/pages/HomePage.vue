@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import HomeSectionWrapper from "@/components/molecules/HomeSectionWrapper.vue";
 import { useLocale } from "@/i18n";
+import { GREETINGS, type Greeting } from "@/i18n/greeting";
 import { localizeLayout } from "@/utils/localizeLayout";
+import { randomElement } from "@/utils/random";
 
 const locale = useLocale();
+const greeting: Greeting = randomElement(GREETINGS);
 </script>
 
 <template>
 	<div>
 		<section class="hero is-primary">
 			<div class="hero-body">
-				<div class="title">BRÅTULA VIOSSA.NET MÅDE</div>
-				<div class="subtitle">
-					Hadjiplas per lera para Viossa – glossa fu vi
-				</div>
+				<div class="title">{{ greeting.title }}</div>
+				<div class="subtitle">{{ greeting.subtitle }}</div>
 			</div>
 		</section>
 
