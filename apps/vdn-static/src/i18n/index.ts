@@ -1,20 +1,50 @@
 import en_US from "../locales/en_US";
 import vp_VL from "../locales/vp_VL";
 import wp_VL from "../locales/wp_VL";
-import { computed, readonly, ref, type DeepReadonly } from "vue";
+import { computed, readonly, type DeepReadonly } from "vue";
 import type { Locale } from "./locale";
 import type { DeepPartial } from "@/utils/deep-partial";
+import { useLocalStorage } from "@vueuse/core";
+import { type } from "arktype";
 
 export const LOCALE_IDS = ["en_US", "vp_VL", "wp_VL"] as const;
-export type LocaleId = (typeof LOCALE_IDS)[number];
+
+export type LocaleId = typeof LocaleId.infer;
+export const LocaleId = type.enumerated(...LOCALE_IDS);
+
+export const DEFAULT_LOCALE_ID = "en_US" satisfies LocaleId;
 
 const locales = { en_US, vp_VL, wp_VL } as const satisfies {
 	en_US: Locale;
-} & Record<Exclude<LocaleId, "en_US">, DeepPartial<Locale>>;
+} & Record<Exclude<LocaleId, typeof DEFAULT_LOCALE_ID>, DeepPartial<Locale>>;
 
-export const localeId = ref<LocaleId>("en_US");
+// users could manually edit localStorage to make this value anything, so we need to validate it
+const localStorageLocaleId = useLocalStorage<unknown>(
+	"localeId",
+	DEFAULT_LOCALE_ID,
+);
 
-export function useLocale(opt: UseLocaleOptions = {}) {
+export const localeId = computed({
+	get: (): LocaleId => {
+		const localeIdRes = LocaleId(localStorageLocaleId.value);
+		if (localeIdRes instanceof type.errors) {
+			// if invalid LocaleId, reset to default
+			localStorageLocaleId.value = DEFAULT_LOCALE_ID;
+			return DEFAULT_LOCALE_ID;
+		}
+
+		// else return user's selection
+		const localeId = localeIdRes;
+		return localeId;
+	},
+	// custom setter to ensure it is only set to a valid LocaleId by our code
+	// (since the localStorage ref is typed as `unknown`, it can be set to any value)
+	set: (id: LocaleId) => {
+		localStorageLocaleId.value = id;
+	},
+});
+
+export const useLocale = (opt: UseLocaleOptions = {}) => {
 	const locale = computed<DeepReadonly<Locale>>(() => {
 		return fallbackProxy<Locale>(
 			locales[opt.locale ?? localeId.value],
@@ -23,7 +53,7 @@ export function useLocale(opt: UseLocaleOptions = {}) {
 	});
 
 	return readonly(locale);
-}
+};
 
 export interface UseLocaleOptions {
 	locale?: LocaleId;
