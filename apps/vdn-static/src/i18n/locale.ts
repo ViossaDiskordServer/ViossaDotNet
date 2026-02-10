@@ -1,5 +1,8 @@
+import type { VilanticId } from "./vilantic";
+
 export interface Locale {
 	localeName: string;
+	vilanticLangs: VilanticLangs;
 	navbar: Navbar;
 	home: HomePage;
 	resources: ResourcesPage;
@@ -10,6 +13,8 @@ export interface Layout<T> {
 	order: (keyof T)[];
 	data: { [K in keyof T]: T[K] };
 }
+
+export type VilanticLangs = Record<VilanticId, string>;
 
 export interface Navbar {
 	whatIsViossa: string;

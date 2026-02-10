@@ -5,6 +5,7 @@ import type { DeepPartial } from "@/utils/deep-partial";
 
 export default {
 	localeName: "wodox",
+	vilanticLangs: { viossa: "viosox", wodox: "wodox" },
 	navbar: {
 		whatIsViossa: "viosox e ano?",
 		resources: "tropos",
