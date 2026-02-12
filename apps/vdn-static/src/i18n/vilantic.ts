@@ -1,7 +1,7 @@
 import viossaFlag from "@/assets/flag_vp.webp";
 import wodoxFlag from "@/assets/flag_wp.webp";
 
-export type VilanticId = "viossa" | "wodox";
+export type VilanticId = "viossa" | "wodox" | "minemiaha";
 
 export const VILANTIC_ID_TO_FLAG = {
 	viossa: viossaFlag,
