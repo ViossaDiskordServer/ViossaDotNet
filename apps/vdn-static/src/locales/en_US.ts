@@ -44,7 +44,7 @@ export default {
 					title: "Discord Server",
 					subtitle:
 						"This is where most of the action happens! Hop on in!",
-					desc: "Originally started in 2015 something something read the rules here, then click the link below to join!",
+					desc: "Viossa Diskordserver (VDS) was founded in 2016, as the successor to the original Viossa chat on Skype, since then it has grown to have over 6,000 members. Via the buttons, please read the rules and then join the server!",
 					link: "https://discord.gg/g3mG2gYjZD",
 					rulesLink: "https://viossadiskordserver.github.io/rules",
 					image: discordImg,
