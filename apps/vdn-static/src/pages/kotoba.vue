@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { useLocale } from '@/i18n';
+import { useLocale } from "@/i18n";
 
 const locale = useLocale();
 </script>
-
 
 <template>
 	<div>
@@ -17,14 +16,10 @@ const locale = useLocale();
 			</div>
 
 			<div class="block is-flex is-flex-direction-row is-gap-2">
-				<input class="input" type="text"></input>
+				<input class="input" type="text" />
 			</div>
 
-
-			<div class="container">
-
-			</div>
-
+			<div class="container"></div>
 		</section>
 	</div>
 </template>

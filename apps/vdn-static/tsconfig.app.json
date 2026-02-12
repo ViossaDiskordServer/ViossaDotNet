@@ -12,14 +12,20 @@
     "noUncheckedIndexedAccess": true,
     "module": "esnext",
     "moduleResolution": "bundler",
-    "baseUrl": ".",
+    "rootDir": "src",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ]
     },
   },
+  "vueCompilerOptions": {
+    "strictTemplates": true,
+  },
   "include": [
-    "src"
+    "src",
+  ],
+  "exclude": [
+    "./eslint.config.js"
   ]
 }

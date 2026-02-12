@@ -4,6 +4,8 @@ import { ref, type Ref } from "vue";
 import LocalePicker from "./components/organisms/LocalePicker.vue";
 import { vOnClickOutside } from "@vueuse/components";
 import { useLocale } from "./i18n";
+import { RouterLink, useRouter } from "vue-router";
+import SmartLink from "./components/organisms/SmartLink.vue";
 
 const burgerOpen: Ref<boolean> = ref<boolean>(false);
 
@@ -16,6 +18,11 @@ const closeBurger = (): void => {
 };
 
 const locale = useLocale();
+
+const router = useRouter();
+router.beforeEach(() => {
+	closeBurger();
+});
 </script>
 
 <template>
@@ -44,21 +51,15 @@ const locale = useLocale();
 
 			<div :class="`navbar-menu ${burgerOpen ? 'is-active' : ''}`">
 				<div class="navbar-start">
-					<RouterLink
-						class="navbar-item"
-						to="/"
-						@click="closeBurger()"
-						>{{ locale.navbar.whatIsViossa }}</RouterLink
-					>
-					<RouterLink
-						class="navbar-item"
-						to="/resources"
-						@click="closeBurger()"
-						>{{ locale.navbar.resources }}</RouterLink
-					>
-					<RouterLink class="navbar-item" to="/kotoba">
+					<SmartLink class="navbar-item" internal to="/">{{
+						locale.navbar.whatIsViossa
+					}}</SmartLink>
+					<SmartLink class="navbar-item" internal to="/resources">{{
+						locale.navbar.resources
+					}}</SmartLink>
+					<SmartLink class="navbar-item" internal to="/kotoba">
 						{{ locale.navbar.kotoba }}
-					</RouterLink>
+					</SmartLink>
 					<LocalePicker class="navbar-item" />
 				</div>
 			</div>
