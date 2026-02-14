@@ -2,12 +2,23 @@
 import HomeSectionWrapper from "@/components/molecules/HomeSectionWrapper.vue";
 import { useLocale } from "@/i18n";
 import { GREETINGS, type Greeting } from "@/i18n/greeting";
+import type { Locale } from "@/i18n/locale";
 import { VILANTIC_ID_TO_FLAG } from "@/i18n/vilantic";
-import { localizeLayout } from "@/utils/localizeLayout";
 import { randomElement } from "@/utils/random";
+import { computed } from "vue";
 
 const locale = useLocale();
 const greeting: Greeting = randomElement(GREETINGS);
+
+const SECTION_ORDER = [
+	"whatIsViossa",
+	"historyOfViossa",
+	"community",
+] as const satisfies (keyof Locale["home"]["sections"])[];
+
+const sections = computed(() =>
+	SECTION_ORDER.map((id) => locale.value.home.sections[id]),
+);
 </script>
 
 <template>
@@ -34,12 +45,12 @@ const greeting: Greeting = randomElement(GREETINGS);
 
 		<section class="section container">
 			<HomeSectionWrapper
-				v-for="(section, index) in localizeLayout(locale.home.layout)"
+				v-for="(section, index) in sections"
 				:key="index"
 				:title="section.title"
 				:text="section.text"
-				:image="section.image ?? undefined"
-				:alt="section.alt ?? undefined"
+				:image="section.image?.src"
+				:alt="section.image?.alt"
 				:reverse="index % 2 !== 0" />
 		</section>
 	</div>

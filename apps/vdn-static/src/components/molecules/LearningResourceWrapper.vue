@@ -1,8 +1,47 @@
+<script setup lang="ts">
+import SmartLink, { type SmartLinkProps } from "../organisms/SmartLink.vue";
+import type { CssClass } from "@/utils/css";
+
+export interface ResourceButton {
+	label: string;
+	link: SmartLinkProps;
+	style: ResourceButtonStyle;
+}
+
+export interface ResourceButtonStyle {
+	color: "primary" | "warning";
+	outlined?: boolean;
+}
+
+function buttonStyleToClasses(style: ResourceButtonStyle): CssClass[] {
+	const colorClass = (() => {
+		switch (style.color) {
+			case "primary": {
+				return "is-primary";
+			}
+			case "warning": {
+				return "is-warning";
+			}
+		}
+	})();
+
+	return [colorClass, style.outlined && "is-outlined"];
+}
+
+defineProps<{
+	title: string;
+	subtitle: string;
+	desc: string;
+	image?: { src: string; alt: string };
+	buttons: ResourceButton[];
+}>();
+</script>
+
 <template>
 	<div class="box columns is-vcentered is-gap-4">
 		<div class="column is-one-quarter" v-if="image">
 			<figure class="image">
-				<img :src="image" :alt="alt" :title="alt" />
+				<img :src="image.src" :alt="image.alt" :title="image.alt" />
 			</figure>
 		</div>
 		<div class="column">
@@ -11,44 +50,18 @@
 			<p class="content">{{ desc }}</p>
 
 			<div class="level">
-				<a
-					:href="link"
-					target="_blank"
-					rel="noopener noreferrer nofollow"
-					class="button is-primary is-medium"
-					>{{ joinText }}</a
-				>
-
-				<a
-					:href="``"
-					target="_blank"
-					rel="noopener noreferrer nofollow"
-					class="button is-info is-outlined is-medium"
-					>{{ rulesText }}</a
-				>
-
-				<a
-					:href="rulesLink"
-					target="_blank"
-					rel="noopener noreferrer nofollow"
-					class="button is-warning is-outlined is-medium"
-					>{{ rulesText }}</a
+				<SmartLink
+					v-for="(button, index) in buttons"
+					:key="index"
+					v-bind="button.link"
+					:class="[
+						'button',
+						'is-medium',
+						buttonStyleToClasses(button.style),
+					]"
+					>{{ button.label }}</SmartLink
 				>
 			</div>
 		</div>
 	</div>
 </template>
-
-<script setup lang="ts">
-defineProps({
-	title: String,
-	subtitle: String,
-	desc: String,
-	link: String,
-	rulesLink: String,
-	joinText: String,
-	rulesText: String,
-	image: { type: String, required: false },
-	alt: { type: String, required: false },
-});
-</script>

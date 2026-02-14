@@ -1,18 +1,43 @@
 <script setup lang="ts">
-import type { RouterLinkProps } from "vue-router";
-import type { RouteNamedMap } from "vue-router/auto-routes";
+import type { SmartDest, SmartInternalDest } from "../../utils/smart-dest"; // needs to be relative for vue sfc compiler
 
-defineProps<
-	Omit<RouterLinkProps, "to">
-		& (
-			| { internal: true; to: keyof RouteNamedMap }
-			| { external: true; to: `https://${string}` | `http://${string}` }
-		)
->();
+export interface SmartLinkProps {
+	to: SmartDest;
+	newTab?: boolean;
+}
+
+const props = defineProps<SmartLinkProps>();
+
+type To =
+	| { type: "a"; a: string }
+	| { type: "routerLink"; routerLink: SmartInternalDest };
+
+const to = ((): To => {
+	const { to, newTab } = props;
+	switch (to.type) {
+		case "external": {
+			return { type: "a", a: to.external };
+		}
+		case "internal": {
+			if (newTab) {
+				return { type: "a", a: to.internal };
+			}
+
+			return { type: "routerLink", routerLink: to.internal };
+		}
+	}
+})();
 </script>
 
 <template>
-	<RouterLink v-bind="$props">
+	<a
+		v-if="to.type === 'a'"
+		:href="to.a"
+		:target="newTab ? '_blank' : undefined"
+		rel="noopener noreferrer nofollow">
+		<slot />
+	</a>
+	<RouterLink v-else :to="to.routerLink">
 		<slot />
 	</RouterLink>
 </template>

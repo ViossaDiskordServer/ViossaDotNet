@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import "./assets/style.scss";
-import { ref, type Ref } from "vue";
+import { computed, ref, type Ref } from "vue";
 import LocalePicker from "./components/organisms/LocalePicker.vue";
 import { vOnClickOutside } from "@vueuse/components";
 import { useLocale } from "./i18n";
 import { RouterLink, useRouter } from "vue-router";
 import SmartLink from "./components/organisms/SmartLink.vue";
+import type { SmartDest } from "./utils/smart-dest";
+import type { Locale } from "./i18n/locale";
 
 const burgerOpen: Ref<boolean> = ref<boolean>(false);
 
@@ -23,6 +25,39 @@ const router = useRouter();
 router.beforeEach(() => {
 	closeBurger();
 });
+
+interface NavbarItem {
+	to: SmartDest;
+	label: string;
+}
+
+const NAVBAR_ITEM_ORDER = [
+	"whatIsViossa",
+	"resources",
+	"kotoba",
+] as const satisfies (keyof Locale["navbar"])[];
+
+const navbarItems = computed(() =>
+	NAVBAR_ITEM_ORDER.map((id): NavbarItem => {
+		const label = locale.value.navbar[id];
+
+		const to = ((): SmartDest => {
+			switch (id) {
+				case "whatIsViossa": {
+					return { type: "internal", internal: "/" };
+				}
+				case "resources": {
+					return { type: "internal", internal: "/resources" };
+				}
+				case "kotoba": {
+					return { type: "internal", internal: "/kotoba" };
+				}
+			}
+		})();
+
+		return { to, label };
+	}),
+);
 </script>
 
 <template>
@@ -37,7 +72,7 @@ router.beforeEach(() => {
 					><img src="@/assets/ViossaFlagRect.svg" alt=""
 				/></RouterLink>
 
-				<div class="navbar-item">
+				<div class="navbar-item is-hidden-desktop">
 					<button
 						type="button"
 						@click="toggleBurger()"
@@ -51,14 +86,12 @@ router.beforeEach(() => {
 
 			<div :class="`navbar-menu ${burgerOpen ? 'is-active' : ''}`">
 				<div class="navbar-start">
-					<SmartLink class="navbar-item" internal to="/">{{
-						locale.navbar.whatIsViossa
-					}}</SmartLink>
-					<SmartLink class="navbar-item" internal to="/resources">{{
-						locale.navbar.resources
-					}}</SmartLink>
-					<SmartLink class="navbar-item" internal to="/kotoba">
-						{{ locale.navbar.kotoba }}
+					<SmartLink
+						v-for="(item, index) in navbarItems"
+						:key="index"
+						class="navbar-item"
+						:to="item.to"
+						>{{ item.label }}
 					</SmartLink>
 					<LocalePicker class="navbar-item" />
 				</div>

@@ -34,6 +34,12 @@ export default defineConfig([
 					message: "Use SmartLink instead of RouterLink.",
 				},
 			],
+			// allow interfaces to only extend another interface without adding properties
+			// good for aliasing more complex types
+			"@typescript-eslint/no-empty-object-type": [
+				"error",
+				{ allowInterfaces: "with-single-extends" },
+			],
 		},
 	},
 	// disable multi-word-component-names for unplugin-vue-router

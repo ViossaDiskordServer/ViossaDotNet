@@ -1,6 +1,19 @@
 import type { VilanticId } from "./vilantic";
 
-export interface Locale {
+// special symbol to explicitly specify when to fallback to default (en_US) translation
+// instead of translating a specific key, which still not being marked as a missing translation.
+// can only be used on keys which are typed as being able to use a fallback.
+export const fallback: unique symbol = Symbol("fallback");
+export type Fallback = typeof fallback;
+
+type DeepRemoveFallback<T> = Exclude<
+	{ [K in keyof T]: DeepRemoveFallback<T[K]> },
+	Fallback
+>;
+
+export interface Locale extends DeepRemoveFallback<LocaleMask> {}
+
+export interface LocaleMask {
 	localeName: string;
 	vilanticLangs: VilanticLangs;
 	navbar: Navbar;
@@ -9,58 +22,55 @@ export interface Locale {
 	kotoba: KotobaPage;
 }
 
-export interface Layout<T> {
-	order: (keyof T)[];
-	data: { [K in keyof T]: T[K] };
-}
+export interface VilanticLangs extends Record<VilanticId, string> {}
 
-export type VilanticLangs = Record<VilanticId, string>;
-
-export interface Navbar {
-	whatIsViossa: string;
-	resources: string;
-	kotoba: string;
-}
+export interface Navbar
+	extends Record<"whatIsViossa" | "resources" | "kotoba", string> {}
 
 export interface HomePage {
-	layout: Layout<HomeSections>;
+	sections: HomeSections;
 }
 
-export interface HomeSections {
-	whatIsViossa: HomeSection;
-	historyOfViossa: HomeSection;
-	community: HomeSection;
-}
+export interface HomeSections
+	extends Record<
+		"whatIsViossa" | "historyOfViossa" | "community",
+		HomeSection
+	> {}
 
 export interface HomeSection {
 	title: string;
 	text: string;
-	image: string | null;
-	alt: string | null;
+	image: Image | null;
 }
 
 export interface ResourcesPage {
 	title: string;
-	layout: Layout<Resources>;
+	resources: Resources;
 }
 
 export interface Resources {
-	discord: Resource;
+	discord: Resource<"join" | "rules">;
 }
 
-export interface Resource {
+export interface Resource<ButtonKey extends string> {
 	title: string;
 	subtitle: string;
 	desc: string;
-	link: string;
-	rulesLink: string;
-	image: string;
-	alt: string;
-	joinText: string;
-	rulesText: string;
+	image: Image | null;
+	buttons: Record<ButtonKey, Button>;
 }
 
 export interface KotobaPage {
 	title: string;
 	searchHelp: string;
+}
+
+export interface Button {
+	label: string;
+}
+
+// coupled to require alt text for all images
+export interface Image {
+	src: string | Fallback; // fallback can be used if image doesn't need to be translated
+	alt: string;
 }

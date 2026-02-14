@@ -2,10 +2,15 @@ import en_US from "../locales/en_US";
 import vp_VL from "../locales/vp_VL";
 import wp_VL from "../locales/wp_VL";
 import { computed, readonly, type DeepReadonly } from "vue";
-import type { Locale } from "./locale";
-import type { DeepPartial } from "@/utils/deep-partial";
+import {
+	fallback,
+	type Fallback,
+	type Locale,
+	type LocaleMask,
+} from "./locale";
 import { useLocalStorage } from "@vueuse/core";
 import { type } from "arktype";
+import type { DeepPartial } from "@/utils/types";
 
 export const LOCALE_IDS = ["en_US", "vp_VL", "wp_VL"] as const;
 
@@ -15,8 +20,11 @@ export const LocaleId = type.enumerated(...LOCALE_IDS);
 export const DEFAULT_LOCALE_ID = "en_US" satisfies LocaleId;
 
 const locales = { en_US, vp_VL, wp_VL } as const satisfies {
-	en_US: Locale;
-} & Record<Exclude<LocaleId, typeof DEFAULT_LOCALE_ID>, DeepPartial<Locale>>;
+	[DEFAULT_LOCALE_ID]: Locale;
+} & Record<
+	Exclude<LocaleId, typeof DEFAULT_LOCALE_ID>,
+	DeepPartial<LocaleMask>
+>;
 
 // users could manually edit localStorage to make this value anything, so we need to validate it
 const localStorageLocaleId = useLocalStorage<unknown>(
@@ -68,37 +76,42 @@ function deepReadonly<T>(value: T): DeepReadonly<T> {
 	return value as DeepReadonly<T>;
 }
 
-function fallbackProxy<T extends object>(
-	mask: DeepPartial<T>,
-	fallback: T,
-): DeepReadonly<T> {
-	const proxy = new Proxy(fallback, {
-		get: (_target, key): DeepReadonly<T[keyof T]> => {
+type DeepFallbackable<T> = {
+	[K in keyof T]?: DeepFallbackable<T[K]> | Fallback;
+};
+
+function fallbackProxy<Fallback extends object>(
+	maskObj: DeepFallbackable<Fallback>,
+	fallbackObj: Fallback,
+): DeepReadonly<Fallback> {
+	type Mask = typeof maskObj;
+	const proxy = new Proxy(fallbackObj, {
+		get: (_target, rawKey): DeepReadonly<Fallback[keyof Fallback]> => {
 			// SAFETY: typescript should ensure we're only ever trying to access keys
-			// 		   that exist on T, and if the key doesn't,
+			// 		   that exist on Fallback, and if the key doesn't,
 			//         just process its fallback as if it did,
 			//         everything should work as expected still
-			const tKey = key as keyof T;
+			const key = rawKey as keyof Fallback;
 
 			// value may not exist on mask
-			const value: DeepPartial<T>[keyof T] | undefined = mask[tKey];
+			const maskValue: Mask[keyof Fallback] | undefined = maskObj[key];
 
 			// all values exist on fallback
-			const fallbackValue: T[keyof T] = fallback[tKey];
+			const fallbackValue: Fallback[keyof Fallback] = fallbackObj[key];
 
-			// this is *not* T[keyof T], because if value is an object,
-			// it may still have missing properties.
 			// this only handles the case where the current value is undefined, not nested ones.
-			// thus, `finalValue` is still a `DeepPartial<T[keyof T]>` (but not undefined)
-			const finalValue: DeepPartial<T>[keyof T] =
-				value === undefined ? fallbackValue : value;
+			// thus, `finalValue` is still deeply partial (but not undefined or Fallback)
+			const finalValue: Mask[keyof Fallback] =
+				maskValue === undefined || maskValue === fallback ?
+					fallbackValue
+				:	maskValue;
 
 			// check if finalValue is not an object
 			// if not, it is a primitive
 			if (!isObject(finalValue)) {
 				// SAFETY: finalValue is not an object, so it is not affected by DeepPartial
-				// 		   so `DeepPartial<T>[keyof T]` is the same as `T[keyof T]`
-				return deepReadonly(finalValue as T[keyof T]);
+				// 		   so `Mask[keyof Fallback]`  is the same as `Fallback[keyof Fallback]`
+				return deepReadonly(finalValue as Fallback[keyof Fallback]);
 			}
 
 			// else, finalValue is an object, so we need to proxy it as well
@@ -111,7 +124,7 @@ function fallbackProxy<T extends object>(
 			}
 
 			// else, proxy the returned object to support deep fallback proxying
-			return fallbackProxy<T[keyof T] & object>(
+			return fallbackProxy<Fallback[keyof Fallback] & object>(
 				finalValue,
 				fallbackValue,
 			);
