@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import type { SmartDest, SmartInternalDest } from "../../utils/smart-dest"; // needs to be relative for vue sfc compiler
+import type { CssClass } from "@/utils/css";
+import type { SmartDest } from "../../utils/smart-dest"; // needs to be relative for vue sfc compiler
+import { computed, ref } from "vue";
 
 export interface SmartLinkProps {
 	to: SmartDest;
 	newTab?: boolean;
+	covert?: boolean;
 }
 
 const props = defineProps<SmartLinkProps>();
 
-type To =
-	| { type: "a"; a: string }
-	| { type: "routerLink"; routerLink: SmartInternalDest };
+type To = { type: "a"; a: string } | { type: "routerLink"; routerLink: string };
 
 const to = ((): To => {
 	const { to, newTab } = props;
@@ -19,25 +20,43 @@ const to = ((): To => {
 			return { type: "a", a: to.external };
 		}
 		case "internal": {
-			if (newTab) {
-				return { type: "a", a: to.internal };
+			const { route, id } = to.internal;
+			const endpoint = `${route ?? ""}${id === undefined ? "" : `#${id}`}`;
+
+			if (newTab || id !== undefined) {
+				return { type: "a", a: endpoint };
 			}
 
-			return { type: "routerLink", routerLink: to.internal };
+			// <RouterLink> can only be used for route-only endpoints
+			// that require no other special functionality of <a>
+			return { type: "routerLink", routerLink: endpoint };
 		}
 	}
 })();
+
+const isHovered = ref(false);
+
+const classes = computed<CssClass>(() => [
+	props.covert && !isHovered.value && "has-text-text",
+]);
 </script>
 
 <template>
+	<!-- eslint-disable-next-line vue/no-restricted-html-elements - we need to at least use <a> once to create this wrapper type -->
 	<a
 		v-if="to.type === 'a'"
 		:href="to.a"
 		:target="newTab ? '_blank' : undefined"
-		rel="noopener noreferrer nofollow">
+		rel="noopener noreferrer nofollow"
+		@mouseenter="isHovered = true"
+		@mouseleave="isHovered = false"
+		:class="classes">
 		<slot />
 	</a>
-	<RouterLink v-else :to="to.routerLink">
-		<slot />
+	<!-- eslint-disable-next-line vue/no-restricted-html-elements - we need to at least use <RouterLink> once to create this wrapper type -->
+	<RouterLink v-else :to="to.routerLink" :class="classes">
+		<span @mouseenter="isHovered = true" @mouseleave="isHovered = false">
+			<slot />
+		</span>
 	</RouterLink>
 </template>

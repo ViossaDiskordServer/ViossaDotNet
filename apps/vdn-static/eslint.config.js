@@ -14,6 +14,7 @@ export default defineConfig([
 			...vue.configs["flat/essential"],
 		],
 		files: ["./src/**/*.{js,ts,vue}"],
+		plugins: { vue },
 		languageOptions: {
 			ecmaVersion: "latest",
 			sourceType: "module",
@@ -27,11 +28,11 @@ export default defineConfig([
 			},
 		},
 		rules: {
-			"vue/no-restricted-component-names": [
+			"vue/no-restricted-html-elements": [
 				"error",
 				{
-					name: "RouterLink",
-					message: "Use SmartLink instead of RouterLink.",
+					element: ["a", "RouterLink"],
+					message: "Use <SmartLink> instead",
 				},
 			],
 			// allow interfaces to only extend another interface without adding properties

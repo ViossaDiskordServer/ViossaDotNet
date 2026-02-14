@@ -1,1 +1,1 @@
-export type CssClass = string | false | null | undefined;
+export type CssClass = string | false | null | undefined | CssClass[];

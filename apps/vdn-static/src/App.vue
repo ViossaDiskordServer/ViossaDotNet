@@ -4,7 +4,7 @@ import { computed, ref, type Ref } from "vue";
 import LocalePicker from "./components/organisms/LocalePicker.vue";
 import { vOnClickOutside } from "@vueuse/components";
 import { useLocale } from "./i18n";
-import { RouterLink, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import SmartLink from "./components/organisms/SmartLink.vue";
 import type { SmartDest } from "./utils/smart-dest";
 import type { Locale } from "./i18n/locale";
@@ -44,13 +44,16 @@ const navbarItems = computed(() =>
 		const to = ((): SmartDest => {
 			switch (id) {
 				case "whatIsViossa": {
-					return { type: "internal", internal: "/" };
+					return { type: "internal", internal: { route: "/" } };
 				}
 				case "resources": {
-					return { type: "internal", internal: "/resources" };
+					return {
+						type: "internal",
+						internal: { route: "/resources" },
+					};
 				}
 				case "kotoba": {
-					return { type: "internal", internal: "/kotoba" };
+					return { type: "internal", internal: { route: "/kotoba" } };
 				}
 			}
 		})();
@@ -68,9 +71,11 @@ const navbarItems = computed(() =>
 			role="navigation"
 			aria-label="main navigation">
 			<div class="navbar-brand">
-				<RouterLink class="navbar-item has-text-weight-bold" to="/"
-					><img src="@/assets/ViossaFlagRect.svg" alt=""
-				/></RouterLink>
+				<SmartLink
+					class="navbar-item has-text-weight-bold"
+					:to="{ type: 'internal', internal: { route: '/' } }">
+					<img src="@/assets/ViossaFlagRect.svg" alt="" />
+				</SmartLink>
 
 				<div class="navbar-item is-hidden-desktop">
 					<button

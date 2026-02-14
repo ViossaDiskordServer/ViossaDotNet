@@ -20,6 +20,7 @@ export interface LocaleMask {
 	home: HomePage;
 	resources: ResourcesPage;
 	kotoba: KotobaPage;
+	discord: Discord;
 }
 
 export interface VilanticLangs extends Record<VilanticId, string> {}
@@ -73,4 +74,30 @@ export interface Button {
 export interface Image {
 	src: string | Fallback; // fallback can be used if image doesn't need to be translated
 	alt: string;
+}
+
+export interface Discord {
+	rulesPage: DiscordRulesPage;
+}
+
+export interface DiscordRulesPage {
+	title: string;
+	overview: DiscordRulesPageOverview;
+	rules: DiscordRules;
+}
+
+export interface DiscordRulesPageOverview {
+	title: string;
+	help: string;
+}
+
+export interface DiscordRules extends Record<"noTranslation", DiscordRule> {}
+
+export interface DiscordRule {
+	overview: DiscordRuleOverview;
+}
+
+export interface DiscordRuleOverview {
+	text: string;
+	subtext: string | null;
 }

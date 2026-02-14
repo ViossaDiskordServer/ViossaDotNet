@@ -40,7 +40,9 @@ const computeButtons = (
 			style: { color: "primary" },
 		},
 		{
-			link: { to: { type: "internal", internal: "/discord/rules" } },
+			link: {
+				to: { type: "internal", internal: { route: "/discord/rules" } },
+			},
 			label: buttons.rules.label,
 			style: { color: "warning", outlined: true },
 		},

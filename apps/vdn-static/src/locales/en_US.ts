@@ -46,4 +46,13 @@ export default {
 		title: "Tropos-agnostic search",
 		searchHelp: "To searcn tropos-agnostically, enter a term below.",
 	},
+	discord: {
+		rulesPage: {
+			title: "Discord Server Rules",
+			overview: {
+				title: "Overview",
+				help: "Click any rule to see details.",
+			},
+		},
+	},
 } as const satisfies Locale;
