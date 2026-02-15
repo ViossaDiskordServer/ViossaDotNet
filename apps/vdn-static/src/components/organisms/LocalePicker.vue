@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { LOCALE_IDS, localeId, useLocale, type LocaleId } from "@/i18n";
+import { LOCALE_IDS, localeId, useI18n, type LocaleId } from "@/i18n";
 import { ref } from "vue";
 import { vOnClickOutside } from "@vueuse/components";
+import DropdownItem from "../atoms/DropdownItem.vue";
+
+const i18n = useI18n();
 
 const isOpen = ref<boolean>(false);
 
@@ -29,7 +32,7 @@ const setLocaleId = (id: LocaleId): void => {
 				aria-haspopup="true"
 				aria-controls="dropdown-menu"
 				@click="toggleOpen()">
-				<span>{{ useLocale().value.localeName }}</span>
+				<span>{{ i18n.t("localeName") }}</span>
 				<span class="icon is-small">
 					<i class="fas fa-angle-down" aria-hidden="true"></i>
 				</span>
@@ -37,14 +40,16 @@ const setLocaleId = (id: LocaleId): void => {
 		</div>
 		<div class="dropdown-menu" id="dropdown-menu" role="menu">
 			<div class="dropdown-content">
-				<a
+				<DropdownItem
 					v-for="(id, index) in LOCALE_IDS"
 					:key="index"
-					href="#"
-					:class="['dropdown-item', localeId === id && 'is-active']"
+					:class="[
+						'dropdown-item is-clickable',
+						localeId === id && 'is-active',
+					]"
 					@click="setLocaleId(id)">
-					{{ useLocale({ locale: id }).value.localeName }}
-				</a>
+					{{ i18n.t("localeName", { locale: id }) }}
+				</DropdownItem>
 			</div>
 		</div>
 	</div>

@@ -1,4 +1,5 @@
-import { fallback, type LocaleMask } from "@/i18n/locale";
+import { fallback } from "@/i18n/marker";
+import { type LocaleMask } from "@/i18n/locale";
 import type { DeepPartial } from "@/utils/types";
 
 export default {

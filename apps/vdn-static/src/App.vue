@@ -3,11 +3,13 @@ import "./assets/style.scss";
 import { computed, ref, type Ref } from "vue";
 import LocalePicker from "./components/organisms/LocalePicker.vue";
 import { vOnClickOutside } from "@vueuse/components";
-import { useLocale } from "./i18n";
 import { useRouter } from "vue-router";
-import SmartLink from "./components/organisms/SmartLink.vue";
+import SmartLink from "./components/atoms/SmartLink.vue";
 import type { SmartDest } from "./utils/smart-dest";
 import type { Locale } from "./i18n/locale";
+import { useI18n } from "./i18n";
+
+const i18n = useI18n();
 
 const burgerOpen: Ref<boolean> = ref<boolean>(false);
 
@@ -18,8 +20,6 @@ const toggleBurger = (): void => {
 const closeBurger = (): void => {
 	burgerOpen.value = false;
 };
-
-const locale = useLocale();
 
 const router = useRouter();
 router.beforeEach(() => {
@@ -39,7 +39,7 @@ const NAVBAR_ITEM_ORDER = [
 
 const navbarItems = computed(() =>
 	NAVBAR_ITEM_ORDER.map((id): NavbarItem => {
-		const label = locale.value.navbar[id];
+		const label = i18n.t(`navbar.${id}`);
 
 		const to = ((): SmartDest => {
 			switch (id) {

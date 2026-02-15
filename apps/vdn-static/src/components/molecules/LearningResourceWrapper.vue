@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import SmartLink, { type SmartLinkProps } from "../organisms/SmartLink.vue";
+import type { SmartLinkProps } from "../atoms/SmartLink";
 import type { CssClass } from "@/utils/css";
+import SmartLink from "../atoms/SmartLink.vue";
 
 export interface ResourceButton {
 	label: string;

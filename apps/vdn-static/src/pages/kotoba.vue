@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { useLocale } from "@/i18n";
+import { useI18n } from "@/i18n";
 
-const locale = useLocale();
+const i18n = useI18n();
 </script>
 
 <template>
 	<div>
 		<section class="section">
-			<h1 class="title">{{ locale.kotoba.title }}</h1>
+			<h1 class="title">{{ i18n.t("kotoba.title") }}</h1>
 		</section>
 
 		<section class="section container">
 			<div class="notification is-info block">
-				<p>{{ locale.kotoba.searchHelp }}</p>
+				<p>{{ i18n.t("kotoba.searchHelp") }}</p>
 			</div>
 
 			<div class="block is-flex is-flex-direction-row is-gap-2">

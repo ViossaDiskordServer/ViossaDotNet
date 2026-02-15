@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import type { CssClass } from "@/utils/css";
-import type { SmartDest } from "../../utils/smart-dest"; // needs to be relative for vue sfc compiler
 import { computed, ref } from "vue";
-
-export interface SmartLinkProps {
-	to: SmartDest;
-	newTab?: boolean;
-	covert?: boolean;
-}
+import type { SmartLinkProps } from "./SmartLink";
 
 const props = defineProps<SmartLinkProps>();
 

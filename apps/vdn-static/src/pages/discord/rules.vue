@@ -1,83 +1,41 @@
 <script setup lang="ts">
-import SmartLink from "@/components/organisms/SmartLink.vue";
-import { useLocale } from "@/i18n";
+import SmartLink from "@/components/atoms/SmartLink.vue";
+import DiscordRuleOverview from "@/components/molecules/DiscordRuleOverview.vue";
+import { useI18n } from "@/i18n";
 
-const locale = useLocale();
+const i18n = useI18n();
+
+const rules = i18n.v("discord.rulesPage.rules");
+
+const RULE_ORDER = [
+	"noTranslation",
+	"lfsv",
+	"viossaOnlyChats",
+	"sfw",
+	"respectOthers",
+	"respectStaff",
+	"controversialTopics",
+] as const satisfies (keyof typeof rules)[];
 </script>
 
 <template>
 	<div>
 		<section class="section">
-			<h1 class="title">{{ locale.discord.rulesPage.title }}</h1>
+			<h1 class="title">
+				{{ i18n.t("discord.rulesPage.title") }}
+			</h1>
 		</section>
 		<section class="section content">
-			<h2>{{ locale.discord.rulesPage.overview.title }}</h2>
+			<h2>{{ i18n.t("discord.rulesPage.overview.title") }}</h2>
 			<blockquote>
-				{{ locale.discord.rulesPage.overview.help }}
+				{{ i18n.t("discord.rulesPage.overview.help") }}
 			</blockquote>
-			<ol>
-				<SmartLink
-					covert
-					:to="{ type: 'internal', internal: { id: 'rule-1' } }">
-					<li>
-						No translation! Do not translate to/from Viossa on the
-						server, except the big four translatables (you can learn
-						in hard mode without them!)
-					</li>
-				</SmartLink>
-				<SmartLink
-					covert
-					:to="{ type: 'internal', internal: { id: 'rule-2' } }">
-					<li>If it's understood, it's Viossa.</li>
-				</SmartLink>
-				<SmartLink
-					covert
-					:to="{ type: 'internal', internal: { id: 'rule-3' } }">
-					<li>
-						The chats in the Viossa Only category are Viossa only.
-					</li>
-				</SmartLink>
-				<SmartLink
-					covert
-					:to="{ type: 'internal', internal: { id: 'rule-4' } }">
-					<li>
-						This server is SFW. No sexually explicit, gory, or
-						violent content.
-					</li>
-				</SmartLink>
-				<SmartLink
-					covert
-					:to="{ type: 'internal', internal: { id: 'rule-5' } }">
-					<li>Don't use hate speech, and respect each other.</li>
-				</SmartLink>
-				<SmartLink
-					covert
-					:to="{ type: 'internal', internal: { id: 'rule-6' } }">
-					<li>
-						Respect the rulings of the staff (<b>@Yewald</b> and
-						<b>@Yewaldnen</b>).
-					</li>
-				</SmartLink>
-				<SmartLink
-					covert
-					:to="{ type: 'internal', internal: { id: 'rule-7' } }">
-					<li>
-						Discussion of controversial topics (politics, war, etc.)
-						should be directed to #polite, which requires the @Ike
-						role to view, which is itself locked behind
-						<b>@Viossadjin</b> and <b>@mellandjin</b>.
-						<ul class="mt-0">
-							<li>
-								<b>#feels-and-advice</b> is for talking about
-								your feelings openly, but we draw the line at
-								suicidal or violent ideation. These are trains
-								of thought to be brought to a therapist, and are
-								not jokes. Because of their seriousness, they
-								simply don't belong here.
-							</li>
-						</ul>
-					</li>
-				</SmartLink>
+			<ol :style="{ display: 'flex', flexDirection: 'column' }">
+				<DiscordRuleOverview
+					v-for="(id, index) in RULE_ORDER"
+					:key="index"
+					:rule-number="index + 1"
+					:overview="rules[id].overview" />
 			</ol>
 		</section>
 		<section class="section content" id="rule-1">

@@ -32,7 +32,13 @@ export default defineConfig([
 				"error",
 				{
 					element: ["a", "RouterLink"],
-					message: "Use <SmartLink> instead",
+					message: "Use <SmartLink> instead.",
+				},
+				{ element: ["i18n-t"], message: "Use <RichTemplate> instead." },
+				{
+					element: ["RichTemplateParts"],
+					message:
+						"Do not use the internal <RichTemplateParts> component. Use <RichTemplate> instead.",
 				},
 			],
 			// allow interfaces to only extend another interface without adding properties

@@ -12,6 +12,11 @@
     "noUncheckedIndexedAccess": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "target": "esnext",
+    "lib": [
+      "ESNext",
+      "DOM",
+    ],
     "rootDir": "src",
     "paths": {
       "@/*": [

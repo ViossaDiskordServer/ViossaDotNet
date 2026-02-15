@@ -1,15 +1,6 @@
+import type { DeepRemoveFallback, Fallback } from "./marker";
+import type { RichTemplate } from "./rich";
 import type { VilanticId } from "./vilantic";
-
-// special symbol to explicitly specify when to fallback to default (en_US) translation
-// instead of translating a specific key, which still not being marked as a missing translation.
-// can only be used on keys which are typed as being able to use a fallback.
-export const fallback: unique symbol = Symbol("fallback");
-export type Fallback = typeof fallback;
-
-type DeepRemoveFallback<T> = Exclude<
-	{ [K in keyof T]: DeepRemoveFallback<T[K]> },
-	Fallback
->;
 
 export interface Locale extends DeepRemoveFallback<LocaleMask> {}
 
@@ -91,13 +82,23 @@ export interface DiscordRulesPageOverview {
 	help: string;
 }
 
-export interface DiscordRules extends Record<"noTranslation", DiscordRule> {}
+export interface DiscordRules
+	extends Record<
+		| "noTranslation"
+		| "lfsv"
+		| "viossaOnlyChats"
+		| "sfw"
+		| "respectOthers"
+		| "respectStaff"
+		| "controversialTopics",
+		DiscordRule
+	> {}
 
 export interface DiscordRule {
 	overview: DiscordRuleOverview;
 }
 
 export interface DiscordRuleOverview {
-	text: string;
-	subtext: string | null;
+	text: RichTemplate<never>;
+	subtext: RichTemplate<never> | null;
 }

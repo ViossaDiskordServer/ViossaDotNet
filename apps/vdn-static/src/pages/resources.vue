@@ -2,14 +2,14 @@
 import LearningResourceWrapper, {
 	type ResourceButton,
 } from "@/components/molecules/LearningResourceWrapper.vue";
-import { useLocale } from "@/i18n";
+import { useI18n } from "@/i18n";
 import type { Locale } from "@/i18n/locale";
 import { ignore } from "@/utils/ignore";
 import { computed } from "vue";
 
-const locale = useLocale();
+const i18n = useI18n();
 
-const resourceIdToResource = computed(() => locale.value.resources.resources);
+const resourceIdToResource = computed(() => i18n.v("resources.resources"));
 
 const RESOURCE_ORDER = [
 	"discord",
@@ -53,7 +53,7 @@ const computeButtons = (
 <template>
 	<div>
 		<section class="section">
-			<h1 class="title">{{ locale.resources.title }}</h1>
+			<h1 class="title">{{ i18n.t("resources.title") }}</h1>
 		</section>
 
 		<section class="section container">
