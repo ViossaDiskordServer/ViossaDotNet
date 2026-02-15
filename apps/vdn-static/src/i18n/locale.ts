@@ -96,9 +96,20 @@ export interface DiscordRules
 
 export interface DiscordRule {
 	overview: DiscordRuleOverview;
+	section: DiscordRuleSection;
 }
 
 export interface DiscordRuleOverview {
 	text: RichTemplate<never>;
 	subtext: RichTemplate<never> | null;
 }
+
+export interface DiscordRuleSection {
+	header: (ctx: { ruleNumber: number }) => string;
+	body: DiscordRuleSectionBodyElement[];
+}
+
+export type DiscordRuleSectionBodyElement =
+	| { type: "paragraph"; paragraph: RichTemplate<never> }
+	| { type: "header"; header: RichTemplate<never> }
+	| { type: "ulist"; ulist: RichTemplate<never>[] };

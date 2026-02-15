@@ -1,6 +1,7 @@
 import { fallback } from "@/i18n/marker";
 import { type LocaleMask } from "@/i18n/locale";
 import type { DeepPartial } from "@/utils/types";
+import { richT } from "@/i18n/rich";
 
 export default {
 	localeName: "wodox",
@@ -48,5 +49,18 @@ export default {
 		title: "zalkuketutsa mot o viosox mit il o omni falmot",
 		searchHelp:
 			"ibe tastatukun il falmot o mot o viosox po pam, de zalkuketukun.",
+	},
+	discord: {
+		rulesPage: {
+			rules: {
+				lfsv: {
+					section: {
+						body: [
+							{ type: "header", header: richT("wawaawawaawawa") },
+						],
+					},
+				},
+			},
+		},
 	},
 } as const satisfies DeepPartial<LocaleMask>;

@@ -28,19 +28,34 @@ export type CompiledTemplate<SlotName extends string> = {
 type _CompileLocale<T> =
 	T extends Template<infer SlotName> ? CompiledTemplate<SlotName>
 	: T extends RichTemplate<infer SlotName> ? CompiledRichTemplate<SlotName>
-	: { [K in keyof T]: _CompileLocale<T[K]> };
+	: T extends Function ? T
+	: T extends object ? { [K in keyof T]: _CompileLocale<T[K]> }
+	: T;
 export type CompileLocale<T extends DeepPartialLocale<LocaleMask>> =
 	_CompileLocale<T>;
 
 type _DeepPartialLocale<T extends object> =
 	T extends Template<string> ? T
-	:	{ [K in keyof T]?: T[K] extends object ? _DeepPartialLocale<T[K]> : T[K] };
+	: T extends RichTemplate<string> ? T
+	: T extends Function ? T
+	: T extends object ?
+		{
+			[K in keyof T]?: T[K] extends object ? _DeepPartialLocale<T[K]>
+			:	T[K];
+		}
+	:	T;
 export type DeepPartialLocale<T extends LocaleMask> = _DeepPartialLocale<T>;
 
 function compileLocale<const T extends DeepPartialLocale<LocaleMask>>(
 	locale: T,
 ): CompileLocale<T> {
-	return compileObject(locale, "");
+	const compiled = compileObject(locale, "");
+	console.log(compiled);
+	return compiled;
+}
+
+function keypathResolve(...keys: string[]): string {
+	return keys.filter((key) => key.length > 0).join(".");
 }
 
 function compileObject<const T extends Record<PropertyKey, unknown>>(
@@ -49,33 +64,32 @@ function compileObject<const T extends Record<PropertyKey, unknown>>(
 ): _CompileLocale<T> {
 	return Object.fromEntries(
 		Object.entries(obj).map(([key, value]) => {
-			const entryKeypath = `${keypath}.${key}`;
-
-			if (isTemplate(value)) {
-				return [key, compileTemplate(value)] as const;
-			}
-
-			if (isRichT(value)) {
-				return [key, compileRichTemplate(value, entryKeypath)] as const;
-			}
-
-			if (
-				value !== null
-				&& typeof value === "object"
-				&& !Array.isArray(value)
-			) {
-				return [
-					key,
-					compileObject(
-						value as Record<PropertyKey, unknown>,
-						entryKeypath,
-					),
-				] as const;
-			}
-
-			return [key, value] as const;
+			const entryKeypath = keypathResolve(keypath, key);
+			return [key, compileUnknown(value, entryKeypath)] as const;
 		}),
 	) as _CompileLocale<T>;
+}
+
+function compileUnknown(value: unknown, keypath: string): unknown {
+	if (isTemplate(value)) {
+		return compileTemplate(value);
+	}
+
+	if (isRichT(value)) {
+		return compileRichTemplate(value, keypath);
+	}
+
+	if (value !== null && typeof value === "object") {
+		if (Array.isArray(value)) {
+			return value.map((x, i) =>
+				compileUnknown(x, keypathResolve(keypath, String(i))),
+			);
+		}
+
+		return compileObject(value as Record<PropertyKey, unknown>, keypath);
+	}
+
+	return value;
 }
 
 function compileTemplate<SlotName extends string>(

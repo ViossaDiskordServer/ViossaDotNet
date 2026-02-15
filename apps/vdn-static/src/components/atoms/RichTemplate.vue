@@ -7,8 +7,12 @@ import {
 import RichTemplateParts from "./RichTemplateParts.vue";
 import OptionalParent from "./OptionalParent.vue";
 
-defineProps<{ template: CompiledRichTemplate<SlotName>; tag?: string }>();
+const props = defineProps<{
+	template: CompiledRichTemplate<SlotName>;
+	tag?: string;
+}>();
 const slots = defineSlots<{ [K in SlotName]: () => VNode[] }>();
+console.log(Object.entries(props.template));
 </script>
 
 <template>

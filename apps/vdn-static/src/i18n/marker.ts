@@ -34,6 +34,8 @@ export function isSlot(value: unknown): value is Slot<string> {
 }
 
 export type DeepRemoveFallback<T> = Exclude<
-	{ [K in keyof T]: DeepRemoveFallback<T[K]> },
+	T extends Function ? T
+	: T extends object ? { [K in keyof T]: DeepRemoveFallback<T[K]> }
+	: T,
 	Fallback
 >;
