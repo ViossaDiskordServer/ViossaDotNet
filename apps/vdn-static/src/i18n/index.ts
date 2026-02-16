@@ -1,16 +1,19 @@
 import en_US from "../locales/en_US";
 import vp_VL from "../locales/vp_VL";
 import wp_VL from "../locales/wp_VL";
-import { computed, readonly, watch, type DeepReadonly } from "vue";
+import { computed, type DeepReadonly } from "vue";
 import { type Locale, type LocaleMask } from "./locale";
 import { useLocalStorage } from "@vueuse/core";
 import { type } from "arktype";
-import { createI18n as createVueI18n, useI18n as useVueI18n } from "vue-i18n";
 import {
 	fallback,
+	isMessagePack,
 	isSlot,
 	isTemplate,
+	type DeMessagePack,
 	type Fallback,
+	type MessagePack,
+	type NotMessagePack,
 	type Template,
 } from "./marker";
 import { isRichT, type RichTemplate, type RichTemplatePart } from "./rich";
@@ -25,47 +28,55 @@ export type CompiledTemplate<SlotName extends string> = {
 	slots: SlotName[];
 };
 
-type _CompileLocale<T> =
+type _CompileLocale<T> = DeMessagePack<
 	T extends Template<infer SlotName> ? CompiledTemplate<SlotName>
 	: T extends RichTemplate<infer SlotName> ? CompiledRichTemplate<SlotName>
-	: T extends Function ? T
+	: T extends (...args: infer Args) => infer Return ?
+		(...args: Args) => _CompileLocale<Return>
 	: T extends object ? { [K in keyof T]: _CompileLocale<T[K]> }
-	: T;
+	: T
+>;
 export type CompileLocale<T extends DeepPartialLocale<LocaleMask>> =
 	_CompileLocale<T>;
 
+type _DeepPartialLocaleObject<T extends object> = {
+	[K in keyof T]?: T[K] extends object ? _DeepPartialLocale<T[K]> : T[K];
+};
 type _DeepPartialLocale<T extends object> =
 	T extends Template<string> ? T
 	: T extends RichTemplate<string> ? T
-	: T extends Function ? T
-	: T extends object ?
-		{
-			[K in keyof T]?: T[K] extends object ? _DeepPartialLocale<T[K]>
-			:	T[K];
-		}
-	:	T;
+	: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+	T extends (...args: any[]) => any ? T
+	: T extends MessagePack<unknown> ? MessagePack<_DeepPartialLocaleObject<T>>
+	: NotMessagePack<T>;
 export type DeepPartialLocale<T extends LocaleMask> = _DeepPartialLocale<T>;
 
 function compileLocale<const T extends DeepPartialLocale<LocaleMask>>(
 	locale: T,
 ): CompileLocale<T> {
-	const compiled = compileObject(locale, "");
+	const compiled = compileObject(locale, undefined);
 	console.log(compiled);
 	return compiled;
 }
 
-function keypathResolve(...keys: string[]): string {
-	return keys.filter((key) => key.length > 0).join(".");
+function keypathDot(
+	root: string | undefined,
+	...dots: (string | symbol)[]
+): string {
+	const dotpath = dots.map((dot) => String(dot)).join(".");
+	return root === undefined ? dotpath : `${root}.${dotpath}`;
 }
 
 function compileObject<const T extends Record<PropertyKey, unknown>>(
 	obj: T,
-	keypath: string,
+	keypath: string | undefined,
 ): _CompileLocale<T> {
 	return Object.fromEntries(
-		Object.entries(obj).map(([key, value]) => {
-			const entryKeypath = keypathResolve(keypath, key);
-			return [key, compileUnknown(value, entryKeypath)] as const;
+		Reflect.ownKeys(obj).map((key) => {
+			return [
+				key,
+				compileUnknown(obj[key], keypathDot(keypath, key)),
+			] as const;
 		}),
 	) as _CompileLocale<T>;
 }
@@ -82,11 +93,16 @@ function compileUnknown(value: unknown, keypath: string): unknown {
 	if (value !== null && typeof value === "object") {
 		if (Array.isArray(value)) {
 			return value.map((x, i) =>
-				compileUnknown(x, keypathResolve(keypath, String(i))),
+				compileUnknown(x, `${keypath}[${String(i)}]`),
 			);
 		}
 
 		return compileObject(value as Record<PropertyKey, unknown>, keypath);
+	}
+
+	if (typeof value === "function") {
+		return (...args: unknown[]) =>
+			compileUnknown(value(...args), `${keypath}()`);
 	}
 
 	return value;
@@ -128,23 +144,18 @@ function compileRichTemplate<SlotName extends string>(
 ): CompiledRichTemplate<SlotName> {
 	const { parts } = template;
 
-	const { compiledParts, templateUuidToTemplate } =
-		compileRichTemplateParts(parts);
-
-	const slots: SlotName[] = [];
+	const { compiledParts, slots } = compileRichTemplateParts(parts);
 
 	return {
 		[compiledRichTemplateSymbol]: true,
-		keypath,
 		parts: compiledParts,
-		templateUuidToTemplate,
 		slots,
+		keypath,
 	};
 }
 
 interface CompileRichTemplatePartRes<SlotName extends string> {
 	compiledPart: CompiledRichTemplatePart;
-	templateUuidToTemplate: Record<string, string>;
 	slots: SlotName[];
 }
 
@@ -152,50 +163,47 @@ function compileRichTemplatePart<SlotName extends string>(
 	part: RichTemplatePart<SlotName>,
 ): CompileRichTemplatePartRes<SlotName> {
 	if (typeof part === "string") {
-		return { compiledPart: part, templateUuidToTemplate: {}, slots: [] };
+		return { compiledPart: part, slots: [] };
 	}
 
 	if (isSlot(part)) {
-		const templateString = `{${part.name}}`;
-		const templateUuid = crypto.randomUUID();
 		return {
-			compiledPart: { type: "templateUuid", templateUuid },
-			templateUuidToTemplate: { [templateUuid]: templateString },
+			compiledPart: { type: "slot", slot: part.name },
 			slots: [part.name],
 		};
 	}
 
 	switch (part.type) {
 		case "bold": {
-			const { compiledParts, templateUuidToTemplate, slots } =
-				compileRichTemplateParts(part.bold);
+			const { compiledParts, slots } = compileRichTemplateParts(
+				part.bold,
+			);
 
 			return {
 				compiledPart: { type: "bold", bold: compiledParts },
-				templateUuidToTemplate,
 				slots,
 			};
 		}
 		case "italic": {
-			const { compiledParts, templateUuidToTemplate, slots } =
-				compileRichTemplateParts(part.italic);
+			const { compiledParts, slots } = compileRichTemplateParts(
+				part.italic,
+			);
 
 			return {
 				compiledPart: { type: "italic", italic: compiledParts },
-				templateUuidToTemplate,
 				slots,
 			};
 		}
 		case "link": {
-			const { compiledParts, templateUuidToTemplate, slots } =
-				compileRichTemplateParts(part.link.children);
+			const { compiledParts, slots } = compileRichTemplateParts(
+				part.link.children,
+			);
 
 			return {
 				compiledPart: {
 					type: "link",
 					link: { children: compiledParts, props: part.link.props },
 				},
-				templateUuidToTemplate,
 				slots,
 			};
 		}
@@ -204,24 +212,21 @@ function compileRichTemplatePart<SlotName extends string>(
 
 interface CompileRichTemplatePartsRes<SlotName extends string> {
 	compiledParts: CompiledRichTemplatePart[];
-	templateUuidToTemplate: Record<string, string>;
 	slots: SlotName[];
 }
 
 function compileRichTemplateParts<SlotName extends string>(
 	parts: RichTemplatePart<SlotName>[],
 ): CompileRichTemplatePartsRes<SlotName> {
-	const templateUuidToTemplate = {};
 	const slots: SlotName[] = [];
 
 	const compiledParts = parts.map((part) => {
 		const res = compileRichTemplatePart(part);
-		Object.assign(templateUuidToTemplate, res.templateUuidToTemplate);
 		slots.push(...res.slots);
 		return res.compiledPart;
 	});
 
-	return { compiledParts, templateUuidToTemplate, slots };
+	return { compiledParts, slots };
 }
 
 const compiledRichTemplateSymbol: unique symbol = Symbol(
@@ -229,15 +234,14 @@ const compiledRichTemplateSymbol: unique symbol = Symbol(
 );
 export interface CompiledRichTemplate<SlotName extends string> {
 	[compiledRichTemplateSymbol]: true;
-	keypath: string;
 	parts: CompiledRichTemplatePart[];
-	templateUuidToTemplate: Record<string, string>;
 	slots: SlotName[];
+	keypath: string;
 }
 
 export type CompiledRichTemplatePart =
 	| string
-	| { type: "templateUuid"; templateUuid: string }
+	| { type: "slot"; slot: string }
 	| { type: "bold"; bold: CompiledRichTemplatePart[] }
 	| { type: "italic"; italic: CompiledRichTemplatePart[] }
 	| {
@@ -263,6 +267,15 @@ const localeIdToCompiledLocale = {
 	Exclude<LocaleId, typeof DEFAULT_LOCALE_ID>,
 	CompileLocale<DeepPartialLocale<LocaleMask>>
 >;
+
+// const localeIdToLocale = {
+// 	en_US: en_US,
+// 	vp_VL: vp_VL,
+// 	wp_VL: wp_VL,
+// } as const satisfies { [DEFAULT_LOCALE_ID]: Locale } & Record<
+// 	Exclude<LocaleId, typeof DEFAULT_LOCALE_ID>,
+// 	DeepPartialLocale<LocaleMask>
+// >;
 
 // users could manually edit localStorage to make this value anything, so we need to validate it
 const localStorageLocaleId = useLocalStorage<unknown>(
@@ -318,13 +331,83 @@ type DeepFallbackable<T> = {
 	[K in keyof T]?: DeepFallbackable<T[K]> | Fallback;
 };
 
-function fallbackProxy<Fallback extends object>(
+// function fallbackProxy<Fallback extends object>(
+// 	maskObj: DeepFallbackable<Fallback>,
+// 	fallbackObj: Fallback,
+// ): DeepReadonly<Fallback> {
+// 	type Mask = typeof maskObj;
+// 	const proxy = new Proxy(fallbackObj, {
+// 		get: (_target, rawKey): DeepReadonly<Fallback[keyof Fallback]> => {
+// 			// SAFETY: typescript should ensure we're only ever trying to access keys
+// 			// 		   that exist on Fallback, and if the key doesn't,
+// 			//         just process its fallback as if it did,
+// 			//         everything should work as expected still
+// 			const key = rawKey as keyof Fallback;
+
+// 			// value may not exist on mask
+// 			const maskValue: Mask[keyof Fallback] | undefined = maskObj[key];
+
+// 			// all values exist on fallback
+// 			const fallbackValue: Fallback[keyof Fallback] = fallbackObj[key];
+
+// 			// this only handles the case where the current value is undefined, not nested ones.
+// 			// thus, `finalValue` is still deeply partial (but not undefined or Fallback)
+// 			const finalValue: Mask[keyof Fallback] =
+// 				maskValue === undefined || maskValue === fallback ?
+// 					fallbackValue
+// 				:	maskValue;
+
+// 			// check if finalValue is not an object
+// 			// if not, it is a primitive
+// 			if (!isObject(finalValue)) {
+// 				// SAFETY: finalValue is not an object, so it is not affected by DeepPartial
+// 				// 		   so `Mask[keyof Fallback]`  is the same as `Fallback[keyof Fallback]`
+// 				return deepReadonly(finalValue as Fallback[keyof Fallback]);
+// 			}
+
+// 			// else, finalValue is an object, so we need to proxy it as well
+
+// 			// check if fallbackValue is an object so that it can be used as finalValue's fallback
+// 			if (!isObject(fallbackValue)) {
+// 				// if not, we can't use finalValue as we'll have no fallback for it.
+// 				// send the fallbackValue no matter what instead
+// 				return deepReadonly(fallbackValue);
+// 			}
+
+// 			// else, proxy the returned object to support deep fallback proxying
+// 			return fallbackProxy<Fallback[keyof Fallback] & object>(
+// 				finalValue,
+// 				fallbackValue,
+// 			);
+// 		},
+// 		set: () => {
+// 			throw new Error("Cannot mutate locale at runtime");
+// 		},
+// 	});
+
+// 	// we're just disallowing mutations to the proxy, since its setter panics if used at runtime
+// 	return deepReadonly(proxy);
+// }
+
+function createFallbacked<Fallback extends object>(
 	maskObj: DeepFallbackable<Fallback>,
 	fallbackObj: Fallback,
 ): DeepReadonly<Fallback> {
 	type Mask = typeof maskObj;
-	const proxy = new Proxy(fallbackObj, {
-		get: (_target, rawKey): DeepReadonly<Fallback[keyof Fallback]> => {
+
+	// FIXME: This info (what object are message packs) really needs to live somewhere separate from the translation data, probably like a separate locale schema thing like zod wheere you specify what is a message pack, what values can be fallbacked, etc.
+	if (!isMessagePack(maskObj) || !isMessagePack(fallbackObj)) {
+		// TODO: add SAFETY comment
+		return deepReadonly({ ...maskObj } as Fallback);
+	}
+
+	const keys = new Set([
+		...Reflect.ownKeys(maskObj),
+		...Reflect.ownKeys(fallbackObj),
+	]);
+
+	const entries = [...keys].map((rawKey) => {
+		const value = (() => {
 			// SAFETY: typescript should ensure we're only ever trying to access keys
 			// 		   that exist on Fallback, and if the key doesn't,
 			//         just process its fallback as if it did,
@@ -349,60 +432,82 @@ function fallbackProxy<Fallback extends object>(
 			if (!isObject(finalValue)) {
 				// SAFETY: finalValue is not an object, so it is not affected by DeepPartial
 				// 		   so `Mask[keyof Fallback]`  is the same as `Fallback[keyof Fallback]`
-				return deepReadonly(finalValue as Fallback[keyof Fallback]);
+				return finalValue as Fallback[keyof Fallback];
 			}
 
 			// else, finalValue is an object, so we need to proxy it as well
 
 			// check if fallbackValue is an object so that it can be used as finalValue's fallback
 			if (!isObject(fallbackValue)) {
+				// FIXME: this is here because we can't distinguish between objects as organization (fallbackable) and objects as values (e.g. tagged unions, nonfallbackable) currently. Fixing this would be a more in-depth process though
+				if (fallbackValue === undefined) {
+					return finalValue;
+				}
+
 				// if not, we can't use finalValue as we'll have no fallback for it.
 				// send the fallbackValue no matter what instead
-				return deepReadonly(fallbackValue);
+				return fallbackValue;
 			}
 
 			// else, proxy the returned object to support deep fallback proxying
-			return fallbackProxy<Fallback[keyof Fallback] & object>(
+			return createFallbacked<Fallback[keyof Fallback] & object>(
 				finalValue,
 				fallbackValue,
 			);
-		},
-		set: () => {
-			throw new Error("Cannot mutate locale at runtime");
-		},
+		})();
+
+		return [rawKey, deepReadonly(value)] as const;
 	});
 
 	// we're just disallowing mutations to the proxy, since its setter panics if used at runtime
-	return deepReadonly(proxy);
+	// TODO: add SAFETY comments for all `as` casts
+	return deepReadonly(Object.fromEntries(entries) as Fallback);
 }
 
-const createLocale = (id: LocaleId) =>
-	fallbackProxy<CompileLocale<Locale>>(
+const createFallbackedCompiledLocale = (id: LocaleId) =>
+	createFallbacked<CompileLocale<Locale>>(
 		localeIdToCompiledLocale[id],
-		localeIdToCompiledLocale["en_US"],
+		localeIdToCompiledLocale[DEFAULT_LOCALE_ID],
 	);
 
-const createLocaleIdToMessages = (): Record<
+// const createFallbackedLocale = (id: LocaleId) =>
+// 	fallbackProxy<Locale>(
+// 		localeIdToLocale[id],
+// 		localeIdToLocale[DEFAULT_LOCALE_ID],
+// 	);
+
+const createLocaleIdToFallbackCompiledLocale = (): Record<
 	LocaleId,
 	DeepReadonly<CompileLocale<Locale>>
 > => {
 	return {
-		en_US: createLocale("en_US"),
-		vp_VL: createLocale("vp_VL"),
-		wp_VL: createLocale("wp_VL"),
+		en_US: createFallbackedCompiledLocale("en_US"),
+		vp_VL: createFallbackedCompiledLocale("vp_VL"),
+		wp_VL: createFallbackedCompiledLocale("wp_VL"),
 	} as const;
 };
 
-const vueI18n = createVueI18n<[DeepReadonly<CompileLocale<Locale>>], LocaleId>({
-	locale: localeId.value,
-	messages: createLocaleIdToMessages(),
-});
+// const createLocaleIdToFallbackedLocale = (): Record<
+// 	LocaleId,
+// 	DeepReadonly<Locale>
+// > => {
+// 	return {
+// 		en_US: createFallbackedLocale("en_US"),
+// 		vp_VL: createFallbackedLocale("vp_VL"),
+// 		wp_VL: createFallbackedLocale("wp_VL"),
+// 	} as const;
+// };
 
-export const vueI18nPlugin = vueI18n;
+// const vueI18n = createVueI18n<[DeepReadonly<CompileLocale<Locale>>], LocaleId>({
+// 	locale: localeId.value,
+// 	messages: createLocaleIdToMessages(),
+// });
 
-watch(localeId, (id: LocaleId) => {
-	vueI18n.global.locale = id;
-});
+// export const vueI18nPlugin = vueI18n;
+
+// watch(localeId, (id: LocaleId) => {
+// 	vueI18n.global.locale = id;
+// });
 
 // // TODO: eventually set up a lint to require this to be used with vue-i18n's t/$t
 // export function tPath<const T extends StringResourcePath<Locale>>(path: T): T {
@@ -500,23 +605,32 @@ export interface I18nVOptions {
 	locale?: LocaleId;
 }
 
-export const useI18n = () => {
-	return readonly({
-		t: (path: StringMessagePath, opt: I18nTOptions = {}): string => {
-			const localLocaleId = opt.locale ?? localeId.value;
-			return vueI18n.global.t(path, {}, { locale: localLocaleId });
-		},
-		v: <P extends MessagePath>(
-			path: P,
-			opt: I18nVOptions = {},
-		): MessageValue<P> => {
-			const localLocaleId = opt.locale ?? localeId.value;
+// const localeIdToFallbackedLocale = createLocaleIdToFallbackedLocale();
 
-			const localVueI18n = useVueI18n({ locale: localLocaleId });
+const localeIdToFallbackedCompiledLocale =
+	createLocaleIdToFallbackCompiledLocale();
 
-			return localVueI18n.tm(path);
-		},
+// export const useI18n = () => {
+// 	return readonly({
+// 		t: (path: StringMessagePath, opt: I18nTOptions = {}): string => {
+// 			const localLocaleId = opt.locale ?? localeId.value;
+// 			return localeIdToFallbackedLocale[localLocaleId].
+// 		},
+// 		v: <P extends MessagePath>(
+// 			path: P,
+// 			opt: I18nVOptions = {},
+// 		): MessageValue<P> => {
+// 			const localLocaleId = opt.locale ?? localeId.value;
+
+// 			const localVueI18n = useVueI18n({ locale: localLocaleId });
+
+// 			return localVueI18n.tm(path);
+// 		},
+// 	});
+// };
+
+export const useLocale = (opt: UseLocaleOptions = {}) =>
+	computed<DeepReadonly<CompileLocale<Locale>>>(() => {
+		const localLocaleId = opt.locale ?? localeId.value;
+		return localeIdToFallbackedCompiledLocale[localLocaleId];
 	});
-};
-
-export const i18nPlugin = vueI18n;

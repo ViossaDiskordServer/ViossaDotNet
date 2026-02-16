@@ -47,7 +47,7 @@ export type RichTemplatePart<SlotName extends string> =
 	  }
 	| Slot<SlotName>;
 
-export function richT<SlotName extends string>(
+export function richT<SlotName extends string = never>(
 	...parts: RichTemplatePart<SlotName>[]
 ): RichTemplate<SlotName> {
 	return { [richTemplateSymbol]: true, parts };
@@ -61,19 +61,19 @@ export function isRichT(value: unknown): value is RichTemplate<string> {
 	);
 }
 
-export function boldT<SlotName extends string>(
+export function boldT<SlotName extends string = never>(
 	...children: [RichTemplatePart<SlotName>, ...RichTemplatePart<SlotName>[]]
 ): RichTemplatePart<SlotName> & { type: "bold" } {
 	return { type: "bold", bold: children };
 }
 
-export function italicT<SlotName extends string>(
+export function italicT<SlotName extends string = never>(
 	...children: [RichTemplatePart<SlotName>, ...RichTemplatePart<SlotName>[]]
 ): RichTemplatePart<SlotName> & { type: "italic" } {
 	return { type: "italic", italic: children };
 }
 
-export function linkT<SlotName extends string>(ctx: {
+export function linkT<SlotName extends string = never>(ctx: {
 	children: [RichTemplatePart<SlotName>, ...RichTemplatePart<SlotName>[]];
 	props: SmartLinkProps;
 }): RichTemplatePart<SlotName> & { type: "link" } {

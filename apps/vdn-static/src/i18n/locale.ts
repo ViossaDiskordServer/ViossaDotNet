@@ -1,10 +1,10 @@
-import type { DeepRemoveFallback, Fallback } from "./marker";
+import type { DeepRemoveFallback, Fallback, MessagePack } from "./marker";
 import type { RichTemplate } from "./rich";
 import type { VilanticId } from "./vilantic";
 
 export interface Locale extends DeepRemoveFallback<LocaleMask> {}
 
-export interface LocaleMask {
+export type LocaleMask = MessagePack<{
 	localeName: string;
 	vilanticLangs: VilanticLangs;
 	navbar: Navbar;
@@ -12,78 +12,66 @@ export interface LocaleMask {
 	resources: ResourcesPage;
 	kotoba: KotobaPage;
 	discord: Discord;
-}
+}>;
 
-export interface VilanticLangs extends Record<VilanticId, string> {}
+export type VilanticLangs = MessagePack<Record<VilanticId, string>>;
 
-export interface Navbar
-	extends Record<"whatIsViossa" | "resources" | "kotoba", string> {}
+export type Navbar = MessagePack<
+	Record<"whatIsViossa" | "resources" | "kotoba", string>
+>;
 
-export interface HomePage {
-	sections: HomeSections;
-}
+export type HomePage = MessagePack<{ sections: HomeSections }>;
 
-export interface HomeSections
-	extends Record<
-		"whatIsViossa" | "historyOfViossa" | "community",
-		HomeSection
-	> {}
+export type HomeSections = MessagePack<
+	Record<"whatIsViossa" | "historyOfViossa" | "community", HomeSection>
+>;
 
-export interface HomeSection {
+export type HomeSection = MessagePack<{
 	title: string;
 	text: string;
 	image: Image | null;
-}
+}>;
 
-export interface ResourcesPage {
+export type ResourcesPage = MessagePack<{
 	title: string;
 	resources: Resources;
-}
+}>;
 
-export interface Resources {
-	discord: Resource<"join" | "rules">;
-}
+export type Resources = MessagePack<{ discord: Resource<"join" | "rules"> }>;
 
-export interface Resource<ButtonKey extends string> {
+export type Resource<ButtonKey extends string> = MessagePack<{
 	title: string;
 	subtitle: string;
 	desc: string;
 	image: Image | null;
-	buttons: Record<ButtonKey, Button>;
-}
+	buttons: MessagePack<Record<ButtonKey, Button>>;
+}>;
 
-export interface KotobaPage {
-	title: string;
-	searchHelp: string;
-}
+export type KotobaPage = MessagePack<{ title: string; searchHelp: string }>;
 
-export interface Button {
-	label: string;
-}
+export type Button = MessagePack<{ label: string }>;
 
 // coupled to require alt text for all images
-export interface Image {
+export type Image = MessagePack<{
 	src: string | Fallback; // fallback can be used if image doesn't need to be translated
 	alt: string;
-}
+}>;
 
-export interface Discord {
-	rulesPage: DiscordRulesPage;
-}
+export type Discord = MessagePack<{ rulesPage: DiscordRulesPage }>;
 
-export interface DiscordRulesPage {
+export type DiscordRulesPage = MessagePack<{
 	title: string;
 	overview: DiscordRulesPageOverview;
 	rules: DiscordRules;
-}
+}>;
 
-export interface DiscordRulesPageOverview {
+export type DiscordRulesPageOverview = MessagePack<{
 	title: string;
 	help: string;
-}
+}>;
 
-export interface DiscordRules
-	extends Record<
+export type DiscordRules = MessagePack<
+	Record<
 		| "noTranslation"
 		| "lfsv"
 		| "viossaOnlyChats"
@@ -92,22 +80,23 @@ export interface DiscordRules
 		| "respectStaff"
 		| "controversialTopics",
 		DiscordRule
-	> {}
+	>
+>;
 
-export interface DiscordRule {
+export type DiscordRule = MessagePack<{
 	overview: DiscordRuleOverview;
 	section: DiscordRuleSection;
-}
+}>;
 
-export interface DiscordRuleOverview {
+export type DiscordRuleOverview = MessagePack<{
 	text: RichTemplate<never>;
 	subtext: RichTemplate<never> | null;
-}
+}>;
 
-export interface DiscordRuleSection {
+export type DiscordRuleSection = MessagePack<{
 	header: (ctx: { ruleNumber: number }) => string;
 	body: DiscordRuleSectionBodyElement[];
-}
+}>;
 
 export type DiscordRuleSectionBodyElement =
 	| { type: "paragraph"; paragraph: RichTemplate<never> }

@@ -4,11 +4,14 @@ import SmartLink from "../atoms/SmartLink.vue";
 import type { Value } from "@/utils/types";
 import RichTemplate from "../atoms/RichTemplate.vue";
 import type { CompileLocale } from "@/i18n";
+import type { DeepReadonly } from "vue";
 
 defineProps<{
-	overview: Value<
-		CompileLocale<Locale>["discord"]["rulesPage"]["rules"]
-	>["overview"];
+	overview: DeepReadonly<
+		Value<
+			CompileLocale<Locale>["discord"]["rulesPage"]["rules"]
+		>["overview"]
+	>;
 	ruleNumber: number;
 }>();
 </script>

@@ -2,14 +2,14 @@
 import LearningResourceWrapper, {
 	type ResourceButton,
 } from "@/components/molecules/LearningResourceWrapper.vue";
-import { useI18n } from "@/i18n";
+import { useLocale, type CompileLocale } from "@/i18n";
 import type { Locale } from "@/i18n/locale";
 import { ignore } from "@/utils/ignore";
 import { computed } from "vue";
 
-const i18n = useI18n();
+const locale = useLocale();
 
-const resourceIdToResource = computed(() => i18n.v("resources.resources"));
+const resourceIdToResource = computed(() => locale.value.resources.resources);
 
 const RESOURCE_ORDER = [
 	"discord",
@@ -20,7 +20,7 @@ const resources = computed(() =>
 );
 
 const computeButtons = (
-	id: keyof Locale["resources"]["resources"],
+	id: keyof CompileLocale<Locale>["resources"]["resources"],
 ): ResourceButton[] => {
 	// will warn us if a new variant is added that isn't handled, and so we should add a switch
 	// once we have a switch statement, this won't be needed as that will check for exhaustiveness
@@ -53,7 +53,7 @@ const computeButtons = (
 <template>
 	<div>
 		<section class="section">
-			<h1 class="title">{{ i18n.t("resources.title") }}</h1>
+			<h1 class="title">{{ locale.resources.title }}</h1>
 		</section>
 
 		<section class="section container">

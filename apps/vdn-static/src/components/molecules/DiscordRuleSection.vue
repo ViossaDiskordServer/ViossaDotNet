@@ -3,11 +3,12 @@ import type { CompileLocale } from "@/i18n";
 import type { Locale } from "@/i18n/locale";
 import type { Value } from "@/utils/types";
 import RichTemplate from "../atoms/RichTemplate.vue";
+import type { DeepReadonly } from "vue";
 
 defineProps<{
-	section: Value<
-		CompileLocale<Locale>["discord"]["rulesPage"]["rules"]
-	>["section"];
+	section: DeepReadonly<
+		Value<CompileLocale<Locale>["discord"]["rulesPage"]["rules"]>["section"]
+	>;
 	ruleNumber: number;
 }>();
 </script>

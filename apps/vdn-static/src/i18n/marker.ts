@@ -34,8 +34,53 @@ export function isSlot(value: unknown): value is Slot<string> {
 }
 
 export type DeepRemoveFallback<T> = Exclude<
-	T extends Function ? T
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	T extends (...args: any[]) => any ? T
 	: T extends object ? { [K in keyof T]: DeepRemoveFallback<T[K]> }
 	: T,
 	Fallback
 >;
+
+const messagePackSymbol: unique symbol = Symbol("messagePack");
+export type MessagePack<T> = Omit<T, typeof messagePackSymbol> & {
+	[messagePackSymbol]: true;
+};
+
+export type NotMessagePack<T> = Omit<T, typeof messagePackSymbol> & {
+	[messagePackSymbol]?: undefined;
+};
+
+export type DeMessagePack<T> =
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	T extends (...args: any[]) => any ? T
+	: T extends unknown[] ? T
+	: T extends object ? Omit<T, typeof messagePackSymbol>
+	: T;
+
+export type DeepStrictMessagePackValues<T> =
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	T extends (...args: any[]) => any ? T
+	: T extends object ?
+		T extends MessagePack<T> ?
+			MessagePack<{ [K in keyof T]: DeepStrictMessagePackValues<T[K]> }>
+		:	NotMessagePack<{ [K in keyof T]: DeepStrictMessagePackValues<T[K]> }>
+	:	T;
+
+export function messagePack<T>(
+	value: T extends NotMessagePack<unknown> ? never
+	:	Omit<T, typeof messagePackSymbol>,
+): T {
+	return { ...value, [messagePackSymbol]: true };
+}
+
+export function isMessagePack<T>(
+	value: T,
+): value is (T extends MessagePack<infer U> ? MessagePack<U>
+:	MessagePack<unknown>)
+	& T {
+	return (
+		value !== null
+		&& typeof value === "object"
+		&& messagePackSymbol in value
+	);
+}

@@ -2,67 +2,77 @@ import { type Locale } from "@/i18n/locale";
 import flakkaImg from "@/assets/flakka.png";
 import discordImg from "@/assets/discord.png";
 import { boldT, italicT, linkT, richT } from "@/i18n/rich";
+import { messagePack, type DeepStrictMessagePackValues } from "@/i18n/marker";
 
-export default {
+export default messagePack({
 	localeName: "English",
-	vilanticLangs: { viossa: "Viossa", wodox: "Wodoch" },
-	navbar: {
+	vilanticLangs: messagePack({ viossa: "Viossa", wodox: "Wodoch" }),
+	navbar: messagePack({
 		whatIsViossa: "What is Viossa?",
 		resources: "Resources",
 		kotoba: "Kotoba",
-	},
-	home: {
-		sections: {
-			whatIsViossa: {
+	}),
+	home: messagePack({
+		sections: messagePack({
+			whatIsViossa: messagePack({
 				title: "What is Viossa?",
 				text: "Viossa is a community-created artificial pidgin language, created to simulate the formation of natural pidgin languages. Viossa is characterized by its lack of standardization, with each speaker developing a personal idiolect. Spelling and pronunciation can vary greatly, and serve as a form of personal self-expression. Viossa is learnt and taught entirely by immersion — translation is prohibited while learning.",
-				image: { src: flakkaImg, alt: "Flag of the Viossa Language" },
-			},
-			historyOfViossa: {
+				image: messagePack({
+					src: flakkaImg,
+					alt: "Flag of the Viossa Language",
+				}),
+			}),
+			historyOfViossa: messagePack({
 				title: "History of Viossa",
 				text: "Viossa began as a Skype group in 2014, created by members of the r/conlangs community on Reddit, as an experiment to simulate the formation of a pidgin language. Pidgins are simplified languages resulting from contact between populations with no shared common language. Unlike most pidgins, which usually have two to three contributor languages, Viossa comes from many diverse languages. This is because people from all around the world helped to contribute to Viossa's vocabulary.",
-				image: { src: flakkaImg, alt: "Flag of the Viossa Language" },
-			},
-			community: {
+				image: messagePack({
+					src: flakkaImg,
+					alt: "Flag of the Viossa Language",
+				}),
+			}),
+			community: messagePack({
 				title: "Community",
 				text: "The Viossa community is rich and colourful, drawing from many global traditions due to its worldwide online membership. Since the teaching culture puts an emphasis on linguistic immersion, and discourages prescriptivism, the culture of Viossa is as diverse and varied as the language and the people who speak it. For many, their personal dialect is a key form of identity and expression. The fluid nature of Viossa and lack of defined meanings makes Viossa popular for creative purposes, such as poetry and songwriting.",
 				image: null,
-			},
-		},
-	},
-	resources: {
+			}),
+		}),
+	}),
+	resources: messagePack({
 		title: "Learning Resources",
-		resources: {
-			discord: {
+		resources: messagePack({
+			discord: messagePack({
 				title: "Discord Server",
 				subtitle:
 					"This is where most of the action happens! Hop on in!",
 				desc: "Originally started in 2015 something something read the rules here, then click the link below to join!",
-				image: { src: discordImg, alt: "Discord logo" },
-				buttons: { join: { label: "Join" }, rules: { label: "Rules" } },
-			},
-		},
-	},
-	kotoba: {
+				image: messagePack({ src: discordImg, alt: "Discord logo" }),
+				buttons: messagePack({
+					join: messagePack({ label: "Join" }),
+					rules: messagePack({ label: "Rules" }),
+				}),
+			}),
+		}),
+	}),
+	kotoba: messagePack({
 		title: "Tropos-agnostic search",
 		searchHelp: "To searcn tropos-agnostically, enter a term below.",
-	},
-	discord: {
-		rulesPage: {
+	}),
+	discord: messagePack({
+		rulesPage: messagePack({
 			title: "Discord Server Rules",
-			overview: {
+			overview: messagePack({
 				title: "Overview",
 				help: "Click any rule to see details.",
-			},
-			rules: {
-				noTranslation: {
-					overview: {
+			}),
+			rules: messagePack({
+				noTranslation: messagePack({
+					overview: messagePack({
 						text: richT(
 							"No translation! Do not translate to/from Viossa on the server, except the big four translatables (you can learn in hard mode without them!)",
 						),
 						subtext: null,
-					},
-					section: {
+					}),
+					section: messagePack({
 						header: ({ ruleNumber }) =>
 							`Rule ${String(ruleNumber)}: No translation`,
 						body: [
@@ -97,14 +107,14 @@ export default {
 								),
 							},
 						],
-					},
-				},
-				lfsv: {
-					overview: {
+					}),
+				}),
+				lfsv: messagePack({
+					overview: messagePack({
 						text: richT("If it's understood, it's Viossa."),
 						subtext: null,
-					},
-					section: {
+					}),
+					section: messagePack({
 						header: ({ ruleNumber }) =>
 							`Rule ${String(ruleNumber)}: If it's understood, it's Viossa`,
 						body: [
@@ -121,16 +131,16 @@ export default {
 								),
 							},
 						],
-					},
-				},
-				viossaOnlyChats: {
-					overview: {
+					}),
+				}),
+				viossaOnlyChats: messagePack({
+					overview: messagePack({
 						text: richT(
 							"The chats in the Viossa Only category are Viossa only.",
 						),
 						subtext: null,
-					},
-					section: {
+					}),
+					section: messagePack({
 						header: ({ ruleNumber }) =>
 							`Rule ${String(ruleNumber)}: Viossa-only chats`,
 						body: [
@@ -149,16 +159,16 @@ export default {
 								),
 							},
 						],
-					},
-				},
-				sfw: {
-					overview: {
+					}),
+				}),
+				sfw: messagePack({
+					overview: messagePack({
 						text: richT(
 							"This server is SFW. No sexually explicit, gory, or violent content.",
 						),
 						subtext: null,
-					},
-					section: {
+					}),
+					section: messagePack({
 						header: ({ ruleNumber }) =>
 							`Rule ${String(ruleNumber)}: SFW`,
 						body: [
@@ -179,16 +189,16 @@ export default {
 								),
 							},
 						],
-					},
-				},
-				respectOthers: {
-					overview: {
+					}),
+				}),
+				respectOthers: messagePack({
+					overview: messagePack({
 						text: richT(
 							"Don't use hate speech, and respect each other.",
 						),
 						subtext: null,
-					},
-					section: {
+					}),
+					section: messagePack({
 						header: ({ ruleNumber }) =>
 							`Rule ${String(ruleNumber)}: Respect one another`,
 						body: [
@@ -199,10 +209,10 @@ export default {
 								),
 							},
 						],
-					},
-				},
-				respectStaff: {
-					overview: {
+					}),
+				}),
+				respectStaff: messagePack({
+					overview: messagePack({
 						text: richT(
 							"Respect the rulings of the staff (",
 							boldT("@Yewald"),
@@ -211,8 +221,8 @@ export default {
 							").",
 						),
 						subtext: null,
-					},
-					section: {
+					}),
+					section: messagePack({
 						header: ({ ruleNumber }) =>
 							`Rule ${String(ruleNumber)}: Respect the staff's rulings`,
 						body: [
@@ -235,10 +245,10 @@ export default {
 								),
 							},
 						],
-					},
-				},
-				controversialTopics: {
-					overview: {
+					}),
+				}),
+				controversialTopics: messagePack({
+					overview: messagePack({
 						text: richT(
 							"Discussion of controversial topics (politics, war, etc.) should be directed to ",
 							boldT("#polite"),
@@ -254,8 +264,8 @@ export default {
 							boldT("#feels-and-advice"),
 							" is for talking about your feelings openly, but we draw the line at suicidal or violent ideation. These are trains of thought to be brought to a therapist, and are not jokes. Because of their seriousness, they simply don't belong here.",
 						),
-					},
-					section: {
+					}),
+					section: messagePack({
 						header: ({ ruleNumber }) =>
 							`Rule ${String(ruleNumber)}: #polite and ike`,
 						body: [
@@ -334,9 +344,9 @@ export default {
 								),
 							},
 						],
-					},
-				},
-			},
-		},
-	},
-} as const satisfies Locale;
+					}),
+				}),
+			}),
+		}),
+	}),
+} as const) satisfies DeepStrictMessagePackValues<Locale>;
