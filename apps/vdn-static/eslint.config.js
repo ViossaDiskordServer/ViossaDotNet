@@ -47,6 +47,7 @@ export default defineConfig([
 				"error",
 				{ allowInterfaces: "with-single-extends" },
 			],
+			"vue/no-ref-object-reactivity-loss": ["error"],
 		},
 	},
 	// disable multi-word-component-names for unplugin-vue-router

@@ -3,30 +3,56 @@ import LearningResourceWrapper, {
 	type ResourceButton,
 } from "@/components/molecules/LearningResourceWrapper.vue";
 import { useLocale, type CompileLocale } from "@/i18n";
-import type { Locale } from "@/i18n/locale";
+import type * as i18n from "@/i18n/locale";
 import { ignore } from "@/utils/ignore";
 import { computed } from "vue";
+import discordImg from "@/assets/discord.png";
+
+interface ResourceConfig {
+	id: keyof i18n.Locale["resources"]["resources"];
+	image?: keyof typeof imagesI18n.value;
+}
+
+const RESOURCE_CONFIGS = [
+	{ id: "discord", image: "discordLogo" },
+] as const satisfies ResourceConfig[];
 
 const locale = useLocale();
 
-const resourceIdToResource = computed(() => locale.value.resources.resources);
+const pageI18n = computed(() => locale.value.resources);
 
-const RESOURCE_ORDER = [
-	"discord",
-] as const satisfies (keyof Locale["resources"]["resources"])[];
+interface ImageI18n {
+	src: string;
+	metadata: i18n.Image;
+}
 
-const resources = computed(() =>
-	RESOURCE_ORDER.map((id) => [id, resourceIdToResource.value[id]] as const),
+const imagesI18n = computed(() => {
+	const imagesI18n = pageI18n.value.images;
+
+	return {
+		discordLogo: { src: discordImg, metadata: imagesI18n.discordLogo },
+	} as const satisfies Record<string, ImageI18n>;
+});
+
+const resourcesI18n = computed(() =>
+	RESOURCE_CONFIGS.map(
+		({ id, image }: ResourceConfig) =>
+			({
+				id,
+				text: pageI18n.value.resources[id],
+				image: image && imagesI18n.value[image],
+			}) as const,
+	),
 );
 
 const computeButtons = (
-	id: keyof CompileLocale<Locale>["resources"]["resources"],
+	id: keyof CompileLocale<i18n.Locale>["resources"]["resources"],
 ): ResourceButton[] => {
 	// will warn us if a new variant is added that isn't handled, and so we should add a switch
 	// once we have a switch statement, this won't be needed as that will check for exhaustiveness
 	ignore<"discord">(id);
 
-	const buttons = resourceIdToResource.value[id].buttons;
+	const buttons = pageI18n.value.resources[id].buttons;
 	return [
 		{
 			link: {
@@ -58,13 +84,18 @@ const computeButtons = (
 
 		<section class="section container">
 			<LearningResourceWrapper
-				v-for="([resourceId, resource], index) in resources"
+				v-for="(resourceI18n, index) in resourcesI18n"
 				:key="index"
-				:title="resource.title"
-				:subtitle="resource.subtitle"
-				:desc="resource.desc"
-				:image="resource.image ?? undefined"
-				:buttons="computeButtons(resourceId)" />
+				:title="resourceI18n.text.title"
+				:subtitle="resourceI18n.text.subtitle"
+				:desc="resourceI18n.text.desc"
+				:image="
+					resourceI18n.image && {
+						src: resourceI18n.image.src,
+						alt: resourceI18n.image.metadata.alt,
+					}
+				"
+				:buttons="computeButtons(resourceI18n.id)" />
 		</section>
 	</div>
 </template>
