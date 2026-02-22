@@ -7,7 +7,7 @@ import { computed } from "vue";
 const locale = useLocale();
 
 const pageI18n = computed(() => locale.value.discord.rulesPage);
-const rules = computed(() => pageI18n.value.rules);
+const rulesI18n = computed(() => pageI18n.value.rules);
 
 const RULE_ORDER = [
 	"noTranslation",
@@ -17,7 +17,7 @@ const RULE_ORDER = [
 	"respectOthers",
 	"respectStaff",
 	"controversialTopics",
-] as const satisfies (keyof typeof pageI18n.value.rules)[];
+] as const satisfies (keyof typeof rulesI18n.value)[];
 </script>
 
 <template>
@@ -37,13 +37,13 @@ const RULE_ORDER = [
 					v-for="(id, index) in RULE_ORDER"
 					:key="index"
 					:rule-number="index + 1"
-					:overview="rules[id].overview" />
+					:overview="rulesI18n[id].overview" />
 			</ol>
 		</section>
 		<DiscordRuleSection
 			v-for="(id, index) in RULE_ORDER"
 			:key="index"
-			:section="rules[id].section"
+			:section="rulesI18n[id].section"
 			:rule-number="index + 1" />
 	</div>
 </template>

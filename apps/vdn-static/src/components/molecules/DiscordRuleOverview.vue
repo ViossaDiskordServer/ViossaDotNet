@@ -24,7 +24,7 @@ defineProps<{
 			:style="{ width: 'fit-content', display: 'inline-block' }">
 			<li :style="{ width: 'fit-content' }">
 				<RichTemplate :template="overview.text" />
-				<ul v-if="overview.subtext !== null" class="mt-0 w-fit">
+				<ul v-if="overview.subtext.parts.length > 0" class="mt-0 w-fit">
 					<RichTemplate
 						tag="li"
 						:style="{ width: 'fit-content' }"

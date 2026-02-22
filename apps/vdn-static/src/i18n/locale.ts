@@ -80,7 +80,7 @@ export type DiscordRule = {
 
 export type DiscordRuleOverview = {
 	text: RichTemplate<never>;
-	subtext: RichTemplate<never> | null;
+	subtext: RichTemplate<never>;
 };
 
 export type DiscordRuleSection = {

@@ -57,7 +57,7 @@ export default {
 						text: richT(
 							"No translation! Do not translate to/from Viossa on the server, except the big four translatables (you can learn in hard mode without them!)",
 						),
-						subtext: null,
+						subtext: richT(),
 					},
 					section: {
 						header: ({ ruleNumber }) =>
@@ -99,7 +99,7 @@ export default {
 				lfsv: {
 					overview: {
 						text: richT("If it's understood, it's Viossa."),
-						subtext: null,
+						subtext: richT(),
 					},
 					section: {
 						header: ({ ruleNumber }) =>
@@ -125,7 +125,7 @@ export default {
 						text: richT(
 							"The chats in the Viossa Only category are Viossa only.",
 						),
-						subtext: null,
+						subtext: richT(),
 					},
 					section: {
 						header: ({ ruleNumber }) =>
@@ -153,7 +153,7 @@ export default {
 						text: richT(
 							"This server is SFW. No sexually explicit, gory, or violent content.",
 						),
-						subtext: null,
+						subtext: richT(),
 					},
 					section: {
 						header: ({ ruleNumber }) =>
@@ -183,7 +183,7 @@ export default {
 						text: richT(
 							"Don't use hate speech, and respect each other.",
 						),
-						subtext: null,
+						subtext: richT(),
 					},
 					section: {
 						header: ({ ruleNumber }) =>
@@ -207,7 +207,7 @@ export default {
 							boldT("@Yewaldnen"),
 							").",
 						),
-						subtext: null,
+						subtext: richT(),
 					},
 					section: {
 						header: ({ ruleNumber }) =>
