@@ -29,7 +29,7 @@ export const GREETINGS = [
 	{
 		title: "bratsatulla na viossa.net made!",
 		subtitle: "Furalehti vilanta",
-		author: "Niko",
+		author: "Nikomiko",
 		lang: "viossa",
 	},
 	{
