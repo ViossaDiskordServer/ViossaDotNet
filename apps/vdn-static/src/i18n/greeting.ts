@@ -74,4 +74,28 @@ export const GREETINGS = [
 		author: "Zsiyo",
 		lang: "minemiaha",
 	},
+	{
+		title: "GLAUDAI TULANA NA viossa.net ALJIN",
+		subtitle: "Nintenca au glauca na lerana Viossa",
+		author: "Delvjin",
+		lang: "viossa",
+	},
+	{
+		title: "글라우다이 툴라나 나 viossa.net 알진",
+		subtitle: "닌텐차 아우 글라우차 나 을레라나 삐옷사",
+		author: "Delvjin",
+		lang: "viossa",
+	},
+	{
+		title: "Брацатулла на viossa.net",
+		subtitle: "Фуралегти виланта",
+		author: "Nikomiko",
+		lang: "viossa",
+	},
+	{
+		title: "Bratulaca na viossa.net!",
+		subtitle: "Da lera cui Viossa au da nintendo!",
+		author: "Luna",
+		lang: "viossa",
+	},
 ] as const satisfies Greeting[];
