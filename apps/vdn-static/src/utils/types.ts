@@ -4,3 +4,5 @@ export type DeepPartial<T extends object> =
 
 export type Prettify<T> = T extends object ? { [K in keyof T]: T[K] } & {} : T;
 export type Value<T> = T[keyof T];
+
+export type Result<T, E> = { type: "ok"; ok: T } | { type: "err"; err: E };

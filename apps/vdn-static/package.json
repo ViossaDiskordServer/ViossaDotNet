@@ -9,6 +9,7 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@fluent/bundle": "^0.19.1",
 		"@tailwindcss/vite": "^4.1.6",
 		"@types/node": "^22.15.31",
 		"@vueuse/components": "^13.3.0",

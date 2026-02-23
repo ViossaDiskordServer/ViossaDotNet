@@ -7,4 +7,5 @@ export default defineConfig({
 	plugins: [vueRouter({ root: "src", routesFolder: "pages" }), vue({})],
 	resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
 	server: { port: 1224 },
+	assetsInclude: ["**/*.ftl"],
 });
