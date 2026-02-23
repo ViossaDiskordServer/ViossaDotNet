@@ -184,7 +184,15 @@ export function computeAllVariants(
 				break;
 			}
 			case "var": {
-				continue;
+				// used as a stand-in for runtime-provided values
+				const DUMMY_STRING = "$$$";
+
+				variants = variants.map((variant) => ({
+					selectionChain: variant.selectionChain,
+					string: variant.string + DUMMY_STRING,
+				}));
+
+				break;
 			}
 			case "str": {
 				variants = variants.map((variant) => ({

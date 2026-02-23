@@ -39,26 +39,39 @@ export function parseMarkdown<Slot extends string>(
 	markdownString: string,
 	slots: readonly Slot[],
 ): Result<Markdown<Slot>, string> {
-	if (markdownString === "|~") {
+	if (markdownString.trim() === "--") {
 		return { type: "ok", ok: { lines: [], slots: [] } };
 	}
 
 	const lines = markdownString.split("\n");
-	const strippedLines: string[] = [];
+	const dequotedLines: string[] = [];
 	for (const line of lines) {
-		const MARKDOWN_LINE_PREFIX = "| ";
-		if (!line.startsWith(MARKDOWN_LINE_PREFIX)) {
+		const MARKDOWN_LINE_AFFIX = '"';
+		if (!line.startsWith(MARKDOWN_LINE_AFFIX)) {
 			return {
 				type: "err",
-				err: `Line ${String(strippedLines.length + 1)} of markdown is not prefixed`,
+				err: `Line ${String(dequotedLines.length + 1)} of markdown must start with ${MARKDOWN_LINE_AFFIX}`,
 			};
 		}
 
-		strippedLines.push(line.substring(MARKDOWN_LINE_PREFIX.length));
+		if (!line.endsWith(MARKDOWN_LINE_AFFIX)) {
+			return {
+				type: "err",
+				err: `Line ${String(dequotedLines.length + 1)} of markdown must end with ${MARKDOWN_LINE_AFFIX}`,
+			};
+		}
+
+		const deprefixed = line.substring(MARKDOWN_LINE_AFFIX.length);
+		const dequoted = deprefixed.substring(
+			0,
+			deprefixed.length - MARKDOWN_LINE_AFFIX.length,
+		);
+
+		dequotedLines.push(dequoted);
 	}
 
 	const markdownLines: MarkdownLine<Slot>[] = [];
-	for (const line of strippedLines) {
+	for (const line of dequotedLines) {
 		const markdownLineRes = parseMarkdownLine(line, slots);
 		if (markdownLineRes.type === "err") {
 			return {

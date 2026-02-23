@@ -6,6 +6,7 @@ import {
 } from "./setup";
 import type { FluentVariable } from "@fluent/bundle";
 import { parseMarkdown, type Markdown } from "./markdown";
+import { ignore } from "@/utils/ignore";
 
 export const configMessageSymbol: unique symbol = Symbol("configMessage");
 export interface ConfigMessage<
@@ -162,17 +163,6 @@ export function compileLocale<Config extends LocaleConfig>(
 				};
 			}
 
-			const allVariantsRes = computeAllVariants(pattern);
-			if (allVariantsRes.type === "err") {
-				return {
-					type: "err",
-					err: `Failed to compute variants for key \`${id}\`:\n${allVariantsRes.err}`,
-				};
-			}
-
-			const allVariants = allVariantsRes.ok;
-			console.log(allVariants);
-
 			// validate placeables
 			console.log(pattern);
 			if (typeof pattern !== "string") {
@@ -229,6 +219,17 @@ export function compileLocale<Config extends LocaleConfig>(
 				}
 			}
 
+			const allVariantsRes = computeAllVariants(pattern);
+			if (allVariantsRes.type === "err") {
+				return {
+					type: "err",
+					err: `Failed to compute variants for key \`${id}\`:\n${allVariantsRes.err}`,
+				};
+			}
+
+			const allVariants = allVariantsRes.ok;
+			console.log(allVariants);
+
 			// create function
 			const markdown = configValue.markdown;
 			const compiledFnRes = ((): Result<
@@ -237,12 +238,27 @@ export function compileLocale<Config extends LocaleConfig>(
 				string
 			> => {
 				if (markdown !== null) {
+					// typecheck markdown
+
 					const markdownSlots = markdown.slots ?? [];
 
 					// check if all variants are valid markdown
 					for (const variant of allVariants) {
-						const markdownRes = parseMarkdown(
+						const markdownLiteralRes = parseMessageLiteral(
+							"md",
 							variant.string,
+						);
+
+						if (markdownLiteralRes.type === "err") {
+							return {
+								type: "err",
+								err: `Invalid literal for variant \`${selectionChainToString(variant.selectionChain)}\` of key \`${id}\`:\n${markdownLiteralRes.err}`,
+							};
+						}
+
+						const markdownLiteral = markdownLiteralRes.ok;
+						const markdownRes = parseMarkdown(
+							markdownLiteral,
 							markdownSlots,
 						);
 						console.log(markdownRes);
@@ -258,8 +274,22 @@ export function compileLocale<Config extends LocaleConfig>(
 					return {
 						type: "ok",
 						ok: (args: Record<string, FluentVariable> = {}) => {
-							const res = parseMarkdown(
+							const markdownLiteralRes = parseMessageLiteral(
+								"md",
 								bundle.formatPattern(pattern, args),
+							);
+
+							if (markdownLiteralRes.type === "err") {
+								// This should hopefully never happen since we've already
+								// verified all message variants parse as valid markdown above
+								throw new Error(
+									`Failed to parse markdown literal after compilation!\n${markdownLiteralRes.err}`,
+								);
+							}
+
+							const markdownLiteral = markdownLiteralRes.ok;
+							const res = parseMarkdown(
+								markdownLiteral,
 								markdownSlots,
 							);
 
@@ -275,11 +305,64 @@ export function compileLocale<Config extends LocaleConfig>(
 						},
 					};
 				} else {
+					// typecheck string
+					// check if all variants are valid markdown
+					for (const variant of allVariants) {
+						const stringLiteralRes = parseMessageLiteral(
+							"string",
+							variant.string,
+						);
+
+						if (stringLiteralRes.type === "err") {
+							return {
+								type: "err",
+								err: `Invalid literal for variant \`${selectionChainToString(variant.selectionChain)}\` of key \`${id}\`:\n${stringLiteralRes.err}`,
+							};
+						}
+
+						const stringLiteral = stringLiteralRes.ok;
+						const stringRes = parseString(stringLiteral);
+						console.log(stringRes);
+						if (stringRes.type === "err") {
+							return {
+								type: "err",
+								err: `Invalid string for variant \`${selectionChainToString(variant.selectionChain)}\` of key \`${id}\`:\n${stringRes.err}`,
+							};
+						}
+					}
+
 					// TODO: will need to make sure markdown/slots are escapes when inserting variable values
 					return {
 						type: "ok",
-						ok: (args: Record<string, FluentVariable> = {}) =>
-							bundle.formatPattern(pattern, args),
+						ok: (args: Record<string, FluentVariable> = {}) => {
+							const stringLiteralRes = parseMessageLiteral(
+								"string",
+								bundle.formatPattern(pattern, args),
+							);
+
+							if (stringLiteralRes.type === "err") {
+								// This should hopefully never happen since we've already
+								// verified all message variants parse as valid strings above
+								throw new Error(
+									`Failed to parse string literal after compilation!\n${stringLiteralRes.err}`,
+								);
+							}
+
+							const stringLiteral = stringLiteralRes.ok;
+
+							const res = parseString(stringLiteral);
+
+							if (res.type === "err") {
+								// This should hopefully never happen since we've already
+								// verified all message variants parse as valid strings above
+								// TODO: no we dont, do that
+								throw new Error(
+									`Failed to parse string after compilation!\n${res.err}`,
+								);
+							}
+
+							return res.ok;
+						},
 					};
 				}
 			})();
@@ -318,4 +401,72 @@ export function compileLocale<Config extends LocaleConfig>(
 
 	// SAFETY: validated above that all keys exist and are the correct type
 	return { type: "ok", ok: locale as InferLocale<Config> };
+}
+
+function parseMessageLiteral(
+	type: "string" | "md",
+	message: string,
+): Result<string, string> {
+	const trimmedMessage = message.trim();
+
+	console.log(trimmedMessage);
+
+	const maybeStartIndexes: number[] = [];
+	const firstQuoteIndex = trimmedMessage.indexOf('"');
+	if (firstQuoteIndex !== -1) {
+		maybeStartIndexes.push(firstQuoteIndex);
+	}
+
+	const firstDashIndex = trimmedMessage.indexOf("-");
+	if (firstDashIndex !== -1) {
+		maybeStartIndexes.push(firstDashIndex);
+	}
+
+	const stringStartIndex = Math.min(...maybeStartIndexes);
+
+	console.log(stringStartIndex);
+	const actualPrefix = trimmedMessage.substring(0, stringStartIndex).trim();
+	const expectedPrefix = (() => {
+		switch (type) {
+			case "string": {
+				return "";
+			}
+			case "md": {
+				return "md";
+			}
+		}
+	})();
+
+	if (actualPrefix !== expectedPrefix) {
+		return {
+			type: "err",
+			err: `Expected prefix "${expectedPrefix}" for message with type \`${type}\`; Found: "${actualPrefix}"`,
+		};
+	}
+
+	return {
+		type: "ok",
+		ok: trimmedMessage.substring(actualPrefix.length).trim(),
+	};
+}
+
+function parseString(message: string): Result<string, string> {
+	const AFFIX = '"';
+	if (!message.startsWith(AFFIX)) {
+		return {
+			type: "err",
+			err: `String message expected to start with \`${AFFIX}\``,
+		};
+	}
+
+	if (!message.endsWith(AFFIX)) {
+		return {
+			type: "err",
+			err: `String message expected to end with \`${AFFIX}\``,
+		};
+	}
+
+	const deprefixed = message.substring(AFFIX.length);
+	const dequoted = deprefixed.substring(0, deprefixed.length - AFFIX.length);
+	return { type: "ok", ok: dequoted };
 }
