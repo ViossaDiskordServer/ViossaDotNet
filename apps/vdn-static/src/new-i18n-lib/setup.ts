@@ -95,7 +95,26 @@ export function bundleToUncompiledLocale(
 	return { type: "ok", ok: { bundle, record } };
 }
 
-type SelectionChain = (Literal | SelectionChain)[];
+export type SelectionChain = (Literal | SelectionChain)[];
+
+export function selectionChainToString(chain: SelectionChain): string {
+	return chain
+		.map((part) => {
+			if ("type" in part) {
+				switch (part.type) {
+					case "str": {
+						return `[${part.value}]`;
+					}
+					case "num": {
+						return `[${String(part.value)};${String(part.precision)}]`;
+					}
+				}
+			}
+
+			return `(${selectionChainToString(part)})`;
+		})
+		.join("+");
+}
 
 interface PatternVariant {
 	selectionChain: SelectionChain;
@@ -110,6 +129,7 @@ export function computeAllVariants(
 	}
 
 	let variants: PatternVariant[] = [{ selectionChain: [], string: "" }];
+	console.log(pattern);
 	for (const element of pattern) {
 		if (typeof element === "string") {
 			variants = variants.map((variant) => ({
@@ -165,6 +185,13 @@ export function computeAllVariants(
 			}
 			case "var": {
 				continue;
+			}
+			case "str": {
+				variants = variants.map((variant) => ({
+					selectionChain: variant.selectionChain,
+					string: variant.string + element.value,
+				}));
+				break;
 			}
 			default: {
 				return {

@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import type { Locale } from "@/i18n/locale";
 import SmartLink from "../atoms/SmartLink.vue";
 import type { Value } from "@/utils/types";
-import RichTemplate from "../atoms/RichTemplate.vue";
-import type { CompileLocale } from "@/i18n";
+import MarkdownDisplay from "../atoms/MarkdownDisplay.vue";
+import type { Locale } from "@/new-i18n";
 import type { DeepReadonly } from "vue";
+import { isEmptyMarkdown } from "@/new-i18n-lib/markdown";
 
-defineProps<{
+const props = defineProps<{
 	overview: DeepReadonly<
-		Value<
-			CompileLocale<Locale>["discord"]["rulesPage"]["rules"]
-		>["overview"]
+		Value<Locale["discord"]["rulesPage"]["rules"]>["overview"]
 	>;
 	ruleNumber: number;
 }>();
+
+const subtext = props.overview.subtext();
 </script>
 
 <template>
@@ -23,12 +23,14 @@ defineProps<{
 			:to="{ type: 'internal', internal: { id: `rule-${ruleNumber}` } }"
 			:style="{ width: 'fit-content', display: 'inline-block' }">
 			<li :style="{ width: 'fit-content' }">
-				<RichTemplate :template="overview.text" />
-				<ul v-if="overview.subtext.parts.length > 0" class="mt-0 w-fit">
-					<RichTemplate
+				<MarkdownDisplay
+					:markdown="overview.text()"
+					line-class="mb-0" />
+				<ul v-if="!isEmptyMarkdown(subtext)" class="mt-0 w-fit">
+					<MarkdownDisplay
 						tag="li"
 						:style="{ width: 'fit-content' }"
-						:template="overview.subtext" />
+						:markdown="subtext" />
 				</ul>
 			</li>
 		</SmartLink>

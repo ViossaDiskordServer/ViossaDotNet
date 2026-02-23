@@ -2,14 +2,14 @@
 import LearningResourceWrapper, {
 	type ResourceButton,
 } from "@/components/molecules/LearningResourceWrapper.vue";
-import { useLocale, type CompileLocale } from "@/i18n";
-import type * as i18n from "@/i18n/locale";
+import { useLocale, type Locale } from "@/new-i18n";
+import type * as i18n from "@/new-i18n/config";
 import { ignore } from "@/utils/ignore";
 import { computed } from "vue";
 import discordImg from "@/assets/discord.png";
 
 interface ResourceConfig {
-	id: keyof i18n.Locale["resources"]["resources"];
+	id: keyof Locale["resources"]["resources"];
 	image?: keyof typeof imagesI18n.value;
 }
 
@@ -46,7 +46,7 @@ const resourcesI18n = computed(() =>
 );
 
 const computeButtons = (
-	id: keyof CompileLocale<i18n.Locale>["resources"]["resources"],
+	id: keyof Locale["resources"]["resources"],
 ): ResourceButton[] => {
 	// will warn us if a new variant is added that isn't handled, and so we should add a switch
 	// once we have a switch statement, this won't be needed as that will check for exhaustiveness
@@ -62,14 +62,14 @@ const computeButtons = (
 				},
 				newTab: true,
 			},
-			label: buttons.join.label,
+			label: buttons.join.label(),
 			style: { color: "primary" },
 		},
 		{
 			link: {
 				to: { type: "internal", internal: { route: "/discord/rules" } },
 			},
-			label: buttons.rules.label,
+			label: buttons.rules.label(),
 			style: { color: "warning", outlined: true },
 		},
 	];
@@ -79,20 +79,20 @@ const computeButtons = (
 <template>
 	<div>
 		<section class="section">
-			<h1 class="title">{{ locale.resources.title }}</h1>
+			<h1 class="title">{{ locale.resources.title() }}</h1>
 		</section>
 
 		<section class="section container">
 			<LearningResourceWrapper
 				v-for="(resourceI18n, index) in resourcesI18n"
 				:key="index"
-				:title="resourceI18n.text.title"
-				:subtitle="resourceI18n.text.subtitle"
-				:desc="resourceI18n.text.desc"
+				:title="resourceI18n.text.title()"
+				:subtitle="resourceI18n.text.subtitle()"
+				:desc="resourceI18n.text.desc()"
 				:image="
 					resourceI18n.image && {
 						src: resourceI18n.image.src,
-						alt: resourceI18n.image.metadata.alt,
+						alt: resourceI18n.image.metadata.alt(),
 					}
 				"
 				:buttons="computeButtons(resourceI18n.id)" />

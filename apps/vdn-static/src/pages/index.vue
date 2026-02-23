@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import HomeSectionWrapper from "@/components/molecules/HomeSectionWrapper.vue";
-import { useLocale } from "@/i18n";
-import { GREETINGS, type Greeting } from "@/i18n/greeting";
-import type * as i18n from "@/i18n/locale";
-import { VILANTIC_ID_TO_FLAG } from "@/i18n/vilantic";
+import { GREETINGS, type Greeting } from "@/new-i18n/greeting";
+import { VILANTIC_ID_TO_FLAG } from "@/new-i18n/vilantic";
 import { randomElement } from "@/utils/random";
 import { computed } from "vue";
 import flakkaImg from "@/assets/flakka.png";
+import { useLocale, type Locale } from "@/new-i18n";
+import type * as i18n from "@/new-i18n/config";
 
 interface SectionConfig {
-	id: keyof i18n.Locale["home"]["sections"];
+	id: keyof Locale["home"]["sections"];
 	image?: keyof typeof imagesI18n.value;
 }
 
@@ -58,7 +58,7 @@ const sectionsI18n = computed(() =>
 				<div
 					class="subtitle is-size-6 is-flex is-flex-direction-row is-align-items-center is-gap-1 has-text-text-bold">
 					&mdash; {{ greeting.author }} ({{
-						locale.vilanticLangs[greeting.lang]
+						locale.vilanticLangs[greeting.lang]()
 					}})
 					<figure class="image is-32x32">
 						<img :src="VILANTIC_ID_TO_FLAG[greeting.lang]" />
@@ -71,10 +71,10 @@ const sectionsI18n = computed(() =>
 			<HomeSectionWrapper
 				v-for="(sectioni18n, index) in sectionsI18n"
 				:key="index"
-				:title="sectioni18n.text.title"
-				:text="sectioni18n.text.body"
+				:title="sectioni18n.text.title()"
+				:text="sectioni18n.text.body()"
 				:image="sectioni18n.image?.src"
-				:alt="sectioni18n.image?.metadata.alt"
+				:alt="sectioni18n.image?.metadata.alt()"
 				:reverse="index % 2 !== 0" />
 		</section>
 	</div>

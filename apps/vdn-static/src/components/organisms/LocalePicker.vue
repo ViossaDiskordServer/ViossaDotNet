@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LOCALE_IDS, localeId, useLocale, type LocaleId } from "@/i18n";
+import { LOCALE_IDS, localeId, useLocale, type LocaleId } from "@/new-i18n";
 import { ref } from "vue";
 import { vOnClickOutside } from "@vueuse/components";
 import DropdownItem from "../atoms/DropdownItem.vue";
@@ -32,7 +32,7 @@ const setLocaleId = (id: LocaleId): void => {
 				aria-haspopup="true"
 				aria-controls="dropdown-menu"
 				@click="toggleOpen()">
-				<span>{{ locale.localeName }}</span>
+				<span>{{ locale.localeName() }}</span>
 				<span class="icon is-small">
 					<i class="fas fa-angle-down" aria-hidden="true"></i>
 				</span>
@@ -48,7 +48,7 @@ const setLocaleId = (id: LocaleId): void => {
 						localeId === id && 'is-active',
 					]"
 					@click="setLocaleId(id)">
-					{{ useLocale({ locale: id }).value.localeName }}
+					{{ useLocale({ locale: id }).value.localeName() }}
 				</DropdownItem>
 			</div>
 		</div>

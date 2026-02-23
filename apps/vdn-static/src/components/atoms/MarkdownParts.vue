@@ -1,20 +1,21 @@
-<script setup lang="ts" generic="SlotName extends string">
+<script setup lang="ts" generic="Slot extends string">
 import { type DeepReadonly, type VNode } from "vue";
-import { type CompiledRichTemplatePart } from "@/i18n";
 import SmartLink from "../atoms/SmartLink.vue";
+import type { MarkdownLineElement } from "@/new-i18n-lib/markdown";
 
 defineProps<{
-	content: DeepReadonly<CompiledRichTemplatePart[]>;
-	slots: DeepReadonly<SlotName[]>;
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
+	elements: DeepReadonly<MarkdownLineElement<Slot>[]>;
+	slots: DeepReadonly<Slot[]>;
 }>();
 
-const vueSlots = defineSlots<{ [K in SlotName]: () => VNode[] }>();
+const vueSlots = defineSlots<{ [K in Slot]: () => VNode[] }>();
 </script>
 
 <template>
-	<template v-for="(part, index) in content" :key="index">
-		<template v-if="typeof part === 'string'">
-			{{ part }}
+	<template v-for="(part, index) in elements" :key="index">
+		<template v-if="part.type === 'plain'">
+			{{ part.plain }}
 		</template>
 		<template v-else-if="part.type === 'slot'">
 			<template v-for="(slot, name) in vueSlots" :key="name">
@@ -26,40 +27,40 @@ const vueSlots = defineSlots<{ [K in SlotName]: () => VNode[] }>();
 		<template v-else-if="part.type === 'bold'">
 			<b>
 				<!-- eslint-disable-next-line vue/no-restricted-html-elements - it can use itself -->
-				<RichTemplateParts :content="part.bold" :slots="slots">
+				<MarkdownParts :elements="part.bold" :slots="slots">
 					<template
 						v-for="(slot, name) in vueSlots"
 						:key="name"
 						#[name]>
 						<component :is="slot" />
 					</template>
-				</RichTemplateParts>
+				</MarkdownParts>
 			</b>
 		</template>
 		<template v-else-if="part.type === 'italic'">
 			<i>
 				<!-- eslint-disable-next-line vue/no-restricted-html-elements - it can use itself -->
-				<RichTemplateParts :content="part.italic" :slots="slots">
+				<MarkdownParts :elements="part.italic" :slots="slots">
 					<template
 						v-for="(slot, name) in vueSlots"
 						:key="name"
 						#[name]>
 						<component :is="slot" />
 					</template>
-				</RichTemplateParts>
+				</MarkdownParts>
 			</i>
 		</template>
 		<template v-else-if="part.type === 'link'">
-			<SmartLink v-bind="part.link.props">
+			<SmartLink :to="part.link.to" :new-tab="part.link.newTab">
 				<!-- eslint-disable-next-line vue/no-restricted-html-elements - it can use itself -->
-				<RichTemplateParts :content="part.link.children" :slots="slots">
+				<MarkdownParts :elements="part.link.label" :slots="slots">
 					<template
 						v-for="(slot, name) in vueSlots"
 						:key="name"
 						#[name]>
 						<component :is="slot" />
 					</template>
-				</RichTemplateParts>
+				</MarkdownParts>
 			</SmartLink>
 		</template>
 	</template>

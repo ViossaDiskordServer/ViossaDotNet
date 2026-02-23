@@ -1,21 +1,24 @@
-<script setup lang="ts" generic="SlotName extends string">
+<script setup lang="ts" generic="Slot extends string">
 import {
 	getCurrentInstance,
 	onMounted,
 	type DeepReadonly,
 	type VNode,
 } from "vue";
-import { type CompiledRichTemplate } from "@/i18n";
-import RichTemplateParts from "./RichTemplateParts.vue";
+import MarkdownParts from "./MarkdownParts.vue";
 import OptionalParent from "./OptionalParent.vue";
+import type { Markdown } from "@/new-i18n-lib/markdown";
+import type { CssClass } from "@/utils/css";
 
 const props = defineProps<{
-	template: DeepReadonly<CompiledRichTemplate<SlotName>>;
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments -- I don't know why this error is here
+	markdown: DeepReadonly<Markdown<Slot>>;
+	lineClass?: CssClass;
 	tag?: string;
 }>();
 const providedSlots =
-	defineSlots<{ [K in DeepReadonly<SlotName>]: () => VNode[] }>();
-console.log(Object.entries(props.template));
+	defineSlots<{ [K in DeepReadonly<Slot>]: () => VNode[] }>();
+console.log(Object.entries(props.markdown));
 
 function tryResolveComponentName(type: unknown): string | undefined {
 	if (!type || typeof type !== "object") return undefined;
@@ -53,9 +56,8 @@ const getComponentStack = () => {
 };
 
 // Validate required slots at runtime
-// FIXME: currently this won't flag required slots that aren't actually used by the template - this should be handled by seperately registering all required slots as a tuple somewhere else eventually
 onMounted(() => {
-	const requiredSlots = props.template.slots;
+	const requiredSlots = props.markdown.slots;
 	const missingSlots = requiredSlots.filter(
 		(slot) => providedSlots[slot] === undefined,
 	);
@@ -63,7 +65,7 @@ onMounted(() => {
 	if (missingSlots.length > 0) {
 		const componentStack = getComponentStack();
 		throw new Error(
-			`Template is missing slots!\n\tTemplate: ${props.template.keypath}\n\tMissing Slots: ${missingSlots.join(", ")}${componentStack}`,
+			`Markdown component is missing slots!\n\tMissing Slots: ${missingSlots.join(", ")}${componentStack}`,
 		);
 	}
 });
@@ -71,11 +73,36 @@ onMounted(() => {
 
 <template>
 	<OptionalParent :is="tag">
-		<!-- eslint-disable-next-line vue/no-restricted-html-elements - this is an internal component for this component -->
-		<RichTemplateParts :content="template.parts" :slots="template.slots">
-			<template v-for="(slot, name) in providedSlots" :key="name" #[name]>
-				<component :is="slot" />
-			</template>
-		</RichTemplateParts>
+		<template v-for="(line, index) in markdown.lines" :key="index">
+			<p v-if="line.type === 'paragraph'" :class="lineClass">
+				<MarkdownParts
+					:elements="line.elements"
+					:slots="markdown.slots">
+					<template
+						v-for="(slot, name) in providedSlots"
+						:key="name"
+						#[name]>
+						<component :is="slot" />
+					</template>
+				</MarkdownParts>
+			</p>
+			<h3 v-else-if="line.type === 'header'" :class="lineClass">
+				<MarkdownParts
+					:elements="line.elements"
+					:slots="markdown.slots">
+					<template
+						v-for="(slot, name) in providedSlots"
+						:key="name"
+						#[name]>
+						<component :is="slot" />
+					</template>
+				</MarkdownParts>
+			</h3>
+			<!-- <ul v-else-if="line.type === 'ulist'">
+				<li v-for="(li, index) in line.ulist" :key="index">
+					<RichTemplate :template="li" />
+				</li>
+			</ul> -->
+		</template>
 	</OptionalParent>
 </template>
