@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import "./assets/style.scss";
-import { ref, type Ref } from "vue";
+import { computed, ref, type Ref } from "vue";
 import LocalePicker from "./components/organisms/LocalePicker.vue";
 import { vOnClickOutside } from "@vueuse/components";
-import { useLocale } from "./i18n";
+import { useRouter } from "vue-router";
+import SmartLink from "./components/atoms/SmartLink.vue";
+import type { SmartDest } from "./utils/smart-dest";
+import { useLocale, type Locale } from "./new-i18n";
+
+const locale = useLocale();
 
 const burgerOpen: Ref<boolean> = ref<boolean>(false);
 const toggleBurger = (): void => {
@@ -21,7 +26,39 @@ const closeResources = (): void => {
         resourcesOpen.value = false;
 };
 
-const locale = useLocale();
+const router = useRouter();
+router.beforeEach(() => {
+        closeBurger();
+});
+
+interface NavbarItem {
+        to: SmartDest;
+        label: string;
+}
+
+const NAVBAR_ITEM_ORDER = [
+        "whatIsViossa",
+        "kotoba",
+] as const satisfies (keyof Locale["navbar"])[];
+
+const navbarItems = computed(() =>
+        NAVBAR_ITEM_ORDER.map((id): NavbarItem => {
+                const label = locale.value.navbar[id]();
+
+                const to = ((): SmartDest => {
+                        switch (id) {
+                                case "whatIsViossa": {
+                                        return { type: "internal", internal: { route: "/" } };
+                                }
+                                case "kotoba": {
+                                        return { type: "internal", internal: { route: "/kotoba" } };
+                                }
+                        }
+                })();
+
+                return { to, label };
+        }),
+);
 </script>
 
 <template>
@@ -32,11 +69,13 @@ const locale = useLocale();
                         role="navigation"
                         aria-label="main navigation">
                         <div class="navbar-brand">
-                                <RouterLink class="navbar-item has-text-weight-bold" to="/"
-                                        ><img src="@/assets/ViossaFlagRect.svg" alt=""
-                                /></RouterLink>
+                                <SmartLink
+                                        class="navbar-item has-text-weight-bold"
+                                        :to="{ type: 'internal', internal: { route: '/' } }">
+                                        <img src="@/assets/ViossaFlagRect.svg" alt="" />
+                                </SmartLink>
 
-                                <div class="navbar-item">
+                                <div class="navbar-item is-hidden-desktop">
                                         <button
                                                 type="button"
                                                 @click="toggleBurger()"
@@ -50,36 +89,34 @@ const locale = useLocale();
 
                         <div :class="`navbar-menu ${burgerOpen ? 'is-active' : ''}`">
                                 <div class="navbar-start">
-                                        <RouterLink
+                                        <SmartLink
+                                                v-for="(item, index) in navbarItems"
+                                                :key="index"
                                                 class="navbar-item"
-                                                to="/"
-                                                @click="closeBurger()"
-                                                >{{ locale.navbar.whatIsViossa }}</RouterLink
-                                        >
+                                                :to="item.to"
+                                                >{{ item.label }}
+                                        </SmartLink>
                                         <div
                                                 :class="['navbar-item', 'has-dropdown', resourcesOpen && 'is-active']"
                                                 v-on-click-outside="closeResources">
                                                 <a class="navbar-link" @click="toggleResources()">
-                                                        {{ locale.navbar.resources }}
+                                                        {{ locale.value.navbar.resources() }}
                                                 </a>
                                                 <div class="navbar-dropdown">
                                                         <RouterLink
                                                                 class="navbar-item"
                                                                 to="/resources?category=learning"
                                                                 @click="closeBurger(); closeResources()">
-                                                                {{ locale.navbar.resourcesLearning }}
+                                                                {{ locale.value.navbar.resourcesLearning() }}
                                                         </RouterLink>
                                                         <RouterLink
                                                                 class="navbar-item"
                                                                 to="/resources?category=cultural"
                                                                 @click="closeBurger(); closeResources()">
-                                                                {{ locale.navbar.resourcesCultural }}
+                                                                {{ locale.value.navbar.resourcesCultural() }}
                                                         </RouterLink>
                                                 </div>
                                         </div>
-                                        <RouterLink class="navbar-item" to="/kotoba">
-                                                {{ locale.navbar.kotoba }}
-                                        </RouterLink>
                                         <LocalePicker class="navbar-item" />
                                 </div>
                         </div>
