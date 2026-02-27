@@ -16,17 +16,12 @@ export interface Layout<T> {
 
 export type VilanticLangs = Record<VilanticId, string>;
 
-eexport interface Resource {
-	category: "learning" | "cultural";
-	title: string;
-	subtitle: string;
-	desc: string;
-	link: string;
-	rulesLink: string;
-	image: string;
-	alt: string;
-	joinText: string;
-	rulesText: string;
+export interface Navbar {
+	whatIsViossa: string;
+	resources: string;
+	resourcesLearning: string;
+	resourcesCultural: string;
+	kotoba: string;
 }
 
 export interface HomePage {
@@ -53,13 +48,23 @@ export interface ResourcesPage {
 
 export interface Resources {
 	discord: Resource;
+	daviSpil: Resource;
+	vimivera2025: Resource;
+	korohtella: Resource;
+	piik: Resource;
+	vikoli: Resource;
 }
 
 export interface Resource {
+	category: "learning" | "cultural";
 	title: string;
 	subtitle: string;
 	desc: string;
 	link: string;
+	linkColor: string;
+	link2: string;
+	link2Text: string;
+	link2Color: string;
 	rulesLink: string;
 	image: string;
 	alt: string;

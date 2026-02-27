@@ -22,7 +22,7 @@ const filteredResources = computed(() => {
         return all.filter(r => r.category === category);
 });
 
-function makeButtons(resource: ReturnType<typeof filteredResources.value[0]>): ResourceButton[] {
+function makeButtons(resource: (typeof filteredResources.value)[0]): ResourceButton[] {
         const buttons: ResourceButton[] = [];
 
         if (resource.link && resource.joinText) {
