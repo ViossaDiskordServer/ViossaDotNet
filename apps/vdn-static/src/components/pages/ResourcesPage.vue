@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import LearningResourceWrapper from "@/components/molecules/LearningResourceWrapper.vue";
+import LearningResourceWrapper, { type ResourceButton } from "@/components/molecules/LearningResourceWrapper.vue";
 import { useLocale } from "@/i18n";
 import { localizeLayout } from "@/utils/localizeLayout";
 import { useRoute } from "vue-router";
@@ -21,6 +21,36 @@ const filteredResources = computed(() => {
         if (!category) return all;
         return all.filter(r => r.category === category);
 });
+
+function makeButtons(resource: ReturnType<typeof filteredResources.value[0]>): ResourceButton[] {
+        const buttons: ResourceButton[] = [];
+
+        if (resource.link && resource.joinText) {
+                buttons.push({
+                        label: resource.joinText,
+                        link: { type: "external", external: { href: resource.link, tab: "new" } },
+                        style: { color: (resource.linkColor as ResourceButton["style"]["color"]) || "primary" },
+                });
+        }
+
+        if (resource.link2 && resource.link2Text) {
+                buttons.push({
+                        label: resource.link2Text,
+                        link: { type: "external", external: { href: resource.link2, tab: "new" } },
+                        style: { color: (resource.link2Color as ResourceButton["style"]["color"]) || "primary" },
+                });
+        }
+
+        if (resource.rulesLink && resource.rulesText) {
+                buttons.push({
+                        label: resource.rulesText,
+                        link: { type: "external", external: { href: resource.rulesLink, tab: "new" } },
+                        style: { color: "warning", outlined: true },
+                });
+        }
+
+        return buttons;
+}
 </script>
 
 <template>
@@ -32,15 +62,12 @@ const filteredResources = computed(() => {
                         <LearningResourceWrapper
                                 v-for="(resource, index) in filteredResources"
                                 :key="index"
+                                class="mb-6"
                                 :title="resource.title"
                                 :subtitle="resource.subtitle"
                                 :desc="resource.desc"
-                                :link="resource.link"
-                                :rulesLink="resource.rulesLink"
-                                :image="resource.image"
-                                :alt="resource.alt"
-                                :joinText="resource.joinText"
-                                :rulesText="resource.rulesText" />
+                                :image="resource.image ? { src: resource.image, alt: resource.alt } : undefined"
+                                :buttons="makeButtons(resource)" />
                 </section>
         </div>
 </template>
