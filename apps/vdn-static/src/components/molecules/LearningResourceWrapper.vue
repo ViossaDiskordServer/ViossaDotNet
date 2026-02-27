@@ -18,13 +18,6 @@
           :text="joinText">
         </a>
 
-        <a :href="``" 
-          target="_blank" 
-          rel="noopener noreferrer nofollow"
-          class="button is-info is-outlined is-medium" 
-          :text="rulesText">
-        </a>
-
         <a :href="rulesLink" 
           target="_blank" 
           rel="noopener noreferrer nofollow"
@@ -32,8 +25,6 @@
           :text="rulesText">
         </a>
       </div>
-
-
     </div>
   </div>
 </template>

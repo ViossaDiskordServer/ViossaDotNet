@@ -16,10 +16,17 @@ export interface Layout<T> {
 
 export type VilanticLangs = Record<VilanticId, string>;
 
-export interface Navbar {
-	whatIsViossa: string;
-	resources: string;
-	kotoba: string;
+eexport interface Resource {
+	category: "learning" | "cultural";
+	title: string;
+	subtitle: string;
+	desc: string;
+	link: string;
+	rulesLink: string;
+	image: string;
+	alt: string;
+	joinText: string;
+	rulesText: string;
 }
 
 export interface HomePage {

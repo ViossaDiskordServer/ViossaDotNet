@@ -20,4 +20,10 @@ export const GREETINGS = [
 		author: "Tetro",
 		lang: "wodox",
 	},
+	{
+		title: "Bratulla Viossa.net made!",
+		subtitle: "Hadjiplas per lera Viossa para.",
+		author: "Maikaelja",
+		lang: "viossa",
+	},	
 ] as const satisfies Greeting[];

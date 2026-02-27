@@ -8,6 +8,8 @@ export default {
 	navbar: {
 		whatIsViossa: "What is Viossa?",
 		resources: "Resources",
+resourcesLearning: "Learning Resources",
+resourcesCultural: "Cultural Resources",
 		kotoba: "Kotoba",
 	},
 	home: {
@@ -41,6 +43,7 @@ export default {
 			order: ["discord"],
 			data: {
 				discord: {
+					category: "learning",
 					title: "Discord Server",
 					subtitle:
 						"This is where most of the action happens! Hop on in!",
