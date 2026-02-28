@@ -7,8 +7,7 @@ import piikImg from "@/assets/piik.webp";
 
 export default {
 	localeName: "English",
-	vilanticLangs: { viossa: "Viossa", wodox: "Wodoch" },
-	navbar: {
+vilanticLangs: { viossa: "Viossa", wodox: "Wodoch", minemiaha: "Minemiaha" },	navbar: {
 		whatIsViossa: "What is Viossa?",
 		resources: "Resources",
 		resourcesLearning: "Learning Resources",

@@ -6,8 +6,6 @@ import {
 } from "./setup";
 import type { FluentVariable } from "@fluent/bundle";
 import { parseMarkdown, type Markdown } from "./markdown";
-import { ignore } from "@/utils/ignore";
-
 export const configMessageSymbol: unique symbol = Symbol("configMessage");
 export interface ConfigMessage<
 	Placeables extends { [name in string]?: ConfigPlaceableInfo } = {
@@ -51,8 +49,8 @@ export function message<
 ): ConfigMessage<Placeables, Markdown> {
 	return {
 		[configMessageSymbol]: true,
-		placeables: opt.placeables ?? {},
-		markdown: opt.markdown ?? null,
+		placeables: (opt.placeables ?? {}) as Placeables,
+		markdown: (opt.markdown ?? null) as Markdown,
 	};
 }
 

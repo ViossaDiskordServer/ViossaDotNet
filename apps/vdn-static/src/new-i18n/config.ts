@@ -36,8 +36,8 @@ const discordRuleConfig = {
 
 export const localeConfig = {
 	localeName: message(),
-	vilanticLangs: record(["viossa", "wodox"], () => message()),
-	navbar: record(["whatIsViossa", "resources", "kotoba"], () => message()),
+	vilanticLangs: record(["viossa", "wodox", "minemiaha"], () => message()),
+	navbar: record(["whatIsViossa", "resources", "resourcesLearning", "resourcesCultural", "kotoba"], () => message()),
 	home: {
 		sections: record(
 			["whatIsViossa", "historyOfViossa", "community"],
@@ -47,8 +47,18 @@ export const localeConfig = {
 	},
 	resources: {
 		title: message(),
-		resources: { discord: resourceConfig(["join", "rules"]) },
-		images: record(["discordLogo"], () => imageConfig),
+		resources: {
+			discord:     resourceConfig(["join", "rules"]),
+			vikoli:      resourceConfig(["visit"]),
+			daviSpil:    resourceConfig(["join"]),
+			vimivera2025: resourceConfig(["read"]),
+			korohtella:  resourceConfig(["spotify", "youtube"]),
+			piik:        resourceConfig(["thunderstore"]),
+		},
+		images: record(
+			["discordLogo", "viossaFlag", "vimivera2025", "korohtella", "piik"],
+			() => imageConfig,
+		),
 	},
 	kotoba: { title: message(), searchHelp: message() },
 	discord: {

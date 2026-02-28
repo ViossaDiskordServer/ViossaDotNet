@@ -5,7 +5,7 @@ import SmartLink from "../atoms/SmartLink.vue";
 
 export interface ResourceButton {
 	label: string;
-	link: SmartLinkProps;
+	link: SmartLinkProps | { href: string; newTab?: boolean };
 	style: ResourceButtonStyle;
 }
 
@@ -27,6 +27,10 @@ function buttonStyleToClasses(style: ResourceButtonStyle): CssClass[] {
 	return [colorClass, style.outlined && "is-outlined"];
 }
 
+function isHrefLink(link: ResourceButton["link"]): link is { href: string; newTab?: boolean } {
+	return "href" in link;
+}
+
 defineProps<{
 	title: string;
 	subtitle: string;
@@ -37,7 +41,7 @@ defineProps<{
 </script>
 
 <template>
-	<div class="box columns is-vcentered is-gap-4">
+	<div class="box columns is-vcentered is-gap-4 mb-4">
 		<div class="column is-one-quarter" v-if="image">
 			<figure class="image" style="border-radius: 12px; overflow: hidden;">
 				<img :src="image.src" :alt="image.alt" :title="image.alt" />
@@ -49,17 +53,30 @@ defineProps<{
 			<p class="content">{{ desc }}</p>
 
 			<div class="level">
-				<SmartLink
-					v-for="(button, index) in buttons"
-					:key="index"
-					v-bind="button.link"
-					:class="[
-						'button',
-						'is-medium',
-						buttonStyleToClasses(button.style),
-					]"
-					>{{ button.label }}</SmartLink
-				>
+				<template v-for="(button, index) in buttons" :key="index">
+					<a
+						v-if="isHrefLink(button.link)"
+						:href="button.link.href"
+						:target="button.link.newTab ? '_blank' : undefined"
+						:rel="button.link.newTab ? 'noopener noreferrer' : undefined"
+						:class="[
+							'button',
+							'is-medium',
+							buttonStyleToClasses(button.style),
+						]"
+						>{{ button.label }}</a
+					>
+					<SmartLink
+						v-else
+						v-bind="button.link"
+						:class="[
+							'button',
+							'is-medium',
+							buttonStyleToClasses(button.style),
+						]"
+						>{{ button.label }}</SmartLink
+					>
+				</template>
 			</div>
 		</div>
 	</div>

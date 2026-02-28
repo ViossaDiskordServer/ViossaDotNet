@@ -100,20 +100,20 @@ const navbarItems = computed(() =>
                                                 :class="['navbar-item', 'has-dropdown', resourcesOpen && 'is-active']"
                                                 v-on-click-outside="closeResources">
                                                 <a class="navbar-link" @click="toggleResources()">
-                                                        {{ locale.value.navbar.resources() }}
+                                                        {{ locale.navbar.resources() }}
                                                 </a>
                                                 <div class="navbar-dropdown">
                                                         <RouterLink
                                                                 class="navbar-item"
                                                                 to="/resources?category=learning"
                                                                 @click="closeBurger(); closeResources()">
-                                                                {{ locale.value.navbar.resourcesLearning() }}
+                                                                {{ locale.navbar.resourcesLearning() }}
                                                         </RouterLink>
                                                         <RouterLink
                                                                 class="navbar-item"
                                                                 to="/resources?category=cultural"
                                                                 @click="closeBurger(); closeResources()">
-                                                                {{ locale.value.navbar.resourcesCultural() }}
+                                                                {{ locale.navbar.resourcesCultural() }}
                                                         </RouterLink>
                                                 </div>
                                         </div>

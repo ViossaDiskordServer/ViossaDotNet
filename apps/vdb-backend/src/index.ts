@@ -1,205 +1,159 @@
-import "reflect-metadata";
-import { SAMPLE } from "@repo/common/sample";
-import express from "express";
-import crypto from "crypto"
-import fs from 'fs';
-;import { appDataSource } from "./config/dbconfig.js";
-import { Lemma, WordForm, Lect } from "./db/dbmodel.js";
-import "@total-typescript/ts-reset";
+import { compileLocale, type InferLocale } from "@/new-i18n-lib/config";
 import {
-	Like, In
-} from "typeorm";
+	bundleToUncompiledLocale,
+	loadFluentBundle,
+} from "@/new-i18n-lib/setup";
+import { localeConfig } from "./config";
+import type { Result } from "@/utils/types";
+import { useLocalStorage } from "@vueuse/core";
+import { computed, type DeepReadonly } from "vue";
+import { type } from "arktype";
+import enUsFtlSrc from "@/assets/locale/en_US.ftl";
+import vpVlFtlSrc from "@/assets/locale/vp_VL.ftl";
+import miVlFtlSrc from "@/assets/locale/mi_VL.ftl";
+import wpVlFtlSrc from "@/assets/locale/wp_VL.ftl";
+import type { FluentBundle } from "@fluent/bundle";
 
-const RELOAD_SHEET_ON_START = false;
-const SOURCE_FILE = 'res/sample.tsv'
+export const LOCALE_IDS = ["en-US", "vp-VL", "mi-VL", "wp-VL"] as const; 
 
-appDataSource
-	.initialize()
-	.then(async () => {
-		initExpress();
+export type LocaleId = typeof LocaleId.infer;
+export const LocaleId = type.enumerated(...LOCALE_IDS);
 
-		if (RELOAD_SHEET_ON_START) {
-			await loadSheet();
-		}
-	})
-	.catch((error) => console.log(error));
+export const DEFAULT_LOCALE_ID = "en-US" satisfies LocaleId;
 
-function initExpress() {
-	const app = express();
-	const PORT = 1225;
+const localStorageLocaleId = useLocalStorage<unknown>(
+	"localeId",
+	DEFAULT_LOCALE_ID,
+);
 
-	const lect_repository = appDataSource.getRepository(Lect);
-	const word_form_repository = appDataSource.getRepository(WordForm);
-	const lemma_repository = appDataSource.getRepository(Lemma);
-
-	app.get("/sample", (_req, res) => {
-		res.status(200).send(SAMPLE);
-	});
-
-	app.get("/search", async (req, res) => {
-		const search_term = req.query.search_term?.toString();
-
-		if (!search_term) {
-			return void res.sendStatus(400);
+export const localeId = computed({
+	get: (): LocaleId => {
+		const localeIdRes = LocaleId(localStorageLocaleId.value);
+		if (localeIdRes instanceof type.errors) {
+			localStorageLocaleId.value = DEFAULT_LOCALE_ID;
+			return DEFAULT_LOCALE_ID;
 		}
 
-		const word_forms: WordForm[] = await WordForm.find({
-			where:{word_form: Like(`%${search_term}%`)},
-			relations: { lemma: true }
-		});
+		// else return user's selection
+		const localeId = localeIdRes;
+		return localeId;
+	},
+	set: (id: LocaleId) => {
+		localStorageLocaleId.value = id;
+	},
+});
 
-		let lemma_ids = word_forms.map(w=>w.lemma.lemma_name);
+export interface Locale extends InferLocale<typeof localeConfig> {}
 
-		const lemmas: Lemma[] = await Lemma.find({
-			where: { lemma_name: In(lemma_ids)},
-			relations: {  word_forms: { lect: true }}
-		})
+async function loadLocale(
+	localeId: LocaleId,
+	localeFtlSrc: string,
+): Promise<Result<FluentBundle, string>> {
+	const bundleRes = await loadFluentBundle(localeId, localeFtlSrc);
+	if (bundleRes.type === "err") {
+		return bundleRes;
+	}
 
-		res.status(200).send({
-			terms: lemmas.length,
-			results: lemmas
-		});
-	});
-
-	app.get("/lect", async (req, res) => {
-		const name = req.query.name?.toString();
-
-		if (!name) {
-			return void res.sendStatus(400);
-		}
-
-		const lect = await Lect.findOne({
-			where: { name: name },
-			relations: { word_forms: { lemma: true } },
-		});
-
-		res.status(200).send({ lect });
-	});
-
-	app.get("/lects", async (_req, res) => {
-		const lects = await Lect.find();
-		res.status(200).send({
-			lects,
-		});
-	});
-
-	app.listen(PORT, () => {
-		console.log(`Backend started @ http://localhost:${PORT} !`);
-		console.log(SAMPLE);
-	});
+	const bundle = bundleRes.ok;
+	return { type: "ok", ok: bundle };
 }
 
-async function loadSheet() {
-	const lect_repository = appDataSource.getRepository(Lect);
-	const word_form_repository = appDataSource.getRepository(WordForm);
-	const lemma_repository = appDataSource.getRepository(Lemma);
-
-	await word_form_repository.clear();
-	await lemma_repository.clear();
-	await lect_repository.clear();
-
-		
-	const rawData: string = fs.readFileSync(SOURCE_FILE, 'utf8');
-	const rows: string[] = rawData.split('\n');
-
-	if (!rows || rows.length === 0) {
-		console.error("No data found.");
-		return;
-	}
-
-	const lect_names = rows.shift()?.split('\t');
-
-	const keys = rows.map(row=>row.split('\t')[0]?.split(';')[0]);
-	console.log(keys);
-
-	if (keys.length != rows.length) {
-		console.error("Lemma count doesn't match number of rows.");
-		return;
-	}
-
-	if (!lect_names) {
-		console.error("No lects found");
-		return;
-	}
-
-	const lects = Array<Lect>();
-
-	for (const lect of lect_names) {
-		let l = new Lect();
-		l.name = lect;
-		l.save();
-		lects.push(l)
-		console.log(l);
-	}
-
-	const lemmas = Array<Lemma>();
-
-	for (let i = 0; i < rows.length; i++) {
-		const row = rows[i]?.split('\t');
-		const lect_name = lect_names[i];
-
-		if(!lect_name){
-			console.error("No lect name");
-			break;
+function setupLocale(
+	localeBundle: FluentBundle,
+	fallbackLocaleBundle: FluentBundle | undefined,
+): Result<Locale, string> {
+	const maybeFallbackedBundle = (() => {
+		if (fallbackLocaleBundle === undefined) {
+			return localeBundle;
 		}
 
-		if(!row){
-			console.error("Row doesn't exist");
-			continue;
-		}
-		
-		if(row.length !== lect_names.length){
-			console.error("Mismatched row size");
-			continue;
-		}
+		console.log(localeBundle);
+		console.log(fallbackLocaleBundle);
 
-		const lemma_key = row[0];
-
-		const lemma = new Lemma();
-
-		if (lemma_key == null || lemma_key.length == 0) {
-			//assign a random UUID to the lemma as punishment for our failures
-			lemma.lemma_name = crypto.randomUUID();
-			console.log(
-				`womp womp, missing lemma name, calling it ${lemma.lemma_name}`,
-			);
-		} else {
-			lemma.lemma_name = lemma_key;
-		}
-
-		lemmas.push(lemma);
-		lemma.word_forms = Array<WordForm>();
-
-		for (let j = 0; j < row.length; j++) {
-			const cell = row?.[j];
-			const lect = lects[j];
-
-			if (
-				cell === null ||
-				cell === undefined ||
-				(typeof cell === "string" && cell.length === 0) ||
-				!lect
-			) {
-				continue;
-			}
-
-			for (let word_form of cell.split(";")) {
-				const f = new WordForm();
-				f.word_form = word_form;
-				f.lect = lect;
-				lemma.word_forms.push(f);
-			}
-		}
-	}
-
-	for (let i = 0; i < lemmas.length; i += 100) {
-		await lemma_repository.save(lemmas.slice(i, i + 100));
-		console.log(
-			`Saved ${Math.min(i + 100, lemmas.length)} / ${
-				lemmas.length
-			} lemmas...`,
+		const localeMessageIds = new Set(localeBundle._messages.keys());
+		const fallbackMessageIds = new Set(
+			fallbackLocaleBundle._messages.keys(),
 		);
+
+		const missingMessageIds =
+			fallbackMessageIds.difference(localeMessageIds);
+
+		for (const id of missingMessageIds) {
+			const fallbackMessage = fallbackLocaleBundle._messages.get(id);
+			if (fallbackMessage) {
+				localeBundle._messages.set(id, fallbackMessage);
+			}
+		}
+
+		return localeBundle;
+	})();
+
+	const uncompiledRes = bundleToUncompiledLocale(maybeFallbackedBundle);
+	if (uncompiledRes.type === "err") {
+		return uncompiledRes;
 	}
 
-	console.log(`Loaded ${lemmas.length} lemmas!`);
+	const uncompiled = uncompiledRes.ok;
+
+	const localeRes = compileLocale({ config: localeConfig, uncompiled });
+
+	if (localeRes.type === "err") {
+		return localeRes;
+	}
+
+	const locale = localeRes.ok;
+	return { type: "ok", ok: locale };
 }
+
+function unwrap<T, E>(result: Result<T, E>): T {
+	switch (result.type) {
+		case "ok": {
+			return result.ok;
+		}
+		case "err": {
+			throw new Error(String(result.err));
+		}
+	}
+}
+
+function deepReadonly<T>(value: T): DeepReadonly<T> {
+	return value as DeepReadonly<T>;
+}
+
+const DEFAULT_LOCALE = unwrap(await loadLocale("en-US", enUsFtlSrc));
+
+const doItAllForLocale = async (
+	localeId: LocaleId,
+	localeFtlSrc: string,
+): Promise<DeepReadonly<Locale>> =>
+	deepReadonly(
+		unwrap(
+			setupLocale(
+				unwrap(await loadLocale(localeId, localeFtlSrc)),
+				DEFAULT_LOCALE,
+			),
+		),
+	);
+
+const [vpVl, miVl, wpVl] = await Promise.all([
+	doItAllForLocale("vp-VL", vpVlFtlSrc),
+	doItAllForLocale("mi-VL", miVlFtlSrc),
+	doItAllForLocale("wp-VL", wpVlFtlSrc),
+]);
+
+const localeIdToLocale = {
+	"en-US": deepReadonly(unwrap(setupLocale(DEFAULT_LOCALE, DEFAULT_LOCALE))),
+	"vp-VL": vpVl,
+	"mi-VL": miVl,
+	"wp-VL": wpVl,
+} as const satisfies Record<LocaleId, DeepReadonly<Locale>>;
+
+export interface UseLocaleOptions {
+	locale?: LocaleId;
+}
+
+export const useLocale = (opt: UseLocaleOptions = {}) =>
+	computed<DeepReadonly<Locale>>(() => {
+		const localLocaleId = opt.locale ?? localeId.value;
+		return localeIdToLocale[localLocaleId];
+	});

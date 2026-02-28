@@ -11,9 +11,10 @@ import { type } from "arktype";
 import enUsFtlSrc from "@/assets/locale/en_US.ftl";
 import vpVlFtlSrc from "@/assets/locale/vp_VL.ftl";
 import wpVlFtlSrc from "@/assets/locale/wp_VL.ftl";
+import miVlFtlSrc from "@/assets/locale/mi_VL.ftl";
 import type { FluentBundle } from "@fluent/bundle";
 
-export const LOCALE_IDS = ["en-US", "vp-VL", "wp-VL"] as const;
+export const LOCALE_IDS = ["en-US", "vp-VL", "mi-VL", "wp-VL"] as const;
 
 export type LocaleId = typeof LocaleId.infer;
 export const LocaleId = type.enumerated(...LOCALE_IDS);
@@ -139,15 +140,17 @@ const doItAllForLocale = async (
 		),
 	);
 
-const [vpVl, wpVl] = await Promise.all([
+const [vpVl, wpVl, miVl] = await Promise.all([
 	doItAllForLocale("vp-VL", vpVlFtlSrc),
 	doItAllForLocale("wp-VL", wpVlFtlSrc),
+	doItAllForLocale("mi-VL", miVlFtlSrc),
 ]);
 
 const localeIdToLocale = {
 	"en-US": deepReadonly(unwrap(setupLocale(DEFAULT_LOCALE, DEFAULT_LOCALE))),
 	"vp-VL": vpVl,
 	"wp-VL": wpVl,
+	"mi-VL": miVl,
 } as const satisfies Record<LocaleId, DeepReadonly<Locale>>;
 
 export interface UseLocaleOptions {
