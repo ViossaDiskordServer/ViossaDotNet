@@ -102,7 +102,7 @@ const RESOURCE_CONFIGS: ResourceConfig[] = [
 			const buttons = pageI18n.value.resources.vimivera2025.buttons;
 			return [
 				{
-					link: { href: "/Vimivera_2025_Paemara_Sentakuena.pdf", newTab: true },
+					link: { to: { type: "internal", internal: { route: "/Vimivera_2025_Paemara_Sentakuena.pdf" } } },
 					label: buttons.read.label(),
 					style: { color: "primary" },
 				},
@@ -174,21 +174,19 @@ const filteredResources = computed(() =>
 		</section>
 
 		<section class="section container">
-			<div class="is-flex is-flex-direction-column is-gap-8">
-				<LearningResourceWrapper
-					v-for="resource in filteredResources"
-					:key="resource.id"
-					:title="pageI18n.resources[resource.id].title()"
-					:subtitle="pageI18n.resources[resource.id].subtitle()"
-					:desc="pageI18n.resources[resource.id].desc()"
-					:image="
-						resource.image && {
-							src: imagesI18n[resource.image].src,
-							alt: imagesI18n[resource.image].metadata.alt(),
-						}
-					"
-					:buttons="resource.buttons(resource.id)" />
-			</div>
+			<LearningResourceWrapper
+				v-for="resource in filteredResources"
+				:key="resource.id"
+				:title="pageI18n.resources[resource.id].title()"
+				:subtitle="pageI18n.resources[resource.id].subtitle()"
+				:desc="pageI18n.resources[resource.id].desc()"
+				:image="
+					resource.image && {
+						src: imagesI18n[resource.image].src,
+						alt: imagesI18n[resource.image].metadata.alt(),
+					}
+				"
+				:buttons="resource.buttons(resource.id)" />
 		</section>
 	</div>
 </template>

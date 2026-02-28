@@ -10,17 +10,18 @@ import { computed, type DeepReadonly } from "vue";
 import { type } from "arktype";
 import enUsFtlSrc from "@/assets/locale/en_US.ftl";
 import vpVlFtlSrc from "@/assets/locale/vp_VL.ftl";
-import miVlFtlSrc from "@/assets/locale/mi_VL.ftl";
 import wpVlFtlSrc from "@/assets/locale/wp_VL.ftl";
+import miVlFtlSrc from "@/assets/locale/mi_VL.ftl";
 import type { FluentBundle } from "@fluent/bundle";
 
-export const LOCALE_IDS = ["en-US", "vp-VL", "mi-VL", "wp-VL"] as const; 
+export const LOCALE_IDS = ["en-US", "vp-VL", "mi-VL", "wp-VL"] as const;
 
 export type LocaleId = typeof LocaleId.infer;
 export const LocaleId = type.enumerated(...LOCALE_IDS);
 
 export const DEFAULT_LOCALE_ID = "en-US" satisfies LocaleId;
 
+// users could manually edit localStorage to make this value anything, so we need to validate it
 const localStorageLocaleId = useLocalStorage<unknown>(
 	"localeId",
 	DEFAULT_LOCALE_ID,
@@ -30,6 +31,7 @@ export const localeId = computed({
 	get: (): LocaleId => {
 		const localeIdRes = LocaleId(localStorageLocaleId.value);
 		if (localeIdRes instanceof type.errors) {
+			// if invalid LocaleId, reset to default
 			localStorageLocaleId.value = DEFAULT_LOCALE_ID;
 			return DEFAULT_LOCALE_ID;
 		}
@@ -38,6 +40,8 @@ export const localeId = computed({
 		const localeId = localeIdRes;
 		return localeId;
 	},
+	// custom setter to ensure it is only set to a valid LocaleId by our code
+	// (since the localStorage ref is typed as `unknown`, it can be set to any value)
 	set: (id: LocaleId) => {
 		localStorageLocaleId.value = id;
 	},
@@ -117,6 +121,7 @@ function unwrap<T, E>(result: Result<T, E>): T {
 }
 
 function deepReadonly<T>(value: T): DeepReadonly<T> {
+	// SAFETY: we're just making an immutable view to the type, this isn't dangerous
 	return value as DeepReadonly<T>;
 }
 
@@ -135,17 +140,17 @@ const doItAllForLocale = async (
 		),
 	);
 
-const [vpVl, miVl, wpVl] = await Promise.all([
+const [vpVl, wpVl, miVl] = await Promise.all([
 	doItAllForLocale("vp-VL", vpVlFtlSrc),
-	doItAllForLocale("mi-VL", miVlFtlSrc),
 	doItAllForLocale("wp-VL", wpVlFtlSrc),
+	doItAllForLocale("mi-VL", miVlFtlSrc),
 ]);
 
 const localeIdToLocale = {
 	"en-US": deepReadonly(unwrap(setupLocale(DEFAULT_LOCALE, DEFAULT_LOCALE))),
 	"vp-VL": vpVl,
-	"mi-VL": miVl,
 	"wp-VL": wpVl,
+	"mi-VL": miVl,
 } as const satisfies Record<LocaleId, DeepReadonly<Locale>>;
 
 export interface UseLocaleOptions {

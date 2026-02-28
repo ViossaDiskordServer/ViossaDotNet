@@ -1,6 +1,6 @@
 import viossaFlag from "@/assets/flag_vp.webp";
 import wodoxFlag from "@/assets/flag_wp.webp";
-import minemiahaFlag from "@/assets/flag_mi.webp";
+import minemiahaFlag from "@/assets/minemiahaFlag.webp";
 
 export type VilanticId = "viossa" | "wodox" | "minemiaha";
 
