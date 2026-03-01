@@ -1,4 +1,4 @@
-import { compileLocale, type InferLocale } from "@/new-i18n-lib/config";
+import { type InferLocale } from "@/new-i18n-lib/config";
 import {
 	bundleToUncompiledLocale,
 	loadFluentBundle,
@@ -12,6 +12,7 @@ import enUsFtlSrc from "@/assets/locale/en_US.ftl";
 import vpVlFtlSrc from "@/assets/locale/vp_VL.ftl";
 import wpVlFtlSrc from "@/assets/locale/wp_VL.ftl";
 import type { FluentBundle } from "@fluent/bundle";
+import { compileLocale } from "@/new-i18n-lib/compile";
 
 export const LOCALE_IDS = ["en-US", "vp-VL", "wp-VL"] as const;
 
@@ -61,28 +62,31 @@ async function loadLocale(
 	return { type: "ok", ok: bundle };
 }
 
+interface SetupLocaleFallback {
+	bundle: FluentBundle;
+	locale: Locale;
+}
+
 function setupLocale(
 	localeBundle: FluentBundle,
-	fallbackLocaleBundle: FluentBundle | undefined,
+	fallback: SetupLocaleFallback | undefined,
 ): Result<Locale, string> {
+	const fallbackBundle = fallback?.bundle;
+	const fallbackLocale = fallback?.locale;
+
 	const maybeFallbackedBundle = (() => {
-		if (fallbackLocaleBundle === undefined) {
+		if (fallbackBundle === undefined) {
 			return localeBundle;
 		}
 
-		console.log(localeBundle);
-		console.log(fallbackLocaleBundle);
-
 		const localeMessageIds = new Set(localeBundle._messages.keys());
-		const fallbackMessageIds = new Set(
-			fallbackLocaleBundle._messages.keys(),
-		);
+		const fallbackMessageIds = new Set(fallbackBundle._messages.keys());
 
 		const missingMessageIds =
 			fallbackMessageIds.difference(localeMessageIds);
 
 		for (const id of missingMessageIds) {
-			const fallbackMessage = fallbackLocaleBundle._messages.get(id);
+			const fallbackMessage = fallbackBundle._messages.get(id);
 			if (fallbackMessage) {
 				localeBundle._messages.set(id, fallbackMessage);
 			}
@@ -98,13 +102,16 @@ function setupLocale(
 
 	const uncompiled = uncompiledRes.ok;
 
-	const localeRes = compileLocale({ config: localeConfig, uncompiled });
+	const localeRes = compileLocale({
+		config: localeConfig,
+		bundle: uncompiled.bundle,
+		record: uncompiled.record,
+		fallback: fallbackLocale,
+	});
 
-	if (localeRes.type === "err") {
-		return localeRes;
-	}
+	console.error(localeRes.errors);
 
-	const locale = localeRes.ok;
+	const locale = localeRes.locale;
 	return { type: "ok", ok: locale };
 }
 
@@ -124,7 +131,8 @@ function deepReadonly<T>(value: T): DeepReadonly<T> {
 	return value as DeepReadonly<T>;
 }
 
-const DEFAULT_LOCALE = unwrap(await loadLocale("en-US", enUsFtlSrc));
+const DEFAULT_LOCALE_BUNDLE = unwrap(await loadLocale("en-US", enUsFtlSrc));
+const DEFAULT_LOCALE = unwrap(setupLocale(DEFAULT_LOCALE_BUNDLE, undefined));
 
 const doItAllForLocale = async (
 	localeId: LocaleId,
@@ -132,10 +140,10 @@ const doItAllForLocale = async (
 ): Promise<DeepReadonly<Locale>> =>
 	deepReadonly(
 		unwrap(
-			setupLocale(
-				unwrap(await loadLocale(localeId, localeFtlSrc)),
-				DEFAULT_LOCALE,
-			),
+			setupLocale(unwrap(await loadLocale(localeId, localeFtlSrc)), {
+				bundle: DEFAULT_LOCALE_BUNDLE,
+				locale: DEFAULT_LOCALE,
+			}),
 		),
 	);
 
@@ -145,7 +153,7 @@ const [vpVl, wpVl] = await Promise.all([
 ]);
 
 const localeIdToLocale = {
-	"en-US": deepReadonly(unwrap(setupLocale(DEFAULT_LOCALE, DEFAULT_LOCALE))),
+	"en-US": deepReadonly(DEFAULT_LOCALE),
 	"vp-VL": vpVl,
 	"wp-VL": wpVl,
 } as const satisfies Record<LocaleId, DeepReadonly<Locale>>;

@@ -1,9 +1,5 @@
 import type { Result } from "@/utils/types";
-import {
-	FluentBundle,
-	FluentResource,
-	type FluentVariable,
-} from "@fluent/bundle";
+import { FluentBundle, FluentResource } from "@fluent/bundle";
 import { unsafeAsync } from "@/utils/unsafe";
 import type { Literal, Message, Pattern } from "@fluent/bundle/esm/ast";
 
@@ -26,10 +22,7 @@ export async function loadFluentBundle(
 	}
 
 	const ftlFileText = ftlFileTextRes.ok;
-	console.log(ftlFileText);
 	const resource = new FluentResource(ftlFileText);
-
-	console.log(resource.body);
 
 	const bundle = new FluentBundle(localeId);
 	const errors = bundle.addResource(resource);
@@ -129,7 +122,6 @@ export function computeAllVariants(
 	}
 
 	let variants: PatternVariant[] = [{ selectionChain: [], string: "" }];
-	console.log(pattern);
 	for (const element of pattern) {
 		if (typeof element === "string") {
 			variants = variants.map((variant) => ({
