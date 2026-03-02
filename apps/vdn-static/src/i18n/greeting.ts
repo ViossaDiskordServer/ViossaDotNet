@@ -25,7 +25,8 @@ export const GREETINGS = [
 		subtitle: "Hadjiplas per lera Viossa para.",
 		author: "Maikaelja",
 		lang: "viossa",
-	},	
+	},
+	{	
 		title: "VIOSSA.NET VR̄ATULAŢAJO",
 		subtitle: "Hažilɛ̄ti na viɔssalɛɾa! Viɔssa lɛstɛvr̄ā ɡlɔssa﹐tɛndɔţa!",
 		author: "Rju",
