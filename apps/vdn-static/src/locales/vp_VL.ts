@@ -1,3 +1,4 @@
+import discordImg from "@/assets/discord.png";
 import type { Locale } from "@/i18n/locale";
 import flakkaImg from "@/assets/flakka.png";
 import type { DeepPartial } from "@/utils/deep-partial";
@@ -8,6 +9,8 @@ export default {
 	navbar: {
 		whatIsViossa: "Ka Viossa?",
 		resources: "Lerakran",
+resourcesLearning: "Lerakran",
+resourcesCultural: "Shakaiting",
 		kotoba: "Kotoba",
 	},
 	home: {
@@ -41,6 +44,7 @@ export default {
 			order: ["discord"],
 			data: {
 				discord: {
+					category: "learning",
 					title: "Diskordserver",
 					subtitle:
 						"Alting Viossa tsuite slucha na her! Da zetulla jo!",

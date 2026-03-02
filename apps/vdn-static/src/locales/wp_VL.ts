@@ -8,7 +8,9 @@ export default {
 	vilanticLangs: { viossa: "viosox", wodox: "wodox" },
 	navbar: {
 		whatIsViossa: "viosox e ano?",
-		resources: "tropos",
+resources: "tropos",
+resourcesLearning: "tropos o gen",
+resourcesCultural: "tropos o ro",
 		kotoba: "mot o viosox",
 	},
 	home: {
@@ -42,6 +44,7 @@ export default {
 			order: ["discord"],
 			data: {
 				discord: {
+					category: "learning",
 					title: "server o Diskord",
 					subtitle: "axilkun ge genilkun po ce! wekatutsa!",
 					desc: "danzalil hez server po 2015. ibe dutukun musra po ce, de ibe wiftutsakun dof po pam, de wekatukun po server!",
