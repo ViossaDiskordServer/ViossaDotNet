@@ -16,7 +16,7 @@ export interface Layout<T> {
 
 export type VilanticLangs = Record<VilanticId, string>;
 
-eexport interface Resource {
+export interface Resource {
 	category: "learning" | "cultural";
 	title: string;
 	subtitle: string;
