@@ -1,11 +1,11 @@
 <script setup lang="ts" generic="Slot extends string">
 import { type DeepReadonly, type VNode } from "vue";
 import SmartLink from "../atoms/SmartLink.vue";
-import type { MarkdownLineElement } from "@/new-i18n-lib/markdown";
+import type { MarkdownSpan } from "@/new-i18n-lib/markdown";
 
 defineProps<{
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-	elements: DeepReadonly<MarkdownLineElement<Slot>[]>;
+	elements: DeepReadonly<MarkdownSpan<Slot>[]>;
 	slots: DeepReadonly<Slot[]>;
 }>();
 

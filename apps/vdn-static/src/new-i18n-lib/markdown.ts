@@ -8,30 +8,29 @@ import type { RouteNamedMap } from "vue-router/auto-routes";
 import { routes } from "vue-router/auto-routes";
 
 export interface Markdown<Slot extends string = string> {
-	lines: MarkdownLine<Slot>[];
+	elements: MarkdownElement<Slot>[];
 	slots: Slot[];
 }
 
-export type MarkdownLine<Slot extends string = string> = {
-	type: "paragraph" | "header";
-	elements: MarkdownLineElement<Slot>[];
+export type MarkdownElement<Slot extends string = string> =
+	| { type: "paragraph"; paragraph: { spans: MarkdownSpan<Slot>[] } }
+	| { type: "header"; header: { spans: MarkdownSpan<Slot>[] } }
+	| { type: "ulist"; ulist: { items: MarkdownSpan<Slot>[][] } };
+
+type MarkdownLine<Slot extends string = string> = {
+	type: "paragraph" | "header" | "ulistItem";
+	spans: MarkdownSpan<Slot>[];
 };
 
-export type MarkdownFeature =
-	| Exclude<MarkdownLine["type"], "paragraph">
-	| Exclude<MarkdownLineElement["type"], "plain">;
+export type MarkdownFeature = "header" | "ulist" | "italic" | "bold" | "link";
 
-export type MarkdownLineElement<Slot extends string = string> =
+export type MarkdownSpan<Slot extends string = string> =
 	| { type: "plain"; plain: string }
-	| { type: "italic"; italic: MarkdownLineElement[] }
-	| { type: "bold"; bold: MarkdownLineElement[] }
+	| { type: "italic"; italic: MarkdownSpan[] }
+	| { type: "bold"; bold: MarkdownSpan[] }
 	| {
 			type: "link";
-			link: {
-				label: MarkdownLineElement[];
-				to: SmartDest;
-				newTab: boolean;
-			};
+			link: { label: MarkdownSpan[]; to: SmartDest; newTab: boolean };
 	  }
 	| { type: "slot"; slot: Slot };
 
@@ -39,8 +38,62 @@ export function parseMarkdown<Slot extends string>(
 	markdownString: string,
 	slots: readonly Slot[],
 ): Result<Markdown<Slot>, string> {
+	const linesRes = parseMarkdownLines(markdownString, slots);
+	if (linesRes.type === "err") {
+		return linesRes;
+	}
+
+	const lines = linesRes.ok;
+	const elements: MarkdownElement<Slot>[] = [];
+	while (true) {
+		const line = lines.shift();
+		if (line === undefined) {
+			break;
+		}
+
+		const element = ((): MarkdownElement<Slot> => {
+			switch (line.type) {
+				case "paragraph": {
+					return {
+						type: "paragraph",
+						paragraph: { spans: line.spans },
+					};
+				}
+				case "header": {
+					return { type: "header", header: { spans: line.spans } };
+				}
+				case "ulistItem": {
+					const items: MarkdownSpan<Slot>[][] = [line.spans];
+					while (true) {
+						const peekLine = lines[0];
+						if (
+							peekLine === undefined
+							|| peekLine.type !== "ulistItem"
+						) {
+							break;
+						}
+
+						items.push(peekLine.spans);
+						lines.shift();
+					}
+
+					return { type: "ulist", ulist: { items } };
+				}
+			}
+		})();
+
+		elements.push(element);
+	}
+
+	return { type: "ok", ok: { elements, slots: [...slots] } };
+}
+
+function parseMarkdownLines<Slot extends string>(
+	markdownString: string,
+	slots: readonly Slot[],
+): Result<MarkdownLine<Slot>[], string> {
 	if (markdownString.trim() === "--") {
-		return { type: "ok", ok: { lines: [], slots: [] } };
+		return { type: "ok", ok: [] };
 	}
 
 	const lines = markdownString.split("\n");
@@ -84,7 +137,7 @@ export function parseMarkdown<Slot extends string>(
 		markdownLines.push(markdownLine);
 	}
 
-	return { type: "ok", ok: { lines: markdownLines, slots: [...slots] } };
+	return { type: "ok", ok: markdownLines };
 }
 
 function parseMarkdownLine<Slot extends string>(
@@ -92,20 +145,34 @@ function parseMarkdownLine<Slot extends string>(
 	slots: readonly Slot[],
 ): Result<MarkdownLine<Slot>, string> {
 	if (line.startsWith("#")) {
-		const elementsRes = parseMarkdownLineElements(line.substring(1), slots);
+		const elementsRes = parseMarkdownSpans(line.substring(1), slots);
 
 		if (elementsRes.type === "err") {
 			return {
 				type: "err",
-				err: `While parsing elements:\n${elementsRes.err}`,
+				err: `While parsing header spans:\n${elementsRes.err}`,
 			};
 		}
 
 		const elements = elementsRes.ok;
-		return { type: "ok", ok: { type: "header", elements } };
+		return { type: "ok", ok: { type: "header", spans: elements } };
 	}
 
-	const elementsRes = parseMarkdownLineElements(line, slots);
+	if (line.startsWith("-")) {
+		const elementsRes = parseMarkdownSpans(line.substring(1), slots);
+
+		if (elementsRes.type === "err") {
+			return {
+				type: "err",
+				err: `While parsing ulist item spans:\n${elementsRes.err}`,
+			};
+		}
+
+		const elements = elementsRes.ok;
+		return { type: "ok", ok: { type: "ulistItem", spans: elements } };
+	}
+
+	const elementsRes = parseMarkdownSpans(line, slots);
 	if (elementsRes.type === "err") {
 		return {
 			type: "err",
@@ -114,13 +181,13 @@ function parseMarkdownLine<Slot extends string>(
 	}
 
 	const elements = elementsRes.ok;
-	return { type: "ok", ok: { type: "paragraph", elements } };
+	return { type: "ok", ok: { type: "paragraph", spans: elements } };
 }
 
-function parseMarkdownLineElements<Slot extends string>(
+function parseMarkdownSpans<Slot extends string>(
 	line: string,
 	slots: readonly Slot[],
-): Result<MarkdownLineElement<Slot>[], string> {
+): Result<MarkdownSpan<Slot>[], string> {
 	if (line.startsWith("#")) {
 		// subheaders may be supported in the future,
 		// so ignoring them or treating them as h1 headers now would be a breaking change when
@@ -132,7 +199,7 @@ function parseMarkdownLineElements<Slot extends string>(
 
 	const trimmedLine = line.trim();
 	const chars = trimmedLine.split("");
-	const elementsRes = readMarkdownLineElements(chars, slots, {
+	const elementsRes = readMarkdownSpans(chars, slots, {
 		inItalic: false,
 		inBold: false,
 	});
@@ -144,19 +211,19 @@ function parseMarkdownLineElements<Slot extends string>(
 	return { type: "ok", ok: elements };
 }
 
-interface ReadMarkdownLineElementCtx {
+interface ReadMarkdownSpanCtx {
 	inItalic: boolean;
 	inBold: boolean;
 }
 
-function readMarkdownLineElements<Slot extends string>(
+function readMarkdownSpans<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-	ctx: ReadMarkdownLineElementCtx,
-): Result<MarkdownLineElement<Slot>[], string> {
-	const elements: MarkdownLineElement<Slot>[] = [];
+	ctx: ReadMarkdownSpanCtx,
+): Result<MarkdownSpan<Slot>[], string> {
+	const elements: MarkdownSpan<Slot>[] = [];
 	while (true) {
-		const elementRes = readMarkdownLineElement(chars, slots, ctx);
+		const elementRes = readMarkdownSpan(chars, slots, ctx);
 		if (elementRes.type === "err") {
 			return elementRes;
 		}
@@ -172,24 +239,24 @@ function readMarkdownLineElements<Slot extends string>(
 	return { type: "ok", ok: elements };
 }
 
-function readMarkdownLineElement<Slot extends string>(
+function readMarkdownSpan<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-	ctx: ReadMarkdownLineElementCtx,
-): Result<MarkdownLineElement<Slot>[], string> {
+	ctx: ReadMarkdownSpanCtx,
+): Result<MarkdownSpan<Slot>[], string> {
 	const [firstChar, secondChar] = chars;
 	if (firstChar === undefined) {
 		return { type: "ok", ok: [] };
 	} else if (firstChar === "<") {
-		return readMarkdownLineElementSlot(chars, slots);
+		return readMarkdownSpanSlot(chars, slots);
 	} else if (firstChar === "[") {
-		return readMarkdownLineElementLink(chars, slots, ctx);
+		return readMarkdownSpanLink(chars, slots, ctx);
 	} else if (firstChar === "*" && secondChar === "*" && !ctx.inBold) {
-		return readMarkdownLineElementBold(chars, slots, ctx);
+		return readMarkdownSpanBold(chars, slots, ctx);
 	} else if (firstChar === "*" && secondChar !== "*" && !ctx.inItalic) {
-		return readMarkdownLineElementItalic(chars, slots, ctx);
+		return readMarkdownSpanItalic(chars, slots, ctx);
 	} else {
-		return readMarkdownLineElementPlain(chars);
+		return readMarkdownSpanPlain(chars);
 	}
 }
 
@@ -198,10 +265,10 @@ function isInArray<T, U extends T>(value: T, array: readonly U[]): value is U {
 	return array.includes(value as U);
 }
 
-function readMarkdownLineElementSlot<Slot extends string>(
+function readMarkdownSpanSlot<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-): Result<MarkdownLineElement<Slot>[], string> {
+): Result<MarkdownSpan<Slot>[], string> {
 	const openAngleRes = expectReadChar(chars, "<");
 	if (openAngleRes.type === "err") {
 		return openAngleRes;
@@ -225,17 +292,17 @@ function readMarkdownLineElementSlot<Slot extends string>(
 	return { type: "ok", ok: [{ type: "slot", slot: slotName }] };
 }
 
-function readMarkdownLineElementLink<Slot extends string>(
+function readMarkdownSpanLink<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-	ctx: ReadMarkdownLineElementCtx,
-): Result<MarkdownLineElement<Slot>[], string> {
+	ctx: ReadMarkdownSpanCtx,
+): Result<MarkdownSpan<Slot>[], string> {
 	const openSquareRes = expectReadChar(chars, "[");
 	if (openSquareRes.type === "err") {
 		return openSquareRes;
 	}
 
-	const labelElementsRes = readMarkdownLineElements(chars, slots, ctx);
+	const labelElementsRes = readMarkdownSpans(chars, slots, ctx);
 	if (labelElementsRes.type === "err") {
 		return labelElementsRes;
 	}
@@ -411,7 +478,7 @@ function readMarkdownLineElementLink<Slot extends string>(
 
 	const { dest, newTab } = linkPropsRes.ok;
 
-	const resolvedLabel: MarkdownLineElement[] =
+	const resolvedLabel: MarkdownSpan[] =
 		labelElements.length === 0 ?
 			[
 				{
@@ -500,11 +567,11 @@ function validateInternalDest(dest: string): Result<SmartInternalDest, string> {
 	}
 }
 
-function readMarkdownLineElementBold<Slot extends string>(
+function readMarkdownSpanBold<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-	ctx: ReadMarkdownLineElementCtx,
-): Result<MarkdownLineElement<Slot>[], string> {
+	ctx: ReadMarkdownSpanCtx,
+): Result<MarkdownSpan<Slot>[], string> {
 	const firstStarRes = expectReadChar(chars, "*");
 	if (firstStarRes.type === "err") {
 		return firstStarRes;
@@ -516,10 +583,10 @@ function readMarkdownLineElementBold<Slot extends string>(
 	}
 
 	ctx.inBold = true;
-	const elements: MarkdownLineElement<Slot>[] = [];
+	const elements: MarkdownSpan<Slot>[] = [];
 	let closed = false;
 	while (true) {
-		const elementRes = readMarkdownLineElement(chars, slots, ctx);
+		const elementRes = readMarkdownSpan(chars, slots, ctx);
 		if (elementRes.type === "err") {
 			return elementRes;
 		}
@@ -553,21 +620,21 @@ function readMarkdownLineElementBold<Slot extends string>(
 	}
 }
 
-function readMarkdownLineElementItalic<Slot extends string>(
+function readMarkdownSpanItalic<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-	ctx: ReadMarkdownLineElementCtx,
-): Result<MarkdownLineElement<Slot>[], string> {
+	ctx: ReadMarkdownSpanCtx,
+): Result<MarkdownSpan<Slot>[], string> {
 	const starRes = expectReadChar(chars, "*");
 	if (starRes.type === "err") {
 		return starRes;
 	}
 
 	ctx.inItalic = true;
-	const elements: MarkdownLineElement<Slot>[] = [];
+	const elements: MarkdownSpan<Slot>[] = [];
 	let closed = false;
 	while (true) {
-		const elementRes = readMarkdownLineElement(chars, slots, ctx);
+		const elementRes = readMarkdownSpan(chars, slots, ctx);
 		if (elementRes.type === "err") {
 			return elementRes;
 		}
@@ -597,9 +664,9 @@ function readMarkdownLineElementItalic<Slot extends string>(
 	}
 }
 
-function readMarkdownLineElementPlain<Slot extends string>(
+function readMarkdownSpanPlain<Slot extends string>(
 	chars: string[],
-): Result<MarkdownLineElement<Slot>[], string> {
+): Result<MarkdownSpan<Slot>[], string> {
 	let plain = "";
 	let escaped = false;
 	while (true) {
@@ -739,5 +806,5 @@ export function isEmptyMarkdown(markdown: Markdown): boolean {
 
 	// return false;
 
-	return markdown.lines.length === 0;
+	return markdown.elements.length === 0;
 }

@@ -73,10 +73,10 @@ onMounted(() => {
 
 <template>
 	<OptionalParent :is="tag">
-		<template v-for="(line, index) in markdown.lines" :key="index">
+		<template v-for="(line, index) in markdown.elements" :key="index">
 			<p v-if="line.type === 'paragraph'" :class="lineClass">
 				<MarkdownParts
-					:elements="line.elements"
+					:elements="line.paragraph.spans"
 					:slots="markdown.slots">
 					<template
 						v-for="(slot, name) in providedSlots"
@@ -88,7 +88,7 @@ onMounted(() => {
 			</p>
 			<h3 v-else-if="line.type === 'header'" :class="lineClass">
 				<MarkdownParts
-					:elements="line.elements"
+					:elements="line.header.spans"
 					:slots="markdown.slots">
 					<template
 						v-for="(slot, name) in providedSlots"
@@ -98,11 +98,18 @@ onMounted(() => {
 					</template>
 				</MarkdownParts>
 			</h3>
-			<!-- <ul v-else-if="line.type === 'ulist'">
-				<li v-for="(li, index) in line.ulist" :key="index">
-					<RichTemplate :template="li" />
+			<ul v-else-if="line.type === 'ulist'" :class="lineClass">
+				<li v-for="item in line.ulist.items">
+					<MarkdownParts :elements="item" :slots="markdown.slots">
+						<template
+							v-for="(slot, name) in providedSlots"
+							:key="name"
+							#[name]>
+							<component :is="slot" />
+						</template>
+					</MarkdownParts>
 				</li>
-			</ul> -->
+			</ul>
 		</template>
 	</OptionalParent>
 </template>
