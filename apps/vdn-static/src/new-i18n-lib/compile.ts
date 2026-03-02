@@ -113,7 +113,19 @@ export function compileLocale<Config extends LocaleConfig>(
 					return fallbackValue as GenericMessageFn;
 				}
 
-				return () => `[#${fmtMessageIdChain(valueMessageIdChain)}#]`;
+				switch (configValue[configMessageTypeSymbol]) {
+					case configStringSymbol: {
+						return () =>
+							createMissingStringFallback(valueMessageIdChain);
+					}
+					case configMarkdownSymbol: {
+						return () =>
+							createMissingMarkdownFallback(
+								valueMessageIdChain,
+								Object.keys(configValue.features.slots),
+							);
+					}
+				}
 			} else {
 				const uncompiledSubrecord = (() => {
 					if (uncompiledValue?.type !== "subrecord") {
@@ -298,33 +310,50 @@ function compileStringMessage(
 	return {
 		type: "ok",
 		ok: (args: Record<string, FluentVariable> = {}) => {
-			const stringLiteralRes = parseMessageLiteral(
-				"string",
-				bundle.formatPattern(pattern, args),
-			);
-
-			if (stringLiteralRes.type === "err") {
-				// This should hopefully never happen since we've already
-				// verified all message variants parse as valid strings above
-				throw new Error(
-					`Failed to parse string literal after compilation!\n${stringLiteralRes.err}`,
+			const stringRes = ((): Result<string, string> => {
+				const stringLiteralRes = parseMessageLiteral(
+					"string",
+					bundle.formatPattern(pattern, args),
 				);
+
+				if (stringLiteralRes.type === "err") {
+					// This should hopefully never happen since we've already
+					// verified all message variants parse as valid strings above
+					return {
+						type: "err",
+						err: `Failed to parse string literal after compilation!\n${stringLiteralRes.err}`,
+					};
+				}
+
+				const stringLiteral = stringLiteralRes.ok;
+
+				const res = parseString(stringLiteral);
+
+				if (res.type === "err") {
+					// This should hopefully never happen since we've already
+					// verified all message variants parse as valid strings above
+					// TODO: no we dont, do that
+					return {
+						type: "err",
+						err: `Failed to parse string after compilation!\n${res.err}`,
+					};
+				}
+
+				const string = res.ok;
+				return { type: "ok", ok: string };
+			})();
+
+			switch (stringRes.type) {
+				case "ok": {
+					const string = stringRes.ok;
+					return string;
+				}
+				case "err": {
+					const error = stringRes.err;
+					console.error(error);
+					return createMissingStringFallback(messageIdChain);
+				}
 			}
-
-			const stringLiteral = stringLiteralRes.ok;
-
-			const res = parseString(stringLiteral);
-
-			if (res.type === "err") {
-				// This should hopefully never happen since we've already
-				// verified all message variants parse as valid strings above
-				// TODO: no we dont, do that
-				throw new Error(
-					`Failed to parse string after compilation!\n${res.err}`,
-				);
-			}
-
-			return res.ok;
 		},
 	};
 }
@@ -345,7 +374,7 @@ function compileMarkdownMessage(
 
 	// typecheck markdown
 
-	const markdownSlots = configMarkdown.features.slots;
+	const markdownSlots = Object.keys(configMarkdown.features.slots);
 
 	// check if all variants are valid markdown
 	for (const variant of allVariants) {
@@ -359,10 +388,7 @@ function compileMarkdownMessage(
 		}
 
 		const markdownLiteral = markdownLiteralRes.ok;
-		const markdownRes = parseMarkdown(
-			markdownLiteral,
-			Object.keys(markdownSlots),
-		);
+		const markdownRes = parseMarkdown(markdownLiteral, markdownSlots);
 
 		if (markdownRes.type === "err") {
 			return {
@@ -375,36 +401,80 @@ function compileMarkdownMessage(
 	// TODO: will need to make sure markdown/slots are escapes when inserting variable values
 	return {
 		type: "ok",
-		ok: (args: Record<string, FluentVariable> = {}) => {
-			const markdownLiteralRes = parseMessageLiteral(
-				"md",
-				bundle.formatPattern(pattern, args),
-			);
-
-			if (markdownLiteralRes.type === "err") {
-				// This should hopefully never happen since we've already
-				// verified all message variants parse as valid markdown above
-				throw new Error(
-					`Failed to parse markdown literal after compilation!\n${markdownLiteralRes.err}`,
+		ok: (args: Record<string, FluentVariable> = {}): Markdown => {
+			const markdownRes = ((): Result<Markdown, string> => {
+				const markdownLiteralRes = parseMessageLiteral(
+					"md",
+					bundle.formatPattern(pattern, args),
 				);
+
+				if (markdownLiteralRes.type === "err") {
+					// This should hopefully never happen since we've already
+					// verified all message variants parse as valid markdown above
+					return {
+						type: "err",
+						err: `Failed to parse markdown literal after compilation!\n${markdownLiteralRes.err}`,
+					};
+				}
+
+				const markdownLiteral = markdownLiteralRes.ok;
+				const res = parseMarkdown(markdownLiteral, markdownSlots);
+
+				if (res.type === "err") {
+					// This should hopefully never happen since we've already
+					// verified all message variants parse as valid markdown above
+					return {
+						type: "err",
+						err: `Failed to parse markdown after compilation!\n${res.err}`,
+					};
+				}
+
+				return { type: "ok", ok: res.ok };
+			})();
+
+			switch (markdownRes.type) {
+				case "ok": {
+					const markdown = markdownRes.ok;
+					return markdown;
+				}
+				case "err": {
+					const error = markdownRes.err;
+					console.error(error);
+					return createMissingMarkdownFallback(
+						messageIdChain,
+						markdownSlots,
+					);
+				}
 			}
-
-			const markdownLiteral = markdownLiteralRes.ok;
-			const res = parseMarkdown(
-				markdownLiteral,
-				Object.keys(markdownSlots),
-			);
-
-			if (res.type === "err") {
-				// This should hopefully never happen since we've already
-				// verified all message variants parse as valid markdown above
-				throw new Error(
-					`Failed to parse markdown after compilation!\n${res.err}`,
-				);
-			}
-
-			return res.ok;
 		},
+	};
+}
+
+function createMissingStringFallback(
+	messageIdChain: readonly [...string[], string],
+): string {
+	return `[#${fmtMessageIdChain(messageIdChain)}#]`;
+}
+
+function createMissingMarkdownFallback<Slot extends string>(
+	messageIdChain: readonly [...string[], string],
+	slots: Slot[],
+): Markdown<Slot> {
+	return {
+		elements: [
+			{
+				type: "paragraph",
+				paragraph: {
+					spans: [
+						{
+							type: "plain",
+							plain: createMissingStringFallback(messageIdChain),
+						},
+					],
+				},
+			},
+		],
+		slots,
 	};
 }
 

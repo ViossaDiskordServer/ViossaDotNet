@@ -16,9 +16,9 @@ const props = defineProps<{
 	lineClass?: CssClass;
 	tag?: string;
 }>();
+
 const providedSlots =
 	defineSlots<{ [K in DeepReadonly<Slot>]: () => VNode[] }>();
-console.log(Object.entries(props.markdown));
 
 function tryResolveComponentName(type: unknown): string | undefined {
 	if (!type || typeof type !== "object") return undefined;

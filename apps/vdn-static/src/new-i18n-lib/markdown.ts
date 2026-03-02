@@ -144,44 +144,32 @@ function parseMarkdownLine<Slot extends string>(
 	line: string,
 	slots: readonly Slot[],
 ): Result<MarkdownLine<Slot>, string> {
-	if (line.startsWith("#")) {
-		const elementsRes = parseMarkdownSpans(line.substring(1), slots);
-
-		if (elementsRes.type === "err") {
-			return {
-				type: "err",
-				err: `While parsing header spans:\n${elementsRes.err}`,
-			};
-		}
-
-		const elements = elementsRes.ok;
-		return { type: "ok", ok: { type: "header", spans: elements } };
+	interface ResolvedLine {
+		deprefixedLine: string;
+		type: MarkdownLine["type"];
 	}
 
-	if (line.startsWith("-")) {
-		const elementsRes = parseMarkdownSpans(line.substring(1), slots);
-
-		if (elementsRes.type === "err") {
-			return {
-				type: "err",
-				err: `While parsing ulist item spans:\n${elementsRes.err}`,
-			};
+	const { deprefixedLine, type } = ((): ResolvedLine => {
+		if (line.startsWith("#")) {
+			return { deprefixedLine: line.substring(1), type: "header" };
+		} else if (line.startsWith("-")) {
+			return { deprefixedLine: line.substring(1), type: "ulistItem" };
+		} else {
+			return { deprefixedLine: line, type: "paragraph" };
 		}
+	})();
 
-		const elements = elementsRes.ok;
-		return { type: "ok", ok: { type: "ulistItem", spans: elements } };
-	}
+	const spansRes = parseMarkdownSpans(deprefixedLine, slots);
 
-	const elementsRes = parseMarkdownSpans(line, slots);
-	if (elementsRes.type === "err") {
+	if (spansRes.type === "err") {
 		return {
 			type: "err",
-			err: `While parsing elements:\n${elementsRes.err}`,
+			err: `While parsing ${type} spans:\n${spansRes.err}`,
 		};
 	}
 
-	const elements = elementsRes.ok;
-	return { type: "ok", ok: { type: "paragraph", spans: elements } };
+	const spans = spansRes.ok;
+	return { type: "ok", ok: { type, spans } };
 }
 
 function parseMarkdownSpans<Slot extends string>(
@@ -197,64 +185,123 @@ function parseMarkdownSpans<Slot extends string>(
 		return { type: "err", err: "Subheaders are not supported." };
 	}
 
-	const trimmedLine = line.trim();
-	const chars = trimmedLine.split("");
-	const elementsRes = readMarkdownSpans(chars, slots, {
-		inItalic: false,
-		inBold: false,
-	});
-	if (elementsRes.type === "err") {
-		return elementsRes;
+	const chars = line.split("");
+	const spansRes = readMarkdownSpans(
+		chars,
+		slots,
+		ParseMarkdownSpansManager.new(),
+	);
+
+	if (spansRes.type === "err") {
+		return spansRes;
 	}
 
-	const elements = elementsRes.ok;
-	return { type: "ok", ok: elements };
+	const spans = spansRes.ok;
+
+	return { type: "ok", ok: spans };
 }
 
-interface ReadMarkdownSpanCtx {
-	inItalic: boolean;
-	inBold: boolean;
+class ParseMarkdownSpansManager {
+	private inItalic: boolean;
+	private inBold: boolean;
+
+	private constructor() {
+		this.inItalic = false;
+		this.inBold = false;
+	}
+
+	public static new(): ParseMarkdownSpansManager {
+		return new this();
+	}
+
+	public tryUseItalic<R>(f: () => Result<R, string>): Result<R, string> {
+		if (this.inItalic) {
+			return {
+				type: "err",
+				err: "Cannot nest italic span (*) inside of another italic span",
+			};
+		}
+
+		this.inItalic = true;
+
+		const fRes = f();
+		if (fRes.type === "err") {
+			return fRes;
+		}
+
+		this.inItalic = false;
+
+		const fOk = fRes.ok;
+		return { type: "ok", ok: fOk };
+	}
+
+	public tryUseBold<R>(f: () => Result<R, string>): Result<R, string> {
+		if (this.inBold) {
+			return {
+				type: "err",
+				err: "Cannot nest bold span (**) inside of another bold span",
+			};
+		}
+
+		this.inBold = true;
+
+		const fRes = f();
+		if (fRes.type === "err") {
+			return fRes;
+		}
+
+		this.inBold = false;
+
+		const fOk = fRes.ok;
+		return { type: "ok", ok: fOk };
+	}
 }
 
 function readMarkdownSpans<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-	ctx: ReadMarkdownSpanCtx,
+	manager: ParseMarkdownSpansManager,
 ): Result<MarkdownSpan<Slot>[], string> {
-	const elements: MarkdownSpan<Slot>[] = [];
+	const spans: MarkdownSpan<Slot>[] = [];
 	while (true) {
-		const elementRes = readMarkdownSpan(chars, slots, ctx);
-		if (elementRes.type === "err") {
-			return elementRes;
+		const spanRes = readMarkdownSpan(chars, slots, manager);
+		if (spanRes.type === "err") {
+			return spanRes;
 		}
 
-		const element = elementRes.ok;
-		if (element.length === 0) {
+		const span = spanRes.ok;
+		if (span === undefined) {
 			break;
 		}
 
-		elements.push(...element);
+		spans.push(span);
 	}
 
-	return { type: "ok", ok: elements };
+	return { type: "ok", ok: spans };
 }
 
 function readMarkdownSpan<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-	ctx: ReadMarkdownSpanCtx,
-): Result<MarkdownSpan<Slot>[], string> {
-	const [firstChar, secondChar] = chars;
+	manager: ParseMarkdownSpansManager,
+): Result<MarkdownSpan<Slot> | undefined, string> {
+	const [firstChar, secondChar, thirdChar] = chars;
 	if (firstChar === undefined) {
-		return { type: "ok", ok: [] };
+		return { type: "ok", ok: undefined };
 	} else if (firstChar === "<") {
 		return readMarkdownSpanSlot(chars, slots);
 	} else if (firstChar === "[") {
-		return readMarkdownSpanLink(chars, slots, ctx);
-	} else if (firstChar === "*" && secondChar === "*" && !ctx.inBold) {
-		return readMarkdownSpanBold(chars, slots, ctx);
-	} else if (firstChar === "*" && secondChar !== "*" && !ctx.inItalic) {
-		return readMarkdownSpanItalic(chars, slots, ctx);
+		return readMarkdownSpanLink(chars, slots, manager);
+	} else if (firstChar === "*") {
+		if (secondChar !== "*") {
+			return readMarkdownSpanItalic(chars, slots, manager);
+		}
+
+		if (thirdChar !== "*") {
+			return readMarkdownSpanBold(chars, slots, manager);
+		}
+
+		return readMarkdownSpanBoldItalic(chars, slots, manager);
 	} else {
 		return readMarkdownSpanPlain(chars);
 	}
@@ -268,7 +315,7 @@ function isInArray<T, U extends T>(value: T, array: readonly U[]): value is U {
 function readMarkdownSpanSlot<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-): Result<MarkdownSpan<Slot>[], string> {
+): Result<MarkdownSpan<Slot>, string> {
 	const openAngleRes = expectReadChar(chars, "<");
 	if (openAngleRes.type === "err") {
 		return openAngleRes;
@@ -289,20 +336,20 @@ function readMarkdownSpanSlot<Slot extends string>(
 		return { type: "err", err: `Unexpected slot name: ${slotName}` };
 	}
 
-	return { type: "ok", ok: [{ type: "slot", slot: slotName }] };
+	return { type: "ok", ok: { type: "slot", slot: slotName } };
 }
 
 function readMarkdownSpanLink<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-	ctx: ReadMarkdownSpanCtx,
-): Result<MarkdownSpan<Slot>[], string> {
+	manager: ParseMarkdownSpansManager,
+): Result<MarkdownSpan<Slot>, string> {
 	const openSquareRes = expectReadChar(chars, "[");
 	if (openSquareRes.type === "err") {
 		return openSquareRes;
 	}
 
-	const labelElementsRes = readMarkdownSpans(chars, slots, ctx);
+	const labelElementsRes = readMarkdownSpans(chars, slots, manager);
 	if (labelElementsRes.type === "err") {
 		return labelElementsRes;
 	}
@@ -493,9 +540,7 @@ function readMarkdownSpanLink<Slot extends string>(
 
 	return {
 		type: "ok",
-		ok: [
-			{ type: "link", link: { label: resolvedLabel, to: dest, newTab } },
-		],
+		ok: { type: "link", link: { label: resolvedLabel, to: dest, newTab } },
 	};
 }
 
@@ -567,106 +612,157 @@ function validateInternalDest(dest: string): Result<SmartInternalDest, string> {
 	}
 }
 
-function readMarkdownSpanBold<Slot extends string>(
-	chars: string[],
-	slots: readonly Slot[],
-	ctx: ReadMarkdownSpanCtx,
-): Result<MarkdownSpan<Slot>[], string> {
-	const firstStarRes = expectReadChar(chars, "*");
-	if (firstStarRes.type === "err") {
-		return firstStarRes;
-	}
-
-	const secondStarRes = expectReadChar(chars, "*");
-	if (secondStarRes.type === "err") {
-		return secondStarRes;
-	}
-
-	ctx.inBold = true;
-	const elements: MarkdownSpan<Slot>[] = [];
-	let closed = false;
-	while (true) {
-		const elementRes = readMarkdownSpan(chars, slots, ctx);
-		if (elementRes.type === "err") {
-			return elementRes;
-		}
-
-		const element = elementRes.ok;
-		if (element.length === 0) {
-			break;
-		}
-
-		elements.push(...element);
-		const [firstChar, secondChar] = chars;
-		if (firstChar === "*" && secondChar === "*") {
-			chars.shift();
-			chars.shift();
-			closed = true;
-			break;
-		} else if (firstChar === undefined) {
-			closed = false;
-			break;
-		}
-	}
-
-	ctx.inBold = !closed;
-	if (closed) {
-		return { type: "ok", ok: [{ type: "bold", bold: elements }] };
-	} else {
-		return {
-			type: "ok",
-			ok: [{ type: "plain", plain: "**" }, ...elements],
-		};
-	}
-}
-
 function readMarkdownSpanItalic<Slot extends string>(
 	chars: string[],
 	slots: readonly Slot[],
-	ctx: ReadMarkdownSpanCtx,
-): Result<MarkdownSpan<Slot>[], string> {
-	const starRes = expectReadChar(chars, "*");
-	if (starRes.type === "err") {
-		return starRes;
-	}
-
-	ctx.inItalic = true;
-	const elements: MarkdownSpan<Slot>[] = [];
-	let closed = false;
-	while (true) {
-		const elementRes = readMarkdownSpan(chars, slots, ctx);
-		if (elementRes.type === "err") {
-			return elementRes;
+	manager: ParseMarkdownSpansManager,
+): Result<MarkdownSpan<Slot>, string> {
+	return manager.tryUseItalic(() => {
+		const singleStarRes = expectReadString(chars, "*");
+		if (singleStarRes.type === "err") {
+			return singleStarRes;
 		}
 
-		const element = elementRes.ok;
-		if (element.length === 0) {
-			break;
+		const spans: MarkdownSpan<Slot>[] = [];
+		let closed = false;
+		while (true) {
+			const spanRes = readMarkdownSpan(chars, slots, manager);
+			if (spanRes.type === "err") {
+				return spanRes;
+			}
+
+			const span = spanRes.ok;
+			if (span === undefined) {
+				break;
+			}
+
+			spans.push(span);
+
+			const [firstChar] = chars;
+			if (firstChar === "*") {
+				chars.shift();
+				closed = true;
+				break;
+			} else if (firstChar === undefined) {
+				closed = false;
+				break;
+			}
 		}
 
-		elements.push(...element);
-		const [firstChar] = chars;
-		if (firstChar === "*") {
-			chars.shift();
-			closed = true;
-			break;
-		} else if (firstChar === undefined) {
-			closed = false;
-			break;
+		if (!closed) {
+			return { type: "err", err: "Italic span (*) is never closed" };
 		}
-	}
 
-	ctx.inItalic = !closed;
-	if (closed) {
-		return { type: "ok", ok: [{ type: "italic", italic: elements }] };
-	} else {
-		return { type: "ok", ok: [{ type: "plain", plain: "*" }, ...elements] };
-	}
+		return { type: "ok", ok: { type: "italic", italic: spans } };
+	});
+}
+
+function readMarkdownSpanBold<Slot extends string>(
+	chars: string[],
+	slots: readonly Slot[],
+	manager: ParseMarkdownSpansManager,
+): Result<MarkdownSpan<Slot>, string> {
+	return manager.tryUseBold(() => {
+		const doubleStarRes = expectReadString(chars, "**");
+		if (doubleStarRes.type === "err") {
+			return doubleStarRes;
+		}
+
+		const spans: MarkdownSpan<Slot>[] = [];
+		let closed = false;
+		while (true) {
+			const spanRes = readMarkdownSpan(chars, slots, manager);
+			if (spanRes.type === "err") {
+				return spanRes;
+			}
+
+			const span = spanRes.ok;
+			if (span === undefined) {
+				break;
+			}
+
+			spans.push(span);
+			const [firstChar, secondChar] = chars;
+			if (firstChar === "*" && secondChar === "*") {
+				chars.shift();
+				chars.shift();
+				closed = true;
+				break;
+			} else if (firstChar === undefined) {
+				closed = false;
+				break;
+			}
+		}
+
+		if (!closed) {
+			return { type: "err", err: "Bold span (**) is never closed" };
+		}
+
+		return { type: "ok", ok: { type: "bold", bold: spans } };
+	});
+}
+
+function readMarkdownSpanBoldItalic<Slot extends string>(
+	chars: string[],
+	slots: readonly Slot[],
+	manager: ParseMarkdownSpansManager,
+): Result<MarkdownSpan<Slot>, string> {
+	return manager.tryUseBold(() =>
+		manager.tryUseItalic(() => {
+			const tripleStarRes = expectReadString(chars, "***");
+			if (tripleStarRes.type === "err") {
+				return tripleStarRes;
+			}
+
+			const spans: MarkdownSpan<Slot>[] = [];
+			let closed = false;
+			while (true) {
+				const spanRes = readMarkdownSpan(chars, slots, manager);
+				if (spanRes.type === "err") {
+					return spanRes;
+				}
+
+				const span = spanRes.ok;
+				if (span === undefined) {
+					break;
+				}
+
+				spans.push(span);
+				const [firstChar, secondChar, thirdChar] = chars;
+				if (
+					firstChar === "*"
+					&& secondChar === "*"
+					&& thirdChar === "*"
+				) {
+					chars.shift();
+					chars.shift();
+					chars.shift();
+					closed = true;
+					break;
+				} else if (firstChar === undefined) {
+					closed = false;
+					break;
+				}
+			}
+
+			if (!closed) {
+				return {
+					type: "err",
+					err: "Bold italic span (***) is never closed",
+				};
+			}
+
+			return {
+				type: "ok",
+				ok: { type: "bold", bold: [{ type: "italic", italic: spans }] },
+			};
+		}),
+	);
 }
 
 function readMarkdownSpanPlain<Slot extends string>(
 	chars: string[],
-): Result<MarkdownSpan<Slot>[], string> {
+): Result<MarkdownSpan<Slot> | undefined, string> {
 	let plain = "";
 	let escaped = false;
 	while (true) {
@@ -701,7 +797,7 @@ function readMarkdownSpanPlain<Slot extends string>(
 
 	return {
 		type: "ok",
-		ok: plain.length > 0 ? [{ type: "plain", plain }] : [],
+		ok: plain.length === 0 ? undefined : { type: "plain", plain },
 	};
 }
 
