@@ -1,4 +1,4 @@
-name: SSH Deploy to production
+name: SSH Deploy static to production
 
 on: workflow_dispatch
 
@@ -17,4 +17,4 @@ jobs:
             - name: SSH and run deployment script
               run: |
                   ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-                  'source ~/.bashrc && bash "${{ secrets.SOURCE_PATH }}"/deploy.sh "${{ secrets.SOURCE_PATH }}" "${{ secrets.STATIC_PATH }}" "${{ secrets.BACKEND_PATH }}"'
+                  'bash "${{ secrets.SOURCE_PATH }}"/deploy.sh "${{ secrets.SOURCE_PATH }}" "" "${{ secrets.BACKEND_PATH }}"'
