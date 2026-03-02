@@ -1,6 +1,6 @@
-import { type InferLocale } from "@/new-i18n-lib/config";
+import { type InferLocaleFromConfig } from "@/new-i18n-lib/config";
 import {
-	bundleToUncompiledLocale,
+	bundleToUncompiledLocaleRecord,
 	loadFluentBundle,
 } from "@/new-i18n-lib/setup";
 import { localeConfig } from "./config";
@@ -47,7 +47,7 @@ export const localeId = computed({
 	},
 });
 
-export interface Locale extends InferLocale<typeof localeConfig> {}
+export interface Locale extends InferLocaleFromConfig<typeof localeConfig> {}
 
 async function loadLocale(
 	localeId: LocaleId,
@@ -95,18 +95,21 @@ function setupLocale(
 		return localeBundle;
 	})();
 
-	const uncompiledRes = bundleToUncompiledLocale(maybeFallbackedBundle);
-	if (uncompiledRes.type === "err") {
-		return uncompiledRes;
+	const uncompiledLocaleRecordRes = bundleToUncompiledLocaleRecord(
+		maybeFallbackedBundle,
+	);
+	if (uncompiledLocaleRecordRes.type === "err") {
+		return uncompiledLocaleRecordRes;
 	}
 
-	const uncompiled = uncompiledRes.ok;
+	const uncompiledLocaleRecord = uncompiledLocaleRecordRes.ok;
 
 	const localeRes = compileLocale({
 		config: localeConfig,
-		bundle: uncompiled.bundle,
-		record: uncompiled.record,
+		bundle: maybeFallbackedBundle,
+		uncompiled: uncompiledLocaleRecord,
 		fallback: fallbackLocale,
+		messageIdChain: [],
 	});
 
 	console.error(localeRes.errors);

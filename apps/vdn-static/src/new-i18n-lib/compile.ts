@@ -2,23 +2,42 @@ import type { Result, Value } from "@/utils/types";
 import {
 	computeAllVariants,
 	selectionChainToString,
-	type L10nRecord,
+	type PatternVariant,
 	type UncompiledLocale,
 } from "./setup";
-import type { FluentBundle, FluentVariable } from "@fluent/bundle";
+import type { FluentBundle, FluentVariable, Message } from "@fluent/bundle";
 import { parseMarkdown, type Markdown } from "./markdown";
 import {
-	configMessageSymbol,
-	type ConfigMessage,
-	type InferLocale,
+	configMarkdownSymbol,
+	configMessageTypeSymbol,
+	configStringSymbol,
+	type ConfigMarkdown,
+	type ConfigString,
+	type InferLocaleFromConfig,
 	type LocaleConfig,
 } from "./config";
+import type { Pattern } from "@fluent/bundle/esm/ast";
+
+type GenericLocale = { [id: string]: GenericLocale | GenericMessageFn };
+
+type GenericMessageFn = GenericStringMessageFn | GenericMarkdownMessageFn;
+
+type GenericStringMessageFn = (
+	placeableArgs?: GenericMessageFnPlaceableArgs,
+) => string;
+
+type GenericMarkdownMessageFn = (
+	placeableArgs?: GenericMessageFnPlaceableArgs,
+) => Markdown;
+
+type GenericMessageFnPlaceableArgs = Record<string, FluentVariable>;
 
 export interface CompileLocaleCtx<Config extends LocaleConfig> {
 	bundle: FluentBundle;
-	record: L10nRecord | undefined;
+	uncompiled: UncompiledLocale;
 	config: Config;
-	fallback?: InferLocale<Config>;
+	fallback: InferLocaleFromConfig<Config> | undefined;
+	messageIdChain: readonly string[];
 }
 
 export interface CompileLocaleRes<Locale> {
@@ -26,81 +45,98 @@ export interface CompileLocaleRes<Locale> {
 	errors: string[];
 }
 
-type GenericLocale = { [id: string]: GenericLocale | GenericMessageFn };
-
-type GenericMessageFn =
-	| ((args?: Record<string, FluentVariable>) => string)
-	| ((args?: Record<string, FluentVariable>) => Markdown);
-
 export function compileLocale<Config extends LocaleConfig>(
 	ctx: CompileLocaleCtx<Config>,
-): CompileLocaleRes<InferLocale<Config>> {
-	const { bundle, record, config, fallback } = ctx;
+): CompileLocaleRes<InferLocaleFromConfig<Config>> {
+	const {
+		bundle,
+		uncompiled,
+		config,
+		fallback,
+		messageIdChain: localeMessageIdChain = [],
+	} = ctx;
 
 	const errors: string[] = [];
 
-	const recordKeys = new Set(Object.keys(record ?? {}));
+	const uncompiledKeys = new Set(Object.keys(uncompiled ?? {}));
 	const configKeys = new Set(Object.keys(config));
-	const excessKeys = recordKeys.difference(configKeys);
+	const excessKeys = uncompiledKeys.difference(configKeys);
 	if (excessKeys.size > 0) {
 		errors.push(`Excess keys in record: ${[...excessKeys].join(", ")}`);
 	}
 
 	const locale: GenericLocale = {};
 	for (const [messageId, configValue] of Object.entries(config)) {
-		const recordValue = record?.[messageId];
+		const uncompiledValue = uncompiled?.[messageId];
 		const fallbackValue = fallback?.[messageId];
+		const valueMessageIdChain = [
+			...localeMessageIdChain,
+			messageId,
+		] as const;
 
 		const compiledValue = ((): Value<GenericLocale> => {
-			if (configMessageSymbol in configValue) {
-				const compiledMessageRes = compileMessage({
-					bundle,
-					messageId,
-					configValue,
-					recordValue,
-				});
-
-				const compiledMessage = ((): GenericMessageFn => {
-					if (compiledMessageRes.type === "ok") {
-						return compiledMessageRes.ok;
-					}
-
-					errors.push(compiledMessageRes.err);
-
-					if (
-						fallbackValue !== undefined
-						&& typeof fallbackValue === "function"
-					) {
-						return fallbackValue as GenericMessageFn;
-					}
-
-					return () => `[PLACEHOLDER]${messageId}`;
-				})();
-
-				return compiledMessage;
-			} else {
-				const subrecord = (() => {
-					if (recordValue?.type !== "subrecord") {
+			if (configMessageTypeSymbol in configValue) {
+				const compiledMessage = (() => {
+					if (uncompiledValue?.type !== "message") {
 						errors.push(
-							`Expected subrecord for key \`${messageId}\`, found: ${typeof recordValue}`,
+							`Expected message for key \`${messageId}\`, found: ${typeof uncompiledValue}`,
 						);
 
 						return undefined;
 					}
 
-					return recordValue.subrecord;
+					const uncompiledMessage = uncompiledValue.message;
+					const compiledMessageRes = compileMessage({
+						bundle,
+						messageIdChain: valueMessageIdChain,
+						configValue,
+						uncompiledMessage,
+					});
+
+					if (compiledMessageRes.type === "err") {
+						errors.push(compiledMessageRes.err);
+						return undefined;
+					}
+
+					const compiledMessage = compiledMessageRes.ok;
+					return compiledMessage;
+				})();
+
+				if (compiledMessage !== undefined) {
+					return compiledMessage;
+				}
+
+				if (
+					fallbackValue !== undefined
+					&& typeof fallbackValue === "function"
+				) {
+					return fallbackValue as GenericMessageFn;
+				}
+
+				return () => `[#${fmtMessageIdChain(valueMessageIdChain)}#]`;
+			} else {
+				const uncompiledSubrecord = (() => {
+					if (uncompiledValue?.type !== "subrecord") {
+						errors.push(
+							`Expected subrecord for key \`${messageId}\`, found: ${typeof uncompiledValue}`,
+						);
+
+						return undefined;
+					}
+
+					return uncompiledValue.subrecord;
 				})();
 
 				return compileSublocale({
 					subconfig: configValue,
-					recordSublocale: subrecord,
+					uncompiledSublocale: uncompiledSubrecord,
 					fallbackSublocale:
 						typeof fallbackValue === "function" ? undefined : (
 							fallbackValue
 						),
 					errors,
 					bundle,
-					messageId,
+					messageIdChain: valueMessageIdChain,
 				});
 			}
 		})();
@@ -109,35 +145,32 @@ export function compileLocale<Config extends LocaleConfig>(
 	}
 
 	// SAFETY: validated above that all keys exist and are the correct type
-	return { locale: locale as InferLocale<Config>, errors };
+	return { locale: locale as InferLocaleFromConfig<Config>, errors };
+}
+
+function fmtMessageIdChain(
+	messageIdChain: readonly [...string[], string],
+): string {
+	return messageIdChain.join("-");
 }
 
 interface CompileMessageCtx {
 	bundle: FluentBundle;
-	messageId: string;
-	configValue: ConfigMessage;
-	recordValue: Value<UncompiledLocale["record"]> | undefined;
+	messageIdChain: readonly [...string[], string];
+	configValue: ConfigString<object> | ConfigMarkdown<object, object>;
+	uncompiledMessage: Message;
 }
 
 function compileMessage(
 	ctx: CompileMessageCtx,
 ): Result<GenericMessageFn, string> {
-	const { bundle, messageId, configValue, recordValue } = ctx;
+	const { bundle, messageIdChain, configValue, uncompiledMessage } = ctx;
 
-	if (recordValue?.type !== "message") {
-		return {
-			type: "err",
-			err: `Expected message for key \`${messageId}\`, found: ${typeof recordValue}`,
-		};
-	}
-
-	const message = recordValue.message;
-
-	const pattern = message.value;
+	const pattern = uncompiledMessage.value;
 	if (pattern === null) {
 		return {
 			type: "err",
-			err: `Pattern is null for message with ID: ${messageId}`,
+			err: `Pattern is null for message with ID: ${fmtMessageIdChain(messageIdChain)}`,
 		};
 	}
 
@@ -154,7 +187,7 @@ function compileMessage(
 					if (selector.type !== "var") {
 						return {
 							type: "err",
-							err: `Expected selector to be a var expression for key: ${messageId}; Found: ${selector.type}`,
+							err: `Expected selector to be a var expression for ID: ${fmtMessageIdChain(messageIdChain)}; Found: ${selector.type}`,
 						};
 					}
 
@@ -165,7 +198,7 @@ function compileMessage(
 					) {
 						return {
 							type: "err",
-							err: `Found unexpected placeable name \`${selector.name}\` for key: ${messageId}`,
+							err: `Found unexpected placeable name \`${selector.name}\` for ID: ${fmtMessageIdChain(messageIdChain)}`,
 						};
 					}
 
@@ -179,7 +212,7 @@ function compileMessage(
 					) {
 						return {
 							type: "err",
-							err: `Found unexpected placeable name \`${element.name}\` for key: ${messageId}`,
+							err: `Found unexpected placeable name \`${element.name}\` for ID: ${fmtMessageIdChain(messageIdChain)}`,
 						};
 					}
 
@@ -200,171 +233,215 @@ function compileMessage(
 	if (allVariantsRes.type === "err") {
 		return {
 			type: "err",
-			err: `Failed to compute variants for key \`${messageId}\`:\n${allVariantsRes.err}`,
+			err: `Failed to compute variants for ID \`${fmtMessageIdChain(messageIdChain)}\`:\n${allVariantsRes.err}`,
 		};
 	}
 
 	const allVariants = allVariantsRes.ok;
 
-	// create function
-	const markdown = configValue.markdown;
+	switch (configValue[configMessageTypeSymbol]) {
+		case configStringSymbol: {
+			return compileStringMessage({
+				bundle,
+				messageIdChain,
+				allVariants,
+				pattern,
+			});
+		}
+		case configMarkdownSymbol: {
+			return compileMarkdownMessage({
+				bundle,
+				configMarkdown: configValue,
+				messageIdChain,
+				allVariants,
+				pattern,
+			});
+		}
+	}
+}
 
-	if (markdown !== null) {
-		// typecheck markdown
+interface CompileStringMessageCtx {
+	bundle: FluentBundle;
+	messageIdChain: readonly [...string[], string];
+	allVariants: readonly PatternVariant[];
+	pattern: Pattern;
+}
 
-		const markdownSlots = markdown.slots ?? [];
+function compileStringMessage(
+	ctx: CompileStringMessageCtx,
+): Result<GenericStringMessageFn, string> {
+	const { bundle, messageIdChain, allVariants, pattern } = ctx;
 
-		// check if all variants are valid markdown
-		for (const variant of allVariants) {
-			const markdownLiteralRes = parseMessageLiteral(
-				"md",
-				variant.string,
-			);
+	// typecheck string
+	// check if all variants are valid markdown
+	for (const variant of allVariants) {
+		const stringLiteralRes = parseMessageLiteral("string", variant.string);
 
-			if (markdownLiteralRes.type === "err") {
-				return {
-					type: "err",
-					err: `Invalid literal for variant \`${selectionChainToString(variant.selectionChain)}\` of key \`${messageId}\`:\n${markdownLiteralRes.err}`,
-				};
-			}
-
-			const markdownLiteral = markdownLiteralRes.ok;
-			const markdownRes = parseMarkdown(markdownLiteral, markdownSlots);
-
-			if (markdownRes.type === "err") {
-				return {
-					type: "err",
-					err: `Invalid markdown for variant \`${selectionChainToString(variant.selectionChain)}\` of key \`${messageId}\`:\n${markdownRes.err}`,
-				};
-			}
+		if (stringLiteralRes.type === "err") {
+			return {
+				type: "err",
+				err: `Invalid literal for variant \`${selectionChainToString(variant.selectionChain)}\` of ID \`${fmtMessageIdChain(messageIdChain)}\`:\n${stringLiteralRes.err}`,
+			};
 		}
 
-		// TODO: will need to make sure markdown/slots are escapes when inserting variable values
-		return {
-			type: "ok",
-			ok: (args: Record<string, FluentVariable> = {}) => {
-				const markdownLiteralRes = parseMessageLiteral(
-					"md",
-					bundle.formatPattern(pattern, args),
-				);
+		const stringLiteral = stringLiteralRes.ok;
+		const stringRes = parseString(stringLiteral);
+		if (stringRes.type === "err") {
+			return {
+				type: "err",
+				err: `Invalid string for variant \`${selectionChainToString(variant.selectionChain)}\` of ID \`${fmtMessageIdChain(messageIdChain)}\`:\n${stringRes.err}`,
+			};
+		}
+	}
 
-				if (markdownLiteralRes.type === "err") {
-					// This should hopefully never happen since we've already
-					// verified all message variants parse as valid markdown above
-					throw new Error(
-						`Failed to parse markdown literal after compilation!\n${markdownLiteralRes.err}`,
-					);
-				}
-
-				const markdownLiteral = markdownLiteralRes.ok;
-				const res = parseMarkdown(markdownLiteral, markdownSlots);
-
-				if (res.type === "err") {
-					// This should hopefully never happen since we've already
-					// verified all message variants parse as valid markdown above
-					throw new Error(
-						`Failed to parse markdown after compilation!\n${res.err}`,
-					);
-				}
-
-				return res.ok;
-			},
-		};
-	} else {
-		// typecheck string
-		// check if all variants are valid markdown
-		for (const variant of allVariants) {
+	// TODO: will need to make sure markdown/slots are escapes when inserting variable values
+	return {
+		type: "ok",
+		ok: (args: Record<string, FluentVariable> = {}) => {
 			const stringLiteralRes = parseMessageLiteral(
 				"string",
-				variant.string,
+				bundle.formatPattern(pattern, args),
 			);
 
 			if (stringLiteralRes.type === "err") {
-				return {
-					type: "err",
-					err: `Invalid literal for variant \`${selectionChainToString(variant.selectionChain)}\` of key \`${messageId}\`:\n${stringLiteralRes.err}`,
-				};
+				// This should hopefully never happen since we've already
+				// verified all message variants parse as valid strings above
+				throw new Error(
+					`Failed to parse string literal after compilation!\n${stringLiteralRes.err}`,
+				);
 			}
 
 			const stringLiteral = stringLiteralRes.ok;
-			const stringRes = parseString(stringLiteral);
-			if (stringRes.type === "err") {
-				return {
-					type: "err",
-					err: `Invalid string for variant \`${selectionChainToString(variant.selectionChain)}\` of key \`${messageId}\`:\n${stringRes.err}`,
-				};
+
+			const res = parseString(stringLiteral);
+
+			if (res.type === "err") {
+				// This should hopefully never happen since we've already
+				// verified all message variants parse as valid strings above
+				// TODO: no we dont, do that
+				throw new Error(
+					`Failed to parse string after compilation!\n${res.err}`,
+				);
 			}
+
+			return res.ok;
+		},
+	};
+}
+
+interface CompileMarkdownMessageCtx {
+	bundle: FluentBundle;
+	messageIdChain: readonly [...string[], string];
+	configMarkdown: ConfigMarkdown<object, object>;
+	allVariants: readonly PatternVariant[];
+	pattern: Pattern;
+}
+
+function compileMarkdownMessage(
+	ctx: CompileMarkdownMessageCtx,
+): Result<GenericMarkdownMessageFn, string> {
+	const { bundle, messageIdChain, configMarkdown, allVariants, pattern } =
+		ctx;
+
+	// typecheck markdown
+
+	const markdownSlots = configMarkdown.features.slots;
+
+	// check if all variants are valid markdown
+	for (const variant of allVariants) {
+		const markdownLiteralRes = parseMessageLiteral("md", variant.string);
+
+		if (markdownLiteralRes.type === "err") {
+			return {
+				type: "err",
+				err: `Invalid literal for variant \`${selectionChainToString(variant.selectionChain)}\` of ID \`${fmtMessageIdChain(messageIdChain)}\`:\n${markdownLiteralRes.err}`,
+			};
 		}
 
-		// TODO: will need to make sure markdown/slots are escapes when inserting variable values
-		return {
-			type: "ok",
-			ok: (args: Record<string, FluentVariable> = {}) => {
-				const stringLiteralRes = parseMessageLiteral(
-					"string",
-					bundle.formatPattern(pattern, args),
-				);
+		const markdownLiteral = markdownLiteralRes.ok;
+		const markdownRes = parseMarkdown(
+			markdownLiteral,
+			Object.keys(markdownSlots),
+		);
 
-				if (stringLiteralRes.type === "err") {
-					// This should hopefully never happen since we've already
-					// verified all message variants parse as valid strings above
-					throw new Error(
-						`Failed to parse string literal after compilation!\n${stringLiteralRes.err}`,
-					);
-				}
-
-				const stringLiteral = stringLiteralRes.ok;
-
-				const res = parseString(stringLiteral);
-
-				if (res.type === "err") {
-					// This should hopefully never happen since we've already
-					// verified all message variants parse as valid strings above
-					// TODO: no we dont, do that
-					throw new Error(
-						`Failed to parse string after compilation!\n${res.err}`,
-					);
-				}
-
-				return res.ok;
-			},
-		};
+		if (markdownRes.type === "err") {
+			return {
+				type: "err",
+				err: `Invalid markdown for variant \`${selectionChainToString(variant.selectionChain)}\` of ID \`${fmtMessageIdChain(messageIdChain)}\`:\n${markdownRes.err}`,
+			};
+		}
 	}
+
+	// TODO: will need to make sure markdown/slots are escapes when inserting variable values
+	return {
+		type: "ok",
+		ok: (args: Record<string, FluentVariable> = {}) => {
+			const markdownLiteralRes = parseMessageLiteral(
+				"md",
+				bundle.formatPattern(pattern, args),
+			);
+
+			if (markdownLiteralRes.type === "err") {
+				// This should hopefully never happen since we've already
+				// verified all message variants parse as valid markdown above
+				throw new Error(
+					`Failed to parse markdown literal after compilation!\n${markdownLiteralRes.err}`,
+				);
+			}
+
+			const markdownLiteral = markdownLiteralRes.ok;
+			const res = parseMarkdown(
+				markdownLiteral,
+				Object.keys(markdownSlots),
+			);
+
+			if (res.type === "err") {
+				// This should hopefully never happen since we've already
+				// verified all message variants parse as valid markdown above
+				throw new Error(
+					`Failed to parse markdown after compilation!\n${res.err}`,
+				);
+			}
+
+			return res.ok;
+		},
+	};
 }
 
 interface CompileSublocaleCtx<Subconfig extends LocaleConfig> {
 	subconfig: Subconfig;
-	recordSublocale: L10nRecord | undefined;
-	fallbackSublocale: InferLocale<Subconfig> | undefined;
+	uncompiledSublocale: UncompiledLocale | undefined;
+	fallbackSublocale: InferLocaleFromConfig<Subconfig> | undefined;
 	errors: string[];
 	bundle: FluentBundle;
-	messageId: string;
+	messageIdChain: readonly [...string[], string];
 }
 
 function compileSublocale<Subconfig extends LocaleConfig>(
 	ctx: CompileSublocaleCtx<Subconfig>,
-): InferLocale<Subconfig> {
+): InferLocaleFromConfig<Subconfig> {
 	const {
 		subconfig: configValue,
-		recordSublocale: recordValue,
+		uncompiledSublocale: recordValue,
 		fallbackSublocale: fallbackValue,
 		errors,
 		bundle,
-		messageId,
+		messageIdChain,
 	} = ctx;
 
 	const subrecord = recordValue;
 	const compiledSubrecordRes = compileLocale({
 		bundle,
-		record: subrecord,
+		uncompiled: subrecord ?? {},
 		config: configValue,
 		fallback: fallbackValue,
+		messageIdChain,
 	});
 
 	errors.push(
 		...compiledSubrecordRes.errors.map(
 			(err) =>
-				`Error when compiling subrecord with key: \`${messageId}\`:\n${err}`,
+				`Error when compiling subrecord with ID: \`${fmtMessageIdChain(messageIdChain)}\`:\n${err}`,
 		),
 	);
 

@@ -1,14 +1,24 @@
 import { type Markdown } from "./markdown";
 
-export const configMessageSymbol: unique symbol = Symbol("configMessage");
-export interface ConfigMessage<
-	Placeables extends { [name in string]?: ConfigPlaceableInfo } = object,
-	Markdown extends
-		ConfigMarkdown<string> | null = ConfigMarkdown<string> | null,
+export const configMessageTypeSymbol: unique symbol =
+	Symbol("configMessageType");
+
+export const configStringSymbol: unique symbol = Symbol("configString");
+export interface ConfigString<
+	Placeables extends Partial<Record<string, ConfigPlaceableInfo>>,
 > {
-	[configMessageSymbol]: true;
+	[configMessageTypeSymbol]: typeof configStringSymbol;
 	placeables: Placeables;
-	markdown: Markdown;
+}
+
+export const configMarkdownSymbol: unique symbol = Symbol("configMarkdown");
+export interface ConfigMarkdown<
+	Placeables extends Partial<Record<string, ConfigPlaceableInfo>>,
+	Slots extends Partial<Record<string, ConfigSlotInfo>>,
+> {
+	[configMessageTypeSymbol]: typeof configMarkdownSymbol;
+	placeables: Placeables;
+	features: ConfigMarkdownFeatures<Slots>;
 }
 
 export interface ConfigPlaceableInfo<
@@ -17,47 +27,56 @@ export interface ConfigPlaceableInfo<
 	type: Type;
 }
 
-export interface ConfigMarkdown<Slot extends string> {
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ConfigSlotInfo {}
+
+export interface ConfigMarkdownFeatures<
+	Slots extends Partial<Record<string, ConfigSlotInfo>>,
+> {
 	bold?: boolean;
 	italic?: boolean;
 	header?: boolean;
 	link?: boolean;
 	ulist?: boolean;
-	slots?: Slot[];
+	slots: Slots;
 }
 
-export function message<
-	const Placeables extends {
-		[name in string]?: ConfigPlaceableInfo;
-	} = object,
-	const Markdown extends ConfigMarkdown<string> | null = null,
+export function string<
+	const Placeables extends Partial<Record<string, ConfigPlaceableInfo>>,
 >(
-	opt: Partial<
-		Omit<
-			ConfigMessage<Placeables, ConfigMarkdown<never> | Markdown>,
-			typeof configMessageSymbol
-		>
-	> = {},
-): ConfigMessage<Placeables, Markdown> {
+	opt: Omit<ConfigString<Placeables>, typeof configMessageTypeSymbol>,
+): ConfigString<Placeables> {
 	return {
-		[configMessageSymbol]: true,
-		placeables: opt.placeables ?? {},
-		markdown: opt.markdown ?? null,
+		[configMessageTypeSymbol]: configStringSymbol,
+		placeables: opt.placeables,
 	};
 }
 
-export type LocaleConfig<
-	Placeables extends { [name in string]?: ConfigPlaceableInfo } = object,
-	Markdown extends
-		ConfigMarkdown<string> | null = ConfigMarkdown<string> | null,
-> = {
+export function markdown<
+	const Placeables extends Partial<Record<string, ConfigPlaceableInfo>>,
+	const Slots extends Partial<Record<string, ConfigSlotInfo>>,
+>(
+	opt: Omit<
+		ConfigMarkdown<Placeables, Slots>,
+		typeof configMessageTypeSymbol
+	>,
+): ConfigMarkdown<Placeables, Slots> {
+	return {
+		[configMessageTypeSymbol]: configMarkdownSymbol,
+		placeables: opt.placeables,
+		features: opt.features,
+	};
+}
+
+export type LocaleConfig = {
 	[id: string]:
-		| ConfigMessage<Placeables, Markdown>
-		| LocaleConfig<Placeables, Markdown>;
+		| ConfigString<object>
+		| ConfigMarkdown<object, object>
+		| LocaleConfig;
 };
 
 type MessageCtx<
-	Placeables extends { [name in string]?: ConfigPlaceableInfo } = object,
+	Placeables extends Partial<Record<string, ConfigPlaceableInfo>>,
 > = {
 	[K in keyof Placeables]: ResolvedPlaceableType<
 		PlaceableType<Exclude<Placeables[K], undefined>>
@@ -72,18 +91,17 @@ type ResolvedPlaceableType<Type extends "string" | "number"> =
 	: Type extends "number" ? number
 	: never;
 
-export type InferLocale<Config extends LocaleConfig> = {
-	[K in keyof Config]: Config[K] extends LocaleConfig ? InferLocale<Config[K]>
-	: Config[K] extends ConfigMessage<infer Placeables, infer Md> ?
+export type InferLocaleFromConfig<Config extends LocaleConfig> = {
+	[K in keyof Config]: Config[K] extends LocaleConfig ?
+		InferLocaleFromConfig<Config[K]>
+	: Config[K] extends ConfigString<infer Placeables> ?
 		object extends MessageCtx<Placeables> ?
-			() => null extends Md ? string
-			: Md extends ConfigMarkdown<never> ? Markdown<never>
-			: Md extends ConfigMarkdown<infer Slot> ? Markdown<Slot>
-			: never
-		:	(ctx: MessageCtx<Placeables>) => null extends Md ? string
-			: Md extends ConfigMarkdown<never> ? Markdown<never>
-			: Md extends ConfigMarkdown<infer Slot> ? Markdown<Slot>
-			: never
+			() => string
+		:	(ctx: MessageCtx<Placeables>) => string
+	: Config[K] extends ConfigMarkdown<infer Placeables, object> ?
+		object extends MessageCtx<Placeables> ?
+			() => Markdown
+		:	(ctx: MessageCtx<Placeables>) => Markdown
 	:	never;
 };
 

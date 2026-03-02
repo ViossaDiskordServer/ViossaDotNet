@@ -48,6 +48,10 @@ export default defineConfig([
 				{ allowInterfaces: "with-single-extends" },
 			],
 			"vue/no-ref-object-reactivity-loss": ["error"],
+			"@typescript/no-unnecessary-conditions": [
+				"error",
+				{ allowConstantLoopConditions: "only-allowed-literals" },
+			],
 		},
 	},
 	// disable multi-word-component-names for unplugin-vue-router

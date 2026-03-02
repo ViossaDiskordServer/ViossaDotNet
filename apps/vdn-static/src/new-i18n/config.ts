@@ -1,43 +1,62 @@
 import {
-	message,
+	string,
+	markdown,
 	record,
-	type InferLocale,
+	type InferLocaleFromConfig,
 	type LocaleConfig,
+	type ConfigString,
 } from "@/new-i18n-lib/config";
 
-const homeSectionConfig = { title: message(), body: message() };
+function plainString(): ConfigString<object> {
+	return string({ placeables: {} });
+}
 
-const imageConfig = { alt: message() };
-export interface Image extends InferLocale<typeof imageConfig> {}
+const homeSectionConfig = { title: plainString(), body: plainString() };
 
-const buttonConfig = { label: message() };
+const imageConfig = { alt: plainString() };
+export interface Image extends InferLocaleFromConfig<typeof imageConfig> {}
+
+const buttonConfig = { label: plainString() };
 
 const resourceConfig = <ButtonKey extends string>(buttonKeys: ButtonKey[]) => ({
-	title: message(),
-	subtitle: message(),
-	desc: message(),
+	title: plainString(),
+	subtitle: plainString(),
+	desc: plainString(),
 	buttons: record(buttonKeys, () => buttonConfig),
 });
 
 const discordRuleConfig = {
 	overview: {
-		text: message({ markdown: { bold: true, italic: true, link: true } }),
-		subtext: message({
-			markdown: { bold: true, italic: true, link: true },
+		text: markdown({
+			placeables: {},
+			features: { bold: true, italic: true, link: true, slots: {} },
+		}),
+		subtext: markdown({
+			placeables: {},
+			features: { bold: true, italic: true, link: true, slots: {} },
 		}),
 	},
 	section: {
-		header: message({ placeables: { ruleNumber: { type: "number" } } }),
-		body: message({
-			markdown: { bold: true, header: true, italic: true, link: true },
+		header: string({ placeables: { ruleNumber: { type: "number" } } }),
+		body: markdown({
+			placeables: {},
+			features: {
+				bold: true,
+				header: true,
+				italic: true,
+				link: true,
+				slots: {},
+			},
 		}),
 	},
 };
 
 export const localeConfig = {
-	localeName: message(),
-	vilanticLangs: record(["viossa", "wodox"], () => message()),
-	navbar: record(["whatIsViossa", "resources", "kotoba"], () => message()),
+	localeName: plainString(),
+	vilanticLangs: record(["viossa", "wodox"], () => plainString()),
+	navbar: record(["whatIsViossa", "resources", "kotoba"], () =>
+		plainString(),
+	),
 	home: {
 		sections: record(
 			["whatIsViossa", "historyOfViossa", "community"],
@@ -46,15 +65,15 @@ export const localeConfig = {
 		images: record(["viossaFlag"], () => imageConfig),
 	},
 	resources: {
-		title: message(),
+		title: plainString(),
 		resources: { discord: resourceConfig(["join", "rules"]) },
 		images: record(["discordLogo"], () => imageConfig),
 	},
-	kotoba: { title: message(), searchHelp: message() },
+	kotoba: { title: plainString(), searchHelp: plainString() },
 	discord: {
 		rulesPage: {
-			title: message(),
-			overview: { title: message(), help: message() },
+			title: plainString(),
+			overview: { title: plainString(), help: plainString() },
 			rules: record(
 				[
 					"noTranslation",

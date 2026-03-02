@@ -36,21 +36,16 @@ export async function loadFluentBundle(
 	return { type: "ok", ok: bundle };
 }
 
-export type L10nRecord = {
+export type UncompiledLocale = {
 	[id: string]:
 		| { type: "message"; message: Message }
-		| { type: "subrecord"; subrecord: L10nRecord };
+		| { type: "subrecord"; subrecord: UncompiledLocale };
 };
 
-export interface UncompiledLocale {
-	bundle: FluentBundle;
-	record: L10nRecord;
-}
-
-export function bundleToUncompiledLocale(
+export function bundleToUncompiledLocaleRecord(
 	bundle: FluentBundle,
 ): Result<UncompiledLocale, string> {
-	const record: L10nRecord = {};
+	const record: UncompiledLocale = {};
 	for (const [id, message] of bundle._messages) {
 		const idChain = id.split("-");
 		let subrecord = record;
@@ -85,7 +80,7 @@ export function bundleToUncompiledLocale(
 		}
 	}
 
-	return { type: "ok", ok: { bundle, record } };
+	return { type: "ok", ok: record };
 }
 
 export type SelectionChain = (Literal | SelectionChain)[];
@@ -109,7 +104,7 @@ export function selectionChainToString(chain: SelectionChain): string {
 		.join("+");
 }
 
-interface PatternVariant {
+export interface PatternVariant {
 	selectionChain: SelectionChain;
 	string: string;
 }
