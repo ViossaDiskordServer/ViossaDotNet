@@ -4,7 +4,7 @@ import discordImg from "@/assets/discord.png";
 
 export default {
 	localeName: "English",
-	vilanticLangs: { viossa: "Viossa", wodox: "Wodoch" },
+	vilanticLangs: { viossa: "Viossa", wodox: "Wodoch", minemiaha: "Minemiaha"},
 	navbar: {
 		whatIsViossa: "What is Viossa?",
 		resources: "Resources",
