@@ -1,6 +1,7 @@
 import type { Locale } from "@/i18n/locale";
 import flakkaImg from "@/assets/flakka.png";
 import type { DeepPartial } from "@/utils/deep-partial";
+import discordImg from "@/assets/discord.png";
 
 export default {
 	localeName: "Viossa",
