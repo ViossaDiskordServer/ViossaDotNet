@@ -57,7 +57,9 @@ const discordRuleConfig = {
 
 export const localeConfig = {
 	localeName: plainString(),
-	vilanticLangs: record(["viossa", "wodox"], () => plainString()),
+	vilanticLangs: record(["viossa", "wodox", "minemiaha"], () =>
+		plainString(),
+	),
 	navbar: record(["whatIsViossa", "resources", "kotoba"], () =>
 		plainString(),
 	),
