@@ -2,6 +2,9 @@
 import { LOCALE_IDS, localeId, useLocale, type LocaleId } from "@/i18n";
 import { ref } from "vue";
 import { vOnClickOutside } from "@vueuse/components";
+import DropdownItem from "../atoms/DropdownItem.vue";
+
+const locale = useLocale();
 
 const isOpen = ref<boolean>(false);
 
@@ -29,7 +32,7 @@ const setLocaleId = (id: LocaleId): void => {
 				aria-haspopup="true"
 				aria-controls="dropdown-menu"
 				@click="toggleOpen()">
-				<span>{{ useLocale().value.localeName }}</span>
+				<span>{{ locale.localeName() }}</span>
 				<span class="icon is-small">
 					<i class="fas fa-angle-down" aria-hidden="true"></i>
 				</span>
@@ -37,14 +40,16 @@ const setLocaleId = (id: LocaleId): void => {
 		</div>
 		<div class="dropdown-menu" id="dropdown-menu" role="menu">
 			<div class="dropdown-content">
-				<a
+				<DropdownItem
 					v-for="(id, index) in LOCALE_IDS"
 					:key="index"
-					href="#"
-					:class="['dropdown-item', localeId === id && 'is-active']"
+					:class="[
+						'dropdown-item is-clickable',
+						localeId === id && 'is-active',
+					]"
 					@click="setLocaleId(id)">
-					{{ useLocale({ locale: id }).value.localeName }}
-				</a>
+					{{ useLocale({ locale: id }).value.localeName() }}
+				</DropdownItem>
 			</div>
 		</div>
 	</div>
