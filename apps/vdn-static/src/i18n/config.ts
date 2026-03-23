@@ -5,7 +5,7 @@ import {
 	type InferLocaleFromConfig,
 	type LocaleConfig,
 	type ConfigString,
-} from "@/new-i18n-lib/config";
+} from "@/vi18n-lib/config";
 
 function plainString(): ConfigString<object> {
 	return string({ placeables: {} });
@@ -29,24 +29,28 @@ const discordRuleConfig = {
 	overview: {
 		text: markdown({
 			placeables: {},
-			features: { bold: true, italic: true, link: true, slots: {} },
+			slots: {},
+			bold: true,
+			italic: true,
+			link: true,
 		}),
 		subtext: markdown({
 			placeables: {},
-			features: { bold: true, italic: true, link: true, slots: {} },
+			slots: {},
+			bold: true,
+			italic: true,
+			link: true,
 		}),
 	},
 	section: {
 		header: string({ placeables: { ruleNumber: { type: "number" } } }),
 		body: markdown({
 			placeables: {},
-			features: {
-				bold: true,
-				header: true,
-				italic: true,
-				link: true,
-				slots: {},
-			},
+			slots: {},
+			bold: true,
+			header: true,
+			italic: true,
+			link: true,
 		}),
 	},
 };

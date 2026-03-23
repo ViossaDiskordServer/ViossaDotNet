@@ -8,35 +8,42 @@ import type { RouteNamedMap } from "vue-router/auto-routes";
 import { routes } from "vue-router/auto-routes";
 
 export interface Markdown<Slot extends string = string> {
-	elements: MarkdownElement<Slot>[];
-	slots: Slot[];
+	elements: readonly MarkdownElement<Slot>[];
+	slots: ReadonlySet<Slot>;
 }
 
 export type MarkdownElement<Slot extends string = string> =
-	| { type: "paragraph"; paragraph: { spans: MarkdownSpan<Slot>[] } }
-	| { type: "header"; header: { spans: MarkdownSpan<Slot>[] } }
-	| { type: "ulist"; ulist: { items: MarkdownSpan<Slot>[][] } };
+	| { type: "paragraph"; paragraph: { spans: readonly MarkdownSpan<Slot>[] } }
+	| { type: "header"; header: { spans: readonly MarkdownSpan<Slot>[] } }
+	| {
+			type: "ulist";
+			ulist: { items: readonly (readonly MarkdownSpan<Slot>[])[] };
+	  };
 
 type MarkdownLine<Slot extends string = string> = {
 	type: "paragraph" | "header" | "ulistItem";
-	spans: MarkdownSpan<Slot>[];
+	spans: readonly MarkdownSpan<Slot>[];
 };
 
 export type MarkdownFeature = "header" | "ulist" | "italic" | "bold" | "link";
 
 export type MarkdownSpan<Slot extends string = string> =
 	| { type: "plain"; plain: string }
-	| { type: "italic"; italic: MarkdownSpan[] }
-	| { type: "bold"; bold: MarkdownSpan[] }
+	| { type: "italic"; italic: readonly MarkdownSpan[] }
+	| { type: "bold"; bold: readonly MarkdownSpan[] }
 	| {
 			type: "link";
-			link: { label: MarkdownSpan[]; to: SmartDest; newTab: boolean };
+			link: {
+				label: readonly MarkdownSpan[];
+				to: SmartDest;
+				newTab: boolean;
+			};
 	  }
 	| { type: "slot"; slot: Slot };
 
 export function parseMarkdown<Slot extends string>(
 	markdownString: string,
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 ): Result<Markdown<Slot>, string> {
 	const linesRes = parseMarkdownLines(markdownString, slots);
 	if (linesRes.type === "err") {
@@ -63,7 +70,9 @@ export function parseMarkdown<Slot extends string>(
 					return { type: "header", header: { spans: line.spans } };
 				}
 				case "ulistItem": {
-					const items: MarkdownSpan<Slot>[][] = [line.spans];
+					const items: (readonly MarkdownSpan<Slot>[])[] = [
+						line.spans,
+					];
 					while (true) {
 						const peekLine = lines[0];
 						if (
@@ -85,12 +94,12 @@ export function parseMarkdown<Slot extends string>(
 		elements.push(element);
 	}
 
-	return { type: "ok", ok: { elements, slots: [...slots] } };
+	return { type: "ok", ok: { elements, slots: new Set(slots) } };
 }
 
 function parseMarkdownLines<Slot extends string>(
 	markdownString: string,
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 ): Result<MarkdownLine<Slot>[], string> {
 	if (markdownString.trim() === "--") {
 		return { type: "ok", ok: [] };
@@ -142,7 +151,7 @@ function parseMarkdownLines<Slot extends string>(
 
 function parseMarkdownLine<Slot extends string>(
 	line: string,
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 ): Result<MarkdownLine<Slot>, string> {
 	interface ResolvedLine {
 		deprefixedLine: string;
@@ -174,7 +183,7 @@ function parseMarkdownLine<Slot extends string>(
 
 function parseMarkdownSpans<Slot extends string>(
 	line: string,
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 ): Result<MarkdownSpan<Slot>[], string> {
 	if (line.startsWith("#")) {
 		// subheaders may be supported in the future,
@@ -259,7 +268,7 @@ class ParseMarkdownSpansManager {
 
 function readMarkdownSpans<Slot extends string>(
 	chars: string[],
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 	manager: ParseMarkdownSpansManager,
 ): Result<MarkdownSpan<Slot>[], string> {
 	const spans: MarkdownSpan<Slot>[] = [];
@@ -282,7 +291,7 @@ function readMarkdownSpans<Slot extends string>(
 
 function readMarkdownSpan<Slot extends string>(
 	chars: string[],
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 	manager: ParseMarkdownSpansManager,
 ): Result<MarkdownSpan<Slot> | undefined, string> {
 	const [firstChar, secondChar, thirdChar] = chars;
@@ -307,14 +316,43 @@ function readMarkdownSpan<Slot extends string>(
 	}
 }
 
-function isInArray<T, U extends T>(value: T, array: readonly U[]): value is U {
+function iterableIsArray<T>(iterable: Iterable<T>): iterable is readonly T[] {
+	return Array.isArray(iterable);
+}
+
+function iterableIsSet<T>(iterable: Iterable<T>): iterable is ReadonlySet<T> {
+	return iterable instanceof Set;
+}
+
+function iterableContains<T, U extends T>(
+	iterable: Iterable<U>,
+	value: T,
+): value is U {
 	// SAFETY: this is just an equality check, it is safe to pass in any value
-	return array.includes(value as U);
+	const target = value as U;
+
+	// specializations
+	if (iterableIsArray(iterable)) {
+		return iterable.includes(target);
+	}
+
+	if (iterableIsSet(iterable)) {
+		return iterable.has(target);
+	}
+
+	// generic case
+	for (const x of iterable) {
+		if (x === target) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 function readMarkdownSpanSlot<Slot extends string>(
 	chars: string[],
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 ): Result<MarkdownSpan<Slot>, string> {
 	const openAngleRes = expectReadChar(chars, "<");
 	if (openAngleRes.type === "err") {
@@ -332,7 +370,7 @@ function readMarkdownSpanSlot<Slot extends string>(
 	}
 
 	const slotName = slotNameRes.ok;
-	if (!isInArray(slotName, slots)) {
+	if (!iterableContains(slots, slotName)) {
 		return { type: "err", err: `Unexpected slot name: ${slotName}` };
 	}
 
@@ -341,7 +379,7 @@ function readMarkdownSpanSlot<Slot extends string>(
 
 function readMarkdownSpanLink<Slot extends string>(
 	chars: string[],
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 	manager: ParseMarkdownSpansManager,
 ): Result<MarkdownSpan<Slot>, string> {
 	const openSquareRes = expectReadChar(chars, "[");
@@ -614,7 +652,7 @@ function validateInternalDest(dest: string): Result<SmartInternalDest, string> {
 
 function readMarkdownSpanItalic<Slot extends string>(
 	chars: string[],
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 	manager: ParseMarkdownSpansManager,
 ): Result<MarkdownSpan<Slot>, string> {
 	return manager.tryUseItalic(() => {
@@ -659,7 +697,7 @@ function readMarkdownSpanItalic<Slot extends string>(
 
 function readMarkdownSpanBold<Slot extends string>(
 	chars: string[],
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 	manager: ParseMarkdownSpansManager,
 ): Result<MarkdownSpan<Slot>, string> {
 	return manager.tryUseBold(() => {
@@ -704,7 +742,7 @@ function readMarkdownSpanBold<Slot extends string>(
 
 function readMarkdownSpanBoldItalic<Slot extends string>(
 	chars: string[],
-	slots: readonly Slot[],
+	slots: ReadonlySet<Slot>,
 	manager: ParseMarkdownSpansManager,
 ): Result<MarkdownSpan<Slot>, string> {
 	return manager.tryUseBold(() =>

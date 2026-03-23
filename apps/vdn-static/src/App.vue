@@ -6,7 +6,7 @@ import { vOnClickOutside } from "@vueuse/components";
 import { useRouter } from "vue-router";
 import SmartLink from "./components/atoms/SmartLink.vue";
 import type { SmartDest } from "./utils/smart-dest";
-import { useLocale, type Locale } from "./new-i18n";
+import { useLocale, type Locale } from "./i18n";
 
 const locale = useLocale();
 

@@ -7,7 +7,7 @@ import {
 } from "vue";
 import MarkdownParts from "./MarkdownParts.vue";
 import OptionalParent from "./OptionalParent.vue";
-import type { Markdown } from "@/new-i18n-lib/markdown";
+import type { Markdown } from "@/vi18n-lib/markdown";
 import type { CssClass } from "@/utils/css";
 
 const props = defineProps<{
@@ -58,7 +58,7 @@ const getComponentStack = () => {
 // Validate required slots at runtime
 onMounted(() => {
 	const requiredSlots = props.markdown.slots;
-	const missingSlots = requiredSlots.filter(
+	const missingSlots = [...requiredSlots].filter(
 		(slot) => providedSlots[slot] === undefined,
 	);
 

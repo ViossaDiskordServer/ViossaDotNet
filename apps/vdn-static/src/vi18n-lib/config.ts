@@ -18,7 +18,12 @@ export interface ConfigMarkdown<
 > {
 	[configMessageTypeSymbol]: typeof configMarkdownSymbol;
 	placeables: Placeables;
-	features: ConfigMarkdownFeatures<Slots>;
+	slots: Slots;
+	bold?: boolean;
+	italic?: boolean;
+	header?: boolean;
+	link?: boolean;
+	ulist?: boolean;
 }
 
 export interface ConfigPlaceableInfo<
@@ -30,26 +35,12 @@ export interface ConfigPlaceableInfo<
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ConfigSlotInfo {}
 
-export interface ConfigMarkdownFeatures<
-	Slots extends Partial<Record<string, ConfigSlotInfo>>,
-> {
-	bold?: boolean;
-	italic?: boolean;
-	header?: boolean;
-	link?: boolean;
-	ulist?: boolean;
-	slots: Slots;
-}
-
 export function string<
 	const Placeables extends Partial<Record<string, ConfigPlaceableInfo>>,
 >(
 	opt: Omit<ConfigString<Placeables>, typeof configMessageTypeSymbol>,
 ): ConfigString<Placeables> {
-	return {
-		[configMessageTypeSymbol]: configStringSymbol,
-		placeables: opt.placeables,
-	};
+	return { ...opt, [configMessageTypeSymbol]: configStringSymbol };
 }
 
 export function markdown<
@@ -61,11 +52,7 @@ export function markdown<
 		typeof configMessageTypeSymbol
 	>,
 ): ConfigMarkdown<Placeables, Slots> {
-	return {
-		[configMessageTypeSymbol]: configMarkdownSymbol,
-		placeables: opt.placeables,
-		features: opt.features,
-	};
+	return { ...opt, [configMessageTypeSymbol]: configMarkdownSymbol };
 }
 
 export type LocaleConfig = {

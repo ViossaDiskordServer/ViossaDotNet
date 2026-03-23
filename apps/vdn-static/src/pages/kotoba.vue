@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useLocale } from "@/new-i18n";
+import { useLocale } from "@/i18n";
 
 const locale = useLocale();
 </script>

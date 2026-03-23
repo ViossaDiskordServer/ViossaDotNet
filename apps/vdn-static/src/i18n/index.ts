@@ -1,8 +1,8 @@
-import { type InferLocaleFromConfig } from "@/new-i18n-lib/config";
+import { type InferLocaleFromConfig } from "@/vi18n-lib/config";
 import {
 	bundleToUncompiledLocaleRecord,
 	loadFluentBundle,
-} from "@/new-i18n-lib/setup";
+} from "@/vi18n-lib/setup";
 import { localeConfig } from "./config";
 import type { Result } from "@/utils/types";
 import { useLocalStorage } from "@vueuse/core";
@@ -12,7 +12,7 @@ import enUsFtlSrc from "@/assets/locale/en_US.ftl";
 import vpVlFtlSrc from "@/assets/locale/vp_VL.ftl";
 import wpVlFtlSrc from "@/assets/locale/wp_VL.ftl";
 import type { FluentBundle } from "@fluent/bundle";
-import { compileLocale } from "@/new-i18n-lib/compile";
+import { compileLocale } from "@/vi18n-lib/compile";
 
 export const LOCALE_IDS = ["en-US", "vp-VL", "wp-VL"] as const;
 
@@ -68,6 +68,7 @@ interface SetupLocaleFallback {
 }
 
 function setupLocale(
+	localeId: LocaleId,
 	localeBundle: FluentBundle,
 	fallback: SetupLocaleFallback | undefined,
 ): Result<Locale, string> {
@@ -112,7 +113,15 @@ function setupLocale(
 		messageIdChain: [],
 	});
 
-	console.error(localeRes.errors);
+	const compilationErrorCount = localeRes.errors.length;
+	if (compilationErrorCount === 0) {
+		console.log(`[vi18n] Set up locale \`${localeId}\` with no errors!`);
+	} else {
+		console.error(
+			`[vi18n] Set up locale \`${localeId}\` with ${compilationErrorCount} following errors:`,
+		);
+		console.error(localeRes.errors);
+	}
 
 	const locale = localeRes.locale;
 	return { type: "ok", ok: locale };
@@ -135,7 +144,9 @@ function deepReadonly<T>(value: T): DeepReadonly<T> {
 }
 
 const DEFAULT_LOCALE_BUNDLE = unwrap(await loadLocale("en-US", enUsFtlSrc));
-const DEFAULT_LOCALE = unwrap(setupLocale(DEFAULT_LOCALE_BUNDLE, undefined));
+const DEFAULT_LOCALE = unwrap(
+	setupLocale(DEFAULT_LOCALE_ID, DEFAULT_LOCALE_BUNDLE, undefined),
+);
 
 const doItAllForLocale = async (
 	localeId: LocaleId,
@@ -143,10 +154,11 @@ const doItAllForLocale = async (
 ): Promise<DeepReadonly<Locale>> =>
 	deepReadonly(
 		unwrap(
-			setupLocale(unwrap(await loadLocale(localeId, localeFtlSrc)), {
-				bundle: DEFAULT_LOCALE_BUNDLE,
-				locale: DEFAULT_LOCALE,
-			}),
+			setupLocale(
+				localeId,
+				unwrap(await loadLocale(localeId, localeFtlSrc)),
+				{ bundle: DEFAULT_LOCALE_BUNDLE, locale: DEFAULT_LOCALE },
+			),
 		),
 	);
 

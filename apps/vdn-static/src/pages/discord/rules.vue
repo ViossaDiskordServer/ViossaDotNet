@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import DiscordRuleOverview from "@/components/molecules/DiscordRuleOverview.vue";
 import DiscordRuleSection from "@/components/molecules/DiscordRuleSection.vue";
-import { useLocale } from "@/new-i18n";
+import { useLocale } from "@/i18n";
 import { computed } from "vue";
 
 const locale = useLocale();

@@ -2,8 +2,8 @@
 import LearningResourceWrapper, {
 	type ResourceButton,
 } from "@/components/molecules/LearningResourceWrapper.vue";
-import { useLocale, type Locale } from "@/new-i18n";
-import type * as i18n from "@/new-i18n/config";
+import { useLocale, type Locale } from "@/i18n";
+import type * as i18n from "@/i18n/config";
 import { ignore } from "@/utils/ignore";
 import { computed } from "vue";
 import discordImg from "@/assets/discord.png";

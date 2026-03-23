@@ -30,7 +30,9 @@ type GenericMarkdownMessageFn = (
 	placeableArgs?: GenericMessageFnPlaceableArgs,
 ) => Markdown;
 
-type GenericMessageFnPlaceableArgs = Record<string, FluentVariable>;
+type GenericMessageFnPlaceableArgs = Record<string, PlaceableValue>;
+
+type PlaceableValue = string | number;
 
 export interface CompileLocaleCtx<Config extends LocaleConfig> {
 	bundle: FluentBundle;
@@ -42,7 +44,7 @@ export interface CompileLocaleCtx<Config extends LocaleConfig> {
 
 export interface CompileLocaleRes<Locale> {
 	locale: Locale;
-	errors: string[];
+	errors: readonly string[];
 }
 
 export function compileLocale<Config extends LocaleConfig>(
@@ -122,7 +124,7 @@ export function compileLocale<Config extends LocaleConfig>(
 						return () =>
 							createMissingMarkdownFallback(
 								valueMessageIdChain,
-								Object.keys(configValue.features.slots),
+								new Set(Object.keys(configValue.slots)),
 							);
 					}
 				}
@@ -263,7 +265,7 @@ function compileMessage(
 		case configMarkdownSymbol: {
 			return compileMarkdownMessage({
 				bundle,
-				configMarkdown: configValue,
+				slots: new Set(Object.keys(configValue.slots)),
 				messageIdChain,
 				allVariants,
 				pattern,
@@ -309,7 +311,7 @@ function compileStringMessage(
 	// TODO: will need to make sure markdown/slots are escapes when inserting variable values
 	return {
 		type: "ok",
-		ok: (args: Record<string, FluentVariable> = {}) => {
+		ok: (args: Record<string, PlaceableValue> = {}) => {
 			const stringRes = ((): Result<string, string> => {
 				const stringLiteralRes = parseMessageLiteral(
 					"string",
@@ -361,7 +363,7 @@ function compileStringMessage(
 interface CompileMarkdownMessageCtx {
 	bundle: FluentBundle;
 	messageIdChain: readonly [...string[], string];
-	configMarkdown: ConfigMarkdown<object, object>;
+	slots: ReadonlySet<string>;
 	allVariants: readonly PatternVariant[];
 	pattern: Pattern;
 }
@@ -369,12 +371,9 @@ interface CompileMarkdownMessageCtx {
 function compileMarkdownMessage(
 	ctx: CompileMarkdownMessageCtx,
 ): Result<GenericMarkdownMessageFn, string> {
-	const { bundle, messageIdChain, configMarkdown, allVariants, pattern } =
-		ctx;
+	const { bundle, messageIdChain, slots, allVariants, pattern } = ctx;
 
 	// typecheck markdown
-
-	const markdownSlots = Object.keys(configMarkdown.features.slots);
 
 	// check if all variants are valid markdown
 	for (const variant of allVariants) {
@@ -388,7 +387,7 @@ function compileMarkdownMessage(
 		}
 
 		const markdownLiteral = markdownLiteralRes.ok;
-		const markdownRes = parseMarkdown(markdownLiteral, markdownSlots);
+		const markdownRes = parseMarkdown(markdownLiteral, slots);
 
 		if (markdownRes.type === "err") {
 			return {
@@ -401,11 +400,67 @@ function compileMarkdownMessage(
 	// TODO: will need to make sure markdown/slots are escapes when inserting variable values
 	return {
 		type: "ok",
-		ok: (args: Record<string, FluentVariable> = {}): Markdown => {
+		ok: (args: Record<string, PlaceableValue> = {}): Markdown => {
+			const escapedArgs = Object.fromEntries(
+				Object.entries(args).map(([id, value]) => {
+					const escapedValue = (() => {
+						switch (typeof value) {
+							case "number": {
+								return value;
+							}
+							case "string": {
+								return value
+									.split("")
+									.map((c) => {
+										switch (c) {
+											case "\\": {
+												return "\\\\";
+											}
+											case "*": {
+												return "\\*";
+											}
+											case "#": {
+												return "\\#";
+											}
+											case "[": {
+												return "\\[";
+											}
+											case "]": {
+												return "\\]";
+											}
+											case "(": {
+												return "\\(";
+											}
+											case ")": {
+												return "\\)";
+											}
+											case "-": {
+												return "\\-";
+											}
+											case "<": {
+												return "\\<";
+											}
+											case ">": {
+												return "\\>";
+											}
+											default: {
+												return c;
+											}
+										}
+									})
+									.join("");
+							}
+						}
+					})();
+
+					return [id, escapedValue] as const;
+				}),
+			);
+
 			const markdownRes = ((): Result<Markdown, string> => {
 				const markdownLiteralRes = parseMessageLiteral(
 					"md",
-					bundle.formatPattern(pattern, args),
+					bundle.formatPattern(pattern, escapedArgs),
 				);
 
 				if (markdownLiteralRes.type === "err") {
@@ -418,7 +473,7 @@ function compileMarkdownMessage(
 				}
 
 				const markdownLiteral = markdownLiteralRes.ok;
-				const res = parseMarkdown(markdownLiteral, markdownSlots);
+				const res = parseMarkdown(markdownLiteral, slots);
 
 				if (res.type === "err") {
 					// This should hopefully never happen since we've already
@@ -440,10 +495,7 @@ function compileMarkdownMessage(
 				case "err": {
 					const error = markdownRes.err;
 					console.error(error);
-					return createMissingMarkdownFallback(
-						messageIdChain,
-						markdownSlots,
-					);
+					return createMissingMarkdownFallback(messageIdChain, slots);
 				}
 			}
 		},
@@ -458,7 +510,7 @@ function createMissingStringFallback(
 
 function createMissingMarkdownFallback<Slot extends string>(
 	messageIdChain: readonly [...string[], string],
-	slots: Slot[],
+	slots: ReadonlySet<Slot>,
 ): Markdown<Slot> {
 	return {
 		elements: [

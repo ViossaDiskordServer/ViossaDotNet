@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Locale } from "@/new-i18n";
+import type { Locale } from "@/i18n";
 import type { Value } from "@/utils/types";
 import type { DeepReadonly } from "vue";
 import MarkdownDisplay from "../atoms/MarkdownDisplay.vue";

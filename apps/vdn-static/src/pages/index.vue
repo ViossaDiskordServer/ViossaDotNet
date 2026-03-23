@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import HomeSectionWrapper from "@/components/molecules/HomeSectionWrapper.vue";
-import { GREETINGS, type Greeting } from "@/new-i18n/greeting";
-import { VILANTIC_ID_TO_FLAG } from "@/new-i18n/vilantic";
+import { GREETINGS, type Greeting } from "@/i18n/greeting";
+import { VILANTIC_ID_TO_FLAG } from "@/i18n/vilantic";
 import { randomElement } from "@/utils/random";
 import { computed } from "vue";
 import flakkaImg from "@/assets/flakka.png";
-import { useLocale, type Locale } from "@/new-i18n";
-import type * as i18n from "@/new-i18n/config";
+import { useLocale, type Locale } from "@/i18n";
+import type * as i18n from "@/i18n/config";
 
 interface SectionConfig {
 	id: keyof Locale["home"]["sections"];

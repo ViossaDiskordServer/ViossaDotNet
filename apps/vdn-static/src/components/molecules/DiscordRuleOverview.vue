@@ -2,9 +2,9 @@
 import SmartLink from "../atoms/SmartLink.vue";
 import type { Value } from "@/utils/types";
 import MarkdownDisplay from "../atoms/MarkdownDisplay.vue";
-import type { Locale } from "@/new-i18n";
+import type { Locale } from "@/i18n";
 import type { DeepReadonly } from "vue";
-import { isEmptyMarkdown } from "@/new-i18n-lib/markdown";
+import { isEmptyMarkdown } from "@/vi18n-lib/markdown";
 
 const props = defineProps<{
 	overview: DeepReadonly<
