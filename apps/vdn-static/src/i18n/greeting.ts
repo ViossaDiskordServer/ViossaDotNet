@@ -117,8 +117,8 @@ export const GREETINGS = [
 		lang: "minemiaha",
 	},
 	{
-		title: "Bakka po viossa.net!",
-		subtitle: "Da lera cui Viossa au da nintendo!",
+		title: "akka po viossa.net!",
+		subtitle: "gentutsa oxra o vilant po ce",
 		author: "Squib",
 		lang: "wodox",
 	},
