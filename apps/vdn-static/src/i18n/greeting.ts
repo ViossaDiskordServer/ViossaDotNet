@@ -39,7 +39,7 @@ export const GREETINGS = [
 		lang: "viossa",
 	},
 	{
-		title: "ברא־תולהצה viossa.net מדא!",
+		title: "ברא־תולהצה viossa.net מדא",
 		subtitle: "דבֿי לרה איו הנסו שתוף צויתה נא בֿיוסה",
 		author: "Visa Chin",
 		lang: "viossa",
@@ -96,6 +96,42 @@ export const GREETINGS = [
 		title: "Bratulaca na viossa.net!",
 		subtitle: "Da lera cui Viossa au da nintendo!",
 		author: "Luna",
+		lang: "viossa",
+	},
+	{
+		title: "braatsula viosa.net made ioo!",
+		subtitle: "afto xazjlexti fu viosa! nintendotsa viosaleraa",
+		author: "Kevinlel",
+		lang: "viossa",
+	},
+	{
+		title: "GLAUTULLATSA VIOSSA.NET MADE JOO!!",
+		subtitle: "Her hazhiplas për lera tsui Viossa — da tulla mit vi!",
+		author: "Logandzhin",
+		lang: "viossa",
+	},
+	{
+		title: "aluu, bonem viossa.net-ad!",
+		subtitle: "viosahassa, i wodahassa, i minemiahassa!",
+		author: "Kevinlel",
+		lang: "minemiaha",
+	},
+	{
+		title: "Bakka po viossa.net!",
+		subtitle: "Da lera cui Viossa au da nintendo!",
+		author: "Squib",
+		lang: "wodox",
+	},
+	{
+		title: "Braca tula jo viossa.net mad!",
+		subtitle: "Afto glavna zeplas fu Viossa! Da bli tel fu toldai glossaklanihvuj!",
+		author: "Kotokali",
+		lang: "viossa",
+	},
+	{
+		title: "viossa.net mat ratůlts～",
+		subtitle: "da henedui njamnen ri piepie fu kawaiosavui～",
+		author: "We",
 		lang: "viossa",
 	},
 ] as const satisfies Greeting[];
