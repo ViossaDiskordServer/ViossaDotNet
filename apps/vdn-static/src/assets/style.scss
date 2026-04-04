@@ -17,10 +17,12 @@
   --bulma-info-l: 50%;
   --bulma-info-s: 45%;
 
-  
+  --bulma-family-primary: Nunito, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Helvetica, Arial, sans-serif;
+  --bulma-family-secondary: Nunito, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Helvetica, Arial, sans-serif;
+  --bulma-body-family: Nunito, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Helvetica, Arial, sans-serif;
+}
 
-
-  --bulma-family-primary: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
-  --bulma-family-secondary: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
-  --bulma-body-family: Nunito,Inter,SF Pro,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Helvetica,Arial,sans-serif;
-};
+// Correct for fixed-top header when jumping to element by id in link (anchor)
+html {
+  scroll-padding-top: var(--bulma-navbar-height);
+}

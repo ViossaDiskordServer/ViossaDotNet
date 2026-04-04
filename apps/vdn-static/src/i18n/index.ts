@@ -1,22 +1,25 @@
-import en_US from "../locales/en_US";
-import vp_VL from "../locales/vp_VL";
-import wp_VL from "../locales/wp_VL";
-import { computed, readonly, type DeepReadonly } from "vue";
-import type { Locale } from "./locale";
-import type { DeepPartial } from "@/utils/deep-partial";
+import { type InferLocaleFromConfig } from "@/vi18n-lib/config";
+import {
+	bundleToUncompiledLocaleRecord,
+	loadFluentBundle,
+} from "@/vi18n-lib/setup";
+import { localeConfig } from "./config";
+import type { Result } from "@/utils/types";
 import { useLocalStorage } from "@vueuse/core";
+import { computed, type DeepReadonly } from "vue";
 import { type } from "arktype";
+import enUsFtlSrc from "@/assets/locale/en_US.ftl";
+import vpVlFtlSrc from "@/assets/locale/vp_VL.ftl";
+import wpVlFtlSrc from "@/assets/locale/wp_VL.ftl";
+import type { FluentBundle } from "@fluent/bundle";
+import { compileLocale } from "@/vi18n-lib/compile";
 
-export const LOCALE_IDS = ["en_US", "vp_VL", "wp_VL"] as const;
+export const LOCALE_IDS = ["en-US", "vp-VL", "wp-VL"] as const;
 
 export type LocaleId = typeof LocaleId.infer;
 export const LocaleId = type.enumerated(...LOCALE_IDS);
 
-export const DEFAULT_LOCALE_ID = "en_US" satisfies LocaleId;
-
-const locales = { en_US, vp_VL, wp_VL } as const satisfies {
-	en_US: Locale;
-} & Record<Exclude<LocaleId, typeof DEFAULT_LOCALE_ID>, DeepPartial<Locale>>;
+export const DEFAULT_LOCALE_ID = "en-US" satisfies LocaleId;
 
 // users could manually edit localStorage to make this value anything, so we need to validate it
 const localStorageLocaleId = useLocalStorage<unknown>(
@@ -44,23 +47,95 @@ export const localeId = computed({
 	},
 });
 
-export const useLocale = (opt: UseLocaleOptions = {}) => {
-	const locale = computed<DeepReadonly<Locale>>(() => {
-		return fallbackProxy<Locale>(
-			locales[opt.locale ?? localeId.value],
-			locales["en_US"],
-		);
-	});
+export interface Locale extends InferLocaleFromConfig<typeof localeConfig> {}
 
-	return readonly(locale);
-};
+async function loadLocale(
+	localeId: LocaleId,
+	localeFtlSrc: string,
+): Promise<Result<FluentBundle, string>> {
+	const bundleRes = await loadFluentBundle(localeId, localeFtlSrc);
+	if (bundleRes.type === "err") {
+		return bundleRes;
+	}
 
-export interface UseLocaleOptions {
-	locale?: LocaleId;
+	const bundle = bundleRes.ok;
+	return { type: "ok", ok: bundle };
 }
 
-function isObject(value: unknown) {
-	return typeof value === "object" && value !== null;
+interface SetupLocaleFallback {
+	bundle: FluentBundle;
+	locale: Locale;
+}
+
+function setupLocale(
+	localeId: LocaleId,
+	localeBundle: FluentBundle,
+	fallback: SetupLocaleFallback | undefined,
+): Result<Locale, string> {
+	const fallbackBundle = fallback?.bundle;
+	const fallbackLocale = fallback?.locale;
+
+	const maybeFallbackedBundle = (() => {
+		if (fallbackBundle === undefined) {
+			return localeBundle;
+		}
+
+		const localeMessageIds = new Set(localeBundle._messages.keys());
+		const fallbackMessageIds = new Set(fallbackBundle._messages.keys());
+
+		const missingMessageIds =
+			fallbackMessageIds.difference(localeMessageIds);
+
+		for (const id of missingMessageIds) {
+			const fallbackMessage = fallbackBundle._messages.get(id);
+			if (fallbackMessage) {
+				localeBundle._messages.set(id, fallbackMessage);
+			}
+		}
+
+		return localeBundle;
+	})();
+
+	const uncompiledLocaleRecordRes = bundleToUncompiledLocaleRecord(
+		maybeFallbackedBundle,
+	);
+	if (uncompiledLocaleRecordRes.type === "err") {
+		return uncompiledLocaleRecordRes;
+	}
+
+	const uncompiledLocaleRecord = uncompiledLocaleRecordRes.ok;
+
+	const localeRes = compileLocale({
+		config: localeConfig,
+		bundle: maybeFallbackedBundle,
+		uncompiled: uncompiledLocaleRecord,
+		fallback: fallbackLocale,
+		messageIdChain: [],
+	});
+
+	const compilationErrorCount = localeRes.errors.length;
+	if (compilationErrorCount === 0) {
+		console.log(`[vi18n] Set up locale \`${localeId}\` with no errors!`);
+	} else {
+		console.error(
+			`[vi18n] Set up locale \`${localeId}\` with ${compilationErrorCount} following errors:`,
+		);
+		console.error(localeRes.errors);
+	}
+
+	const locale = localeRes.locale;
+	return { type: "ok", ok: locale };
+}
+
+function unwrap<T, E>(result: Result<T, E>): T {
+	switch (result.type) {
+		case "ok": {
+			return result.ok;
+		}
+		case "err": {
+			throw new Error(String(result.err));
+		}
+	}
 }
 
 function deepReadonly<T>(value: T): DeepReadonly<T> {
@@ -68,59 +143,42 @@ function deepReadonly<T>(value: T): DeepReadonly<T> {
 	return value as DeepReadonly<T>;
 }
 
-function fallbackProxy<T extends object>(
-	mask: DeepPartial<T>,
-	fallback: T,
-): DeepReadonly<T> {
-	const proxy = new Proxy(fallback, {
-		get: (_target, key): DeepReadonly<T[keyof T]> => {
-			// SAFETY: typescript should ensure we're only ever trying to access keys
-			// 		   that exist on T, and if the key doesn't,
-			//         just process its fallback as if it did,
-			//         everything should work as expected still
-			const tKey = key as keyof T;
+const DEFAULT_LOCALE_BUNDLE = unwrap(await loadLocale("en-US", enUsFtlSrc));
+const DEFAULT_LOCALE = unwrap(
+	setupLocale(DEFAULT_LOCALE_ID, DEFAULT_LOCALE_BUNDLE, undefined),
+);
 
-			// value may not exist on mask
-			const value: DeepPartial<T>[keyof T] | undefined = mask[tKey];
+const doItAllForLocale = async (
+	localeId: LocaleId,
+	localeFtlSrc: string,
+): Promise<DeepReadonly<Locale>> =>
+	deepReadonly(
+		unwrap(
+			setupLocale(
+				localeId,
+				unwrap(await loadLocale(localeId, localeFtlSrc)),
+				{ bundle: DEFAULT_LOCALE_BUNDLE, locale: DEFAULT_LOCALE },
+			),
+		),
+	);
 
-			// all values exist on fallback
-			const fallbackValue: T[keyof T] = fallback[tKey];
+const [vpVl, wpVl] = await Promise.all([
+	doItAllForLocale("vp-VL", vpVlFtlSrc),
+	doItAllForLocale("wp-VL", wpVlFtlSrc),
+]);
 
-			// this is *not* T[keyof T], because if value is an object,
-			// it may still have missing properties.
-			// this only handles the case where the current value is undefined, not nested ones.
-			// thus, `finalValue` is still a `DeepPartial<T[keyof T]>` (but not undefined)
-			const finalValue: DeepPartial<T>[keyof T] =
-				value === undefined ? fallbackValue : value;
+const localeIdToLocale = {
+	"en-US": deepReadonly(DEFAULT_LOCALE),
+	"vp-VL": vpVl,
+	"wp-VL": wpVl,
+} as const satisfies Record<LocaleId, DeepReadonly<Locale>>;
 
-			// check if finalValue is not an object
-			// if not, it is a primitive
-			if (!isObject(finalValue)) {
-				// SAFETY: finalValue is not an object, so it is not affected by DeepPartial
-				// 		   so `DeepPartial<T>[keyof T]` is the same as `T[keyof T]`
-				return deepReadonly(finalValue as T[keyof T]);
-			}
-
-			// else, finalValue is an object, so we need to proxy it as well
-
-			// check if fallbackValue is an object so that it can be used as finalValue's fallback
-			if (!isObject(fallbackValue)) {
-				// if not, we can't use finalValue as we'll have no fallback for it.
-				// send the fallbackValue no matter what instead
-				return deepReadonly(fallbackValue);
-			}
-
-			// else, proxy the returned object to support deep fallback proxying
-			return fallbackProxy<T[keyof T] & object>(
-				finalValue,
-				fallbackValue,
-			);
-		},
-		set: () => {
-			throw new Error("Cannot mutate locale at runtime");
-		},
-	});
-
-	// we're just disallowing mutations to the proxy, since its setter panics if used at runtime
-	return deepReadonly(proxy);
+export interface UseLocaleOptions {
+	locale?: LocaleId;
 }
+
+export const useLocale = (opt: UseLocaleOptions = {}) =>
+	computed<DeepReadonly<Locale>>(() => {
+		const localLocaleId = opt.locale ?? localeId.value;
+		return localeIdToLocale[localLocaleId];
+	});
