@@ -3,7 +3,6 @@
 bråtula viossa.net måde! We're here to build an informational website about Viossa.
 
 ## The Stack
-**What will we be using to build this site?**
 
 ### Core
 - [TypeScript](https://www.typescriptlang.org/)
@@ -14,12 +13,12 @@ bråtula viossa.net måde! We're here to build an informational website about Vi
 - [Vue 3](https://vuejs.org/)
 - [Vite](https://vite.dev/)
 
-Additionally, we will be following [**atomic design principles**](https://bradfrost.com/blog/post/atomic-web-design/) to organize the components of the project.
+See [**atomic design principles**](https://bradfrost.com/blog/post/atomic-web-design/) for guidance on designing components.
 
 ### Styling
-- [Bulma](https://bulma.io/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Sass](https://sass-lang.com/)
+- [Bulma](https://bulma.io/) - the primary stylesheet, which supports lots of basic elements simply. Prototyping is easy, since Bulma is built around applying classes to generic elements like `div` et al in order to achieve visual componentness
+- [Tailwind CSS](https://tailwindcss.com/) - Included supplimentarily: Bulma is opinionated and only maintained by one person, so we may discover it is inadequate for certain purposes. if necessary, we can use (or fully switch to) Tailwind.
+- [Sass](https://sass-lang.com/) 
 
 ### Backend
 - [Node.js](https://nodejs.org/)
@@ -29,7 +28,6 @@ Additionally, we will be following [**atomic design principles**](https://bradfr
 - [ESLint](https://eslint.org/)
 
 ## Setup/Installation
-**How do we install this project?**
 
 1. Download and install Node.js and pnpm
    - [Node.js installation instructions](https://nodejs.org/en/download)
