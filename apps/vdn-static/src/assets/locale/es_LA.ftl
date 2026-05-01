@@ -1,4 +1,4 @@
-localeName = "Español"
+localeName = "Español (Latinoamérica)"
 vilanticLangs-viossa = "Viossa"
 vilanticLangs-wodox = "Wodoch"
 vilanticLangs-minemiaha = "Minemiaha"
