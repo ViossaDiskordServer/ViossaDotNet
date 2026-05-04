@@ -134,4 +134,10 @@ export const GREETINGS = [
 		author: "We",
 		lang: "viossa",
 	},
+	{
+		title: "Braatullaca viossa.net:an!",
+		subtitle: "Afto Zeplas viossja je ! Braaleraca Viossa au nintendoca !",
+		author: "Lunakot",
+		lang: "viossa",
+	},
 ] as const satisfies Greeting[];

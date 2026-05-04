@@ -13,6 +13,7 @@ import vpVlFtlSrc from "@/assets/locale/vp_VL.ftl";
 import wpVlFtlSrc from "@/assets/locale/wp_VL.ftl";
 import type { FluentBundle } from "@fluent/bundle";
 import { compileLocale } from "@/vi18n-lib/compile";
+import type { ComputedRef } from "vue";
 
 export const LOCALE_IDS = ["en-US", "vp-VL", "wp-VL"] as const;
 
@@ -143,42 +144,71 @@ function deepReadonly<T>(value: T): DeepReadonly<T> {
 	return value as DeepReadonly<T>;
 }
 
-const DEFAULT_LOCALE_BUNDLE = unwrap(await loadLocale("en-US", enUsFtlSrc));
-const DEFAULT_LOCALE = unwrap(
-	setupLocale(DEFAULT_LOCALE_ID, DEFAULT_LOCALE_BUNDLE, undefined),
-);
+interface I18n {
+	useLocale: (opt?: UseLocaleOptions) => ComputedRef<DeepReadonly<Locale>>;
+}
 
-const doItAllForLocale = async (
-	localeId: LocaleId,
-	localeFtlSrc: string,
-): Promise<DeepReadonly<Locale>> =>
-	deepReadonly(
-		unwrap(
-			setupLocale(
-				localeId,
-				unwrap(await loadLocale(localeId, localeFtlSrc)),
-				{ bundle: DEFAULT_LOCALE_BUNDLE, locale: DEFAULT_LOCALE },
-			),
-		),
+async function initI18n(): Promise<I18n> {
+	const defaultLocaleBundle = unwrap(await loadLocale("en-US", enUsFtlSrc));
+	const defaultLocale = unwrap(
+		setupLocale(DEFAULT_LOCALE_ID, defaultLocaleBundle, undefined),
 	);
 
-const [vpVl, wpVl] = await Promise.all([
-	doItAllForLocale("vp-VL", vpVlFtlSrc),
-	doItAllForLocale("wp-VL", wpVlFtlSrc),
-]);
+	const doItAllForLocale = async (
+		localeId: LocaleId,
+		localeFtlSrc: string,
+	): Promise<DeepReadonly<Locale>> =>
+		deepReadonly(
+			unwrap(
+				setupLocale(
+					localeId,
+					unwrap(await loadLocale(localeId, localeFtlSrc)),
+					{ bundle: defaultLocaleBundle, locale: defaultLocale },
+				),
+			),
+		);
 
-const localeIdToLocale = {
-	"en-US": deepReadonly(DEFAULT_LOCALE),
-	"vp-VL": vpVl,
-	"wp-VL": wpVl,
-} as const satisfies Record<LocaleId, DeepReadonly<Locale>>;
+	const [vpVl, wpVl] = await Promise.all([
+		doItAllForLocale("vp-VL", vpVlFtlSrc),
+		doItAllForLocale("wp-VL", wpVlFtlSrc),
+	]);
+
+	const localeIdToLocale = {
+		"en-US": deepReadonly(defaultLocale),
+		"vp-VL": vpVl,
+		"wp-VL": wpVl,
+	} as const satisfies Record<LocaleId, DeepReadonly<Locale>>;
+
+	const useLocale = (opt: UseLocaleOptions = {}) =>
+		computed<DeepReadonly<Locale>>(() => {
+			const localLocaleId = opt.locale ?? localeId.value;
+			return localeIdToLocale[localLocaleId];
+		});
+
+	return { useLocale };
+}
 
 export interface UseLocaleOptions {
 	locale?: LocaleId;
 }
 
-export const useLocale = (opt: UseLocaleOptions = {}) =>
-	computed<DeepReadonly<Locale>>(() => {
-		const localLocaleId = opt.locale ?? localeId.value;
-		return localeIdToLocale[localLocaleId];
-	});
+const initI18nPromise = initI18n();
+let i18n: I18n | null = null;
+
+initI18nPromise.then((x) => {
+	i18n = x;
+});
+
+export const onI18nInit = (f: () => void) => {
+	initI18nPromise.then(f);
+};
+
+export const useLocale = (
+	opt: UseLocaleOptions = {},
+): ComputedRef<DeepReadonly<Locale>> => {
+	if (i18n === null) {
+		throw new Error("Cannot use i18n before initialized!");
+	}
+
+	return i18n.useLocale(opt);
+};
