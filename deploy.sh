@@ -11,7 +11,6 @@ STATIC_DIR=$2
 BACKEND_DIR=$3
 
 pwd
-npm i -g pnpm && pnpm setup 
 pnpm i -g pm2
 cd $SOURCE_DIR
 pnpm i
