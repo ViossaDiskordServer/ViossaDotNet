@@ -9,13 +9,14 @@ import { useLocalStorage } from "@vueuse/core";
 import { computed, type DeepReadonly } from "vue";
 import { type } from "arktype";
 import enUsFtlSrc from "@/assets/locale/en_US.ftl";
+import esLaFtlSrc from "@/assets/locale/es_LA.ftl";
 import vpVlFtlSrc from "@/assets/locale/vp_VL.ftl";
 import wpVlFtlSrc from "@/assets/locale/wp_VL.ftl";
 import type { FluentBundle } from "@fluent/bundle";
 import { compileLocale } from "@/vi18n-lib/compile";
 import type { ComputedRef } from "vue";
 
-export const LOCALE_IDS = ["en-US", "vp-VL", "wp-VL"] as const;
+export const LOCALE_IDS = ["en-US", "es-LA", "vp-VL", "wp-VL"] as const;
 
 export type LocaleId = typeof LocaleId.infer;
 export const LocaleId = type.enumerated(...LOCALE_IDS);
@@ -168,13 +169,15 @@ async function initI18n(): Promise<I18n> {
 			),
 		);
 
-	const [vpVl, wpVl] = await Promise.all([
+	const [esLa, vpVl, wpVl] = await Promise.all([
+		doItAllForLocale("es-LA", esLaFtlSrc),
 		doItAllForLocale("vp-VL", vpVlFtlSrc),
 		doItAllForLocale("wp-VL", wpVlFtlSrc),
 	]);
 
 	const localeIdToLocale = {
 		"en-US": deepReadonly(defaultLocale),
+		"es-LA": esLa,
 		"vp-VL": vpVl,
 		"wp-VL": wpVl,
 	} as const satisfies Record<LocaleId, DeepReadonly<Locale>>;
