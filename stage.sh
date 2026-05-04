@@ -11,6 +11,5 @@ SOURCE_DIR=$1
 cd "$SOURCE_DIR"
 git fetch --all && git branch "backup-$(date +'%s')"
 
-pnpm i -g turbo \
-	&& git checkout -f origin/main \
+git checkout -f origin/main \
 	&& pnpm i && turbo build
