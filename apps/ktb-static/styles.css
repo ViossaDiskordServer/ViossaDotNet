@@ -1,0 +1,234 @@
+:root {
+  --color-sidebar-bg: #000;
+  --color-primary: #0bf;
+  --color-secondary: #08e;
+  --color-edit: #fb0;
+  --color-main-bg: #eee;
+  --color-card-bg: #fff;
+  --color-text: #333;
+  --color-text-secondary: #555;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-border: #ddd;
+
+  --space-xs: 0.2rem;
+  --space-sm: 0.5rem;
+  --space-md: 1.0rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --shadow-sm: 0 1px 2px var(--color-shadow);
+  --shadow-md: 0 2px 4px var(--color-shadow);
+  --shadow-lg: 0 4px 8px var(--color-shadow);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--color-main-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+button {
+  border: solid 1px #fff;
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-text);
+}
+
+button:hover {
+  background: var(--color-secondary);
+}
+
+li {
+  margin-left: var(--space-md);
+}
+
+.float-right {
+  float: right;
+}
+
+.float-left {
+  float: left;
+}
+
+.tight {
+  padding: 0 var(--space-md);
+  margin:  var(--space-xs);
+}
+
+.edit {
+  background-color: #fb0;
+}
+
+.edit:hover {
+  background-color: #bb0;
+}
+
+.dropdown {
+  border-radius: 0px;
+  border-style: none;
+  border-top: solid 1px var(--color-text);
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--color-text);
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.is-fullwidth {
+  width: 100%;
+}
+
+/* Layout */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: clamp(180px, 20%, 250px);
+  background-color: var(--color-sidebar-bg);
+  color: white;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.sidebar-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Preferences Pane */
+.preferences-pane {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: var(--space-md);
+}
+
+.prefs-toggle {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 100%;
+  padding: var(--space-xs);
+  cursor: pointer;
+}
+
+.prefs-content {
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.prefs-content.active {
+  display: flex;
+}
+
+.prefs-section {
+  background: rgba(255, 255, 255, 0.1);
+  padding: var(--space-sm);
+  border-radius: var(--radius-sm);
+}
+
+.prefs-section h3 {
+  margin-bottom: var(--space-xs);
+  font-size: 0.9rem;
+}
+
+.prefs-section label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-size: 0.85rem;
+}
+
+/* Search Bar */
+.search-bar input {
+  display: inline-block;
+  width: 80%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  transition: border-color 0.05s ease;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+}
+
+.search-bar button {
+  display: inline-block;
+  background: var(--color-secondary);
+  color: white;
+}
+
+.search-bar button:hover {
+  background: #000;
+}
+
+/* Cards */
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.card {
+  align-self: start;
+  background: var(--color-card-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.05s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  outline: 1px solid var(--color-primary);
+}
+
+.card h3 {
+  font-size: clamp(1.1rem, 1.5vw, 1.25rem);
+  margin-bottom: var(--space-xs);
+  color: var(--color-text);
+}
+
+.card h4 {
+  font-size: clamp(1.rem, 1.4vw, 1.1rem);
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-xs);
+  color: var(--color-text);
+}
+
+.card p {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}

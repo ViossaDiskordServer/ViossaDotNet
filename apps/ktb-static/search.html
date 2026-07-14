@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Dictionary Cards</title>
+		<link rel="stylesheet" href="styles.css" />
+		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+		<script src="https://unpkg.com/alpinejs" defer></script>
+		<script src="script.js"></script>
+	</head>
+	<body>
+		<div
+			class="app-container"
+			x-data="{ 
+				searchTerm: '',
+				showPrefs: false
+			}"
+			@alpine:init="$store.dictionary.loadPreferences()">
+			<aside class="sidebar">
+				<div class="preferences-pane">
+					<button
+						@click="showPrefs = !showPrefs"
+						class="prefs-toggle">
+						Preferences
+					</button>
+
+					<div class="prefs-content" x-show="showPrefs">
+						<div class="prefs-section">
+							<h3>Sejenazma</h3>
+							<label>
+								Hinafarge fu ljevatel:
+								<input
+									type="color"
+									x-model="$store.dictionary.prefs.colorSidebarBg"
+									@input="$store.dictionary.savePreferences()" />
+							</label>
+							<label>
+								Hinafarge fu glavna lehtia:
+								<input
+									type="color"
+									x-model="$store.dictionary.prefs.colorMainBg"
+									@input="$store.dictionary.savePreferences()" />
+							</label>
+							<label>
+								Hinafarge fu kofuga:
+								<input
+									type="color"
+									x-model="$store.dictionary.prefs.colorCardBg"
+									@input="$store.dictionary.savePreferences()" />
+							</label>
+							<label>
+								Viktifarge:
+								<input
+									type="color"
+									x-model="$store.dictionary.prefs.colorPrimary"
+									@input="$store.dictionary.savePreferences()" />
+							</label>
+							<label>
+								Nisvikti farge:
+								<input
+									type="color"
+									x-model="$store.dictionary.prefs.colorSecondary"
+									@input="$store.dictionary.savePreferences()" />
+							</label>
+						</div>
+
+						<div class="prefs-section">
+							<h3>Mellanluft</h3>
+							<label>
+								Card Gap:
+								<input
+									type="range"
+									x-model.number="$store.dictionary.prefs.spaceMd"
+									min="0.5"
+									max="3"
+									step="0.1"
+									@input="$store.dictionary.savePreferences()" />
+								<span
+									x-text="$store.dictionary.prefs.spaceMd + 'rem'"></span>
+							</label>
+						</div>
+
+						<div class="prefs-section">
+							<h3>Kurai</h3>
+							<label>
+								Shadow Strength:
+								<input
+									type="range"
+									x-model.number="$store.dictionary.prefs.shadowStrength"
+									min="0.1"
+									max="0.5"
+									step="0.05"
+									@input="$store.dictionary.savePreferences()" />
+							</label>
+						</div>
+					</div>
+				</div>
+			</aside>
+
+			<main class="main-content">
+				<div class="search-bar">
+					<button
+						@click="$store.dictionary.fetchAllTerms(searchTerm)">
+						Zuha
+					</button>
+					<input
+						type="text"
+						x-model="searchTerm"
+						@keydown.enter="$store.dictionary.fetchAllTerms(searchTerm)"
+						placeholder="Tasta ko(tel) her..." />
+				</div>
+				<div class="cards-container">
+					<template
+						x-for="item in $store.dictionary.filterResults(searchTerm)"
+						:key="item.lemma_name">
+						<div
+							class="card"
+							@click.self="toggle_expand()"
+							x-data="{
+								expanded: false,
+								adding_definition: false,
+								adding_example: false,
+								adding_media: false,
+								example_text: '',
+								definition_text: '',
+								lemma_detail: null,
+								async toggle_expand() {
+									if(!this.lemma_detail){
+										/* If there isn't a lemma detail loaded yet, get it then expand. */
+										this.lemma_detail = await $store.dictionary.fetchOneLemmaDetail(item.lemma_name);
+										
+										if(this.lemma_detail) {
+											this.expanded = true;
+										} else {
+											alert(`Failed to load lemma ${item.lemma_name}`);
+										}
+										return;
+									}
+
+									/* If there is content, simply toggle the state of the card */
+									this.expanded = !this.expanded;
+								},
+								get_lemma_detail(){
+									return this.lemma_detail;
+								}
+							}">
+							<h3 x-text="item.lemma_name"></h3>
+							<p>
+								<template x-for="wf in item.word_forms">
+									<span
+										x-text="wf.word_form + ' '"
+										:title="wf.lect.name">
+									</span>
+								</template>
+							</p>
+
+							<button
+								class="is-fullwidth dropdown"
+								@click.self="toggle_expand()">
+								<span x-show="!expanded">v</span>
+								<span x-show="expanded">^</span>
+							</button>
+
+							<div x-show="expanded && lemma_detail">
+								<h4>Trofal</h4>
+								<table class="is-fullwidth">
+									<template
+										x-for="wf2 in (get_lemma_detail()?.word_forms ?? [])">
+										<tr x-data="{editing:false}">
+											<td
+												x-text="wf2 ? wf2.lect.name : '(empty)'"></td>
+											<td>
+												<span x-text="wf2 ? wf2.word_form : '(empty)'" 
+												@click="editing = true"
+												x-show="!editing"
+												></span>
+			
+												<input type="text" x-show="editing" x-model="wf2.word_form">	
+											</td>
+											<td>
+												<button class="float-left tight" x-show="!editing" @click="editing = true">~</button>
+												<button class="float-left tight" x-show="editing" @click="editing = false">-></button>
+											</td>
+										</tr>
+									</template>
+								</table>
+
+								<h4>Imi</h4>
+								<ul>
+									<template
+										x-for="def in (get_lemma_detail()?.definitions ?? [])"
+										x-data="{
+											editing:false
+										}">
+										<li><span x-show="!editing" x-text="def.definition_text"></span>
+											<button class="float-right tight edit" x-show="!editing" @click="editing = true">~</button>
+											<button class="float-right tight" x-show="editing" @click="editing = false">-></button>
+											<input type="text" x-show="editing" x-model="def.definition_text">
+										</li>
+									</template>
+								</ul>
+								<textarea
+									class="is-fullwidth"
+									x-show="adding_definition"
+									placeholder="Tasta imi..."
+									x-model="definition_text"></textarea>
+								<button
+									class="is-fullwidth"
+									x-show="adding_definition"
+									@click="$store.dictionary.postDefinition(definition_text, get_lemma_detail()?.lemma_name)">
+									Popoczta
+								</button>
+								<button
+									class="is-fullwidth"
+									x-show="!adding_definition"
+									@click="adding_definition = !adding_definition">
+									+
+								</button>
+
+								<h4>Tatoeba</h4>
+								<ul>
+									<template
+										x-for="ex in (get_lemma_detail()?.examples ?? [])"
+										x-data="{editing:false}">
+										<li>
+										<span x-show="!editing" x-text="ex.example_text"></span>
+											<button class="float-right tight edit" x-show="!editing" @click="editing = true">~</button>
+											<button class="float-right tight" x-show="editing" @click="editing = false">-></button>
+											<input type="text" x-show="editing" x-model="ex.example_text">
+										</li>
+									</template>
+								</ul>
+								<textarea
+									class="is-fullwidth"
+									x-show="adding_example"
+									placeholder="Tasta tatoeba..."
+									x-model="example_text"></textarea>
+								<button
+									class="is-fullwidth"
+									x-show="adding_example"
+									@click="$store.dictionary.postExample(example_text, get_lemma_detail()?.lemma_name)">
+									Popoczta
+								</button>
+								<button
+									class="is-fullwidth"
+									x-show="!adding_example"
+									@click="adding_example = !adding_example">
+									+
+								</button>
+							</div>
+						</div>
+					</template>
+				</div>
+			</main>
+		</div>
+	</body>
+</html>
