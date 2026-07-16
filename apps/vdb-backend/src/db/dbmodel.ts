@@ -114,5 +114,5 @@ export class PartOfSpeech extends BaseEntity {
 	long_form: string;
 
 	@Column({ nullable: false, unique: true, type: "text" })
-short_form: string;
+	short_form: string;
 }

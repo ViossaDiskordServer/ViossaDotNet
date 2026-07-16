@@ -70,19 +70,19 @@ document.addEventListener("alpine:init", () => {
       } catch (e) { console.error(e); }
     },
 
-    async postDefinition(definition_text, lemma_name) {
+    async postDefinition(definition_id, definition_text, lemma_name) {
       try {
         const res = await axios.put('http://localhost:1225/definition', {
-          definition_text, lemma_name
+          definition_id, definition_text, lemma_name
         });
         return res.data.lemma_detail;
       } catch (e) { console.error(e); }
     },
 
-    async postExample(example_text, lemma_name) {
+    async postExample(example_id, example_text, lemma_name) {
       try {
         const res = await axios.put('http://localhost:1225/example', {
-          example_text, lemma_name
+          example_id, example_text, lemma_name
         });
         return res.data.lemma_detail;
       } catch (e) { console.error(e); }
@@ -90,8 +90,11 @@ document.addEventListener("alpine:init", () => {
 
     filterResults(searchTerm) {
       if (!searchTerm) return this.search_results.results;
-      return this.search_results.results.filter(item =>
-        item.lemma_name.toLowerCase().includes(searchTerm.toLowerCase())
+      return this.search_results.results
+      .filter( //item.lemma_name.toLowerCase().includes(searchTerm.toLowerCase())
+        item => item.word_forms
+          .map(wf => wf.word_form.toLowerCase())
+          .join().includes(searchTerm.toLowerCase())
       );
     }
   });

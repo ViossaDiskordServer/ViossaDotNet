@@ -107,6 +107,7 @@ function initExpress() {
 
 	app.put("/definition", async (_req, res) => {
 		const definition_text = _req.body.definition_text?.toString();
+		const definition_id = _req.body.definition_id ?? null;
 		const lemma_name = _req.body.lemma_name?.toString();
 
 		if(definition_text == null || lemma_name == null){
@@ -125,7 +126,9 @@ function initExpress() {
 		var definition:Definition = new Definition();
 		definition.definition_text = definition_text;
 		definition.lemma = lemma;
-		
+		if(definition_id){
+			definition.definition_id = definition_id;
+		}
 
 		Definition.save(definition)
 		
@@ -149,6 +152,7 @@ function initExpress() {
 
 	app.put("/example", async (_req, res) => {
 		const example_text = _req.body.example_text?.toString();
+		const example_id = _req.body.example_id ?? null;
 		const lemma_name = _req.body.lemma_name?.toString();
 
 		if(!example_text || !lemma_name){
@@ -166,6 +170,9 @@ function initExpress() {
 		var example:Example = new Example();
 		example.example_text = example_text;
 		example.lemma = lemma;
+		if(example_id){
+			example.example_id = example_id;
+		}
 		
 
 		Example.save(example)

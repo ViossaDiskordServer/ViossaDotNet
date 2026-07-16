@@ -25,10 +25,24 @@
   --shadow-lg: 0 4px 8px var(--color-shadow);
 }
 
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media (max-width: 600px) {
+  .cards-container {
+    grid-template-columns: 1fr;
+    background-color: #fb0;
+  }
+
+  .is-expanded {
+    grid-row: span 1;
+    grid-column: span 1;
+  }
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 body {
@@ -39,10 +53,9 @@ body {
 }
 
 button {
-  border: solid 1px #fff;
-  padding: var(--space-sm) var(--space-md);
+  border: solid 1px #000;
+  padding: var(--space-xs) var(--space-md);
   cursor: pointer;
-  transition: background 0.2s ease;
   border-radius: var(--radius-sm);
   background: var(--color-primary);
   color: var(--color-text);
@@ -50,10 +63,21 @@ button {
 
 button:hover {
   background: var(--color-secondary);
+  color: #fff;
+}
+
+ul {
+  margin-bottom: var(--space-sm);
 }
 
 li {
+  margin-top: calc(var(--space-xs)/2);
+  margin-bottom: calc(var(--space-xs)/2);
   margin-left: var(--space-md);
+}
+
+table {
+  table-layout: fixed;
 }
 
 .float-right {
@@ -64,9 +88,35 @@ li {
   float: left;
 }
 
+.align-self-right {
+  align-self: self-end;
+}
+
 .tight {
-  padding: 0 var(--space-md);
+  padding: 0 var(--space-sm);
   margin:  var(--space-xs);
+}
+
+button.tiny {
+  min-width: 2em;
+  max-width: 2em;
+  text-align: center;
+  padding: 0 var(--space-xs);
+  margin:  var(--space-xs);
+}
+
+button:disabled{
+  background-color: #555;
+  color: #fff;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.grow-fill {
+  flex-grow: 100;
 }
 
 .edit {
@@ -77,16 +127,37 @@ li {
   background-color: #bb0;
 }
 
+.hollow {
+  background-color: #00000000;
+  border-style: solid;
+  border-width: 1px;
+}
+
+.hollow.primary {
+  border-color: var(--color-primary);
+  
+}
+
+.primary:not(.hollow) {
+  background-color: var(--color-primary);
+  color: #000
+}
+
 .dropdown {
   border-radius: 0px;
   border-style: none;
   border-top: solid 1px var(--color-text);
   padding: 0;
   cursor: pointer;
-  transition: background 0.2s ease;
-  border-radius: var(--radius-sm);
+  transition: background 0.3s ease;
   background-color: transparent;
   color: var(--color-text);
+  
+}
+
+.dropdown:hover {
+  background-color: var(--color-primary);
+  color: #000;
 }
 
 /* Main Content */
@@ -202,6 +273,10 @@ li {
   width: 100%;
 }
 
+.columned {
+  columns: 5em 2;
+}
+
 .card {
   align-self: start;
   background: var(--color-card-bg);
@@ -209,6 +284,11 @@ li {
   padding: var(--space-md);
   box-shadow: var(--shadow-md);
   transition: transform 0.05s ease, box-shadow 0.2s ease;
+}
+
+.card.is-expanded {
+  grid-row: span 5;
+  grid-column: span 2;
 }
 
 .card:hover {

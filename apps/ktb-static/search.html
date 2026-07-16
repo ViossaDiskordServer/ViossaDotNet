@@ -19,10 +19,11 @@
 			@alpine:init="$store.dictionary.loadPreferences()">
 			<aside class="sidebar">
 				<div class="preferences-pane">
+
 					<button
 						@click="showPrefs = !showPrefs"
-						class="prefs-toggle">
-						Preferences
+						class="prefs-toggle is-fullwidth">
+						Sejenazma
 					</button>
 
 					<div class="prefs-content" x-show="showPrefs">
@@ -116,6 +117,7 @@
 						:key="item.lemma_name">
 						<div
 							class="card"
+							:class="expanded?'is-expanded':''"
 							@click.self="toggle_expand()"
 							x-data="{
 								expanded: false,
@@ -125,11 +127,17 @@
 								example_text: '',
 								definition_text: '',
 								lemma_detail: null,
+								async put_definition(definition_id, definition_text){
+									$store.dictionary.postDefinition(definition_id, definition_text, this.lemma_detail?.lemma_name).then(await this.load_detail());
+								},
+								async put_example(example_id, example_text){
+									$store.dictionary.postExample(example_id, example_text, this.lemma_detail?.lemma_name).then(await this.load_detail());
+								},
 								async toggle_expand() {
 									if(!this.lemma_detail){
 										/* If there isn't a lemma detail loaded yet, get it then expand. */
-										this.lemma_detail = await $store.dictionary.fetchOneLemmaDetail(item.lemma_name);
-										
+										await this.load_detail();
+							
 										if(this.lemma_detail) {
 											this.expanded = true;
 										} else {
@@ -141,12 +149,12 @@
 									/* If there is content, simply toggle the state of the card */
 									this.expanded = !this.expanded;
 								},
-								get_lemma_detail(){
-									return this.lemma_detail;
+								async load_detail(){
+									this.lemma_detail = await $store.dictionary.fetchOneLemmaDetail(item.lemma_name);
 								}
 							}">
 							<h3 x-text="item.lemma_name"></h3>
-							<p>
+							<p class="columned">
 								<template x-for="wf in item.word_forms">
 									<span
 										x-text="wf.word_form + ' '"
@@ -166,9 +174,9 @@
 								<h4>Trofal</h4>
 								<table class="is-fullwidth">
 									<template
-										x-for="wf2 in (get_lemma_detail()?.word_forms ?? [])">
+										x-for="wf2 in (lemma_detail?.word_forms ?? [])">
 										<tr x-data="{editing:false}">
-											<td
+											<td style="width: 8em;"
 												x-text="wf2 ? wf2.lect.name : '(empty)'"></td>
 											<td>
 												<span x-text="wf2 ? wf2.word_form : '(empty)'" 
@@ -176,11 +184,17 @@
 												x-show="!editing"
 												></span>
 			
-												<input type="text" x-show="editing" x-model="wf2.word_form">	
+												<input 
+													type="text" 
+													class="is-fullwidth"
+													@click.outside="editing = false" 
+													x-show="editing" 
+													x-model="wf2.word_form">	
 											</td>
-											<td>
-												<button class="float-left tight" x-show="!editing" @click="editing = true">~</button>
-												<button class="float-left tight" x-show="editing" @click="editing = false">-></button>
+											<td style="width: 5em;">
+												<button class="tiny hollow primary" x-show="!editing" @click="editing = true" title="kawari">~</button>
+												<button class="tiny edit" x-show="editing" @click="editing = false" title="jame">/</button>
+												<button class="tiny" x-show="editing" @click="editing = false" title="antaa">></button>
 											</td>
 										</tr>
 									</template>
@@ -188,15 +202,17 @@
 
 								<h4>Imi</h4>
 								<ul>
-									<template
-										x-for="def in (get_lemma_detail()?.definitions ?? [])"
+									<template x-for="def in (lemma_detail?.definitions ?? [])">
+										<li
 										x-data="{
-											editing:false
-										}">
-										<li><span x-show="!editing" x-text="def.definition_text"></span>
-											<button class="float-right tight edit" x-show="!editing" @click="editing = true">~</button>
-											<button class="float-right tight" x-show="editing" @click="editing = false">-></button>
-											<input type="text" x-show="editing" x-model="def.definition_text">
+											editing: false,
+											edited_text: def.definition_text.toString()
+										}" @click.outside="editing = false">
+											<span x-show="!editing" x-text="def.definition_text" @click="editing = true"></span>
+											<input type="text" x-show="editing" x-model="edited_text">
+											<button class="float-right tiny hollow primary" x-show="!editing" @click="editing = true" title="kawari">~</button>
+											<button class="float-right tiny edit" x-show="editing" @click="editing = false" title="jame">/</button>
+											<button class="float-right tiny primary" x-show="editing" type="button" @click="await put_definition(def.definition_id, edited_text); editing = false" title="antaa">></button>
 										</li>
 									</template>
 								</ul>
@@ -205,14 +221,28 @@
 									x-show="adding_definition"
 									placeholder="Tasta imi..."
 									x-model="definition_text"></textarea>
+								<div class="flex-row">
+									<button
+										class="edit"
+										x-show="adding_definition"
+										@click="adding_definition = false">
+										/
+									</button>
+									<button
+										class="align-self-right"
+										x-show="adding_definition"
+										type="button"
+										@click="put_definition(null, definition_text)
+											.then(()=>{
+												adding_definition = false; 
+												definition_text = '';
+										})">
+										Popoczta
+									</button>
+								</div>
+								
 								<button
-									class="is-fullwidth"
-									x-show="adding_definition"
-									@click="$store.dictionary.postDefinition(definition_text, get_lemma_detail()?.lemma_name)">
-									Popoczta
-								</button>
-								<button
-									class="is-fullwidth"
+									class="is-fullwidth hollow primary"
 									x-show="!adding_definition"
 									@click="adding_definition = !adding_definition">
 									+
@@ -220,14 +250,17 @@
 
 								<h4>Tatoeba</h4>
 								<ul>
-									<template
-										x-for="ex in (get_lemma_detail()?.examples ?? [])"
-										x-data="{editing:false}">
-										<li>
-										<span x-show="!editing" x-text="ex.example_text"></span>
-											<button class="float-right tight edit" x-show="!editing" @click="editing = true">~</button>
-											<button class="float-right tight" x-show="editing" @click="editing = false">-></button>
-											<input type="text" x-show="editing" x-model="ex.example_text">
+									<template x-for="ex in (lemma_detail?.examples ?? [])">
+										<li x-data="{
+											editing:false,
+											edited_text: ex.example_text.toString()
+										}"
+										@click.outside="editing = false">
+											<span x-show="!editing" x-text="ex.example_text" @click="editing = true"></span>
+											<input type="text" x-show="editing" x-model="edited_text">
+											<button class="float-right tiny hollow primary" x-show="!editing" @click="editing = true" title="kawari">~</button>
+											<button class="float-right tiny edit" x-show="editing" @click="editing = false" title="jame">/</button>
+											<button class="float-right tiny" x-show="editing" type="button" @click="await put_example(ex.example_id, edited_text); editing = false" title="antaa">></button>
 										</li>
 									</template>
 								</ul>
@@ -239,11 +272,16 @@
 								<button
 									class="is-fullwidth"
 									x-show="adding_example"
-									@click="$store.dictionary.postExample(example_text, get_lemma_detail()?.lemma_name)">
+									type="button"
+									@click="put_example(null, example_text)
+									.then(()=>{
+										adding_example = false; 
+										example_text = '';
+									})">
 									Popoczta
 								</button>
 								<button
-									class="is-fullwidth"
+									class="is-fullwidth hollow primary"
 									x-show="!adding_example"
 									@click="adding_example = !adding_example">
 									+
