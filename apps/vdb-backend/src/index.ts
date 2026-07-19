@@ -105,6 +105,8 @@ function initExpress() {
 		res.status(200).send({ lemma_detail });
 	});
 
+	/* Definitions */
+
 	app.put("/definition", async (_req, res) => {
 		const definition_text = _req.body.definition_text?.toString();
 		const definition_id = _req.body.definition_id ?? null;
@@ -123,7 +125,7 @@ function initExpress() {
 			return void res.status(400).send();
 		}
 
-		var definition:Definition = new Definition();
+		let definition:Definition = new Definition();
 		definition.definition_text = definition_text;
 		definition.lemma = lemma;
 		if(definition_id){
@@ -132,7 +134,7 @@ function initExpress() {
 
 		Definition.save(definition)
 		
-		var lemma_detail = await Lemma.findOne({
+		let lemma_detail = await Lemma.findOne({
 			where: {
 				lemma_name: lemma_name
 			},
@@ -149,6 +151,8 @@ function initExpress() {
 
 		res.status(200).send({lemma_detail});
 	});
+
+	/* examples */
 
 	app.put("/example", async (_req, res) => {
 		const example_text = _req.body.example_text?.toString();
@@ -193,6 +197,112 @@ function initExpress() {
 		});
 
 		res.status(200).send({lemma_detail});
+	});
+
+	/* word forms */
+
+	app.put("/word-form", async (_req, res) => {
+		const word_form_text = _req.body.word_form_text?.toString();
+		const word_form_id = _req.body.word_form_id ?? null;
+		const lemma_name = _req.body.lemma_name ?? null;
+
+		if(!word_form_text || /^\s*$/.test(word_form_text) || !word_form_id){
+			console.error(`Error: ${JSON.stringify({word_form_text:word_form_text, word_form_id:word_form_id})}`);
+			return void res.status(400).send();
+		}
+
+		let word_form = await WordForm.findOne({where:{
+			word_form_id: word_form_id
+		}, relations:{
+			lemma: true
+		}});
+
+		if(!word_form){
+			if(lemma_name){
+				word_form = new WordForm();
+				let lemma = await Lemma.findOne({where:{lemma_name}});
+			}
+			console.error(`Failed to find word form with ID ${word_form_id}`)
+			return void res.status(400).send();
+		} 
+
+
+		word_form.word_form = word_form_text;
+
+		WordForm.save(word_form);
+		
+		let lemma_detail = await Lemma.findOne({
+			where: {
+				lemma_name: word_form.lemma.lemma_name
+			},
+			relations: {
+				word_forms: {
+					lect: true
+				},
+				examples: true,
+				definitions: true,
+				media: true,
+				parts_of_speech: true
+			}
+		});
+
+		res.status(200).send({lemma_detail});
+	});
+
+	app.post("/word-form", async (_req, res) => {
+		const lemma_name = _req.body.lemma_name ?? null;
+		const lect_name = _req.body.lect_name ?? null;
+		const word_form_text = _req.body.word_form_text?.toString();
+
+		if(!word_form_text || /^\s*$/.test(word_form_text) || !lect_name || !lemma_name){
+			console.error(`Error: ${JSON.stringify(_req.body)}`);
+			return void res.status(400).send();
+		}
+
+		let word_form = new WordForm();
+		let lemma = await Lemma.findOne({where:{lemma_name}});
+		let lect = await Lect.findOne({where:{name:lect_name}});
+
+		if(!lect || !lemma){
+			console.error(`Error: ${JSON.stringify({lect:lect, lemma:lemma})}`);
+			return void res.status(400).send();
+		}
+
+		word_form.word_form = word_form_text;
+		word_form.lemma = lemma;
+		word_form.lect = lect;
+
+		WordForm.save(word_form);
+		
+		let lemma_detail = await Lemma.findOne({
+			where: {
+				lemma_name: word_form.lemma.lemma_name
+			},
+			relations: {
+				word_forms: {
+					lect: true
+				},
+				examples: true,
+				definitions: true,
+				media: true,
+				parts_of_speech: true
+			}
+		});
+
+		res.status(200).send({lemma_detail});
+	});
+	
+	app.delete("/word-form/:word_form_id", async (_req, res) =>{
+		const word_form_id:number = parseInt(_req.params.word_form_id); 
+
+		if(!word_form_id){
+			console.error(`Error: Could not find word form ${JSON.stringify({word_form_id:word_form_id})}`);
+			return void res.status(400).send();
+		}
+
+		WordForm.delete({word_form_id: word_form_id});
+
+		res.status(200).send();
 	});
 
 	app.listen(PORT, () => {

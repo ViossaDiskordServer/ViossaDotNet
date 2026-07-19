@@ -12,11 +12,17 @@
 	<body>
 		<div
 			class="app-container"
+			@alpine:init="$store.dictionary.load_preferences()"
 			x-data="{ 
-				searchTerm: '',
-				showPrefs: false
+				search_term: '',
+				showPrefs: false,
+				lects: []
 			}"
-			@alpine:init="$store.dictionary.loadPreferences()">
+			x-init="$store.dictionary.fetch_all_lects().then((lects_response)=>{
+				if(!!lects_response.lects) {
+					lects = lects_response.lects;
+				}
+			});">
 			<aside class="sidebar">
 				<div class="preferences-pane">
 
@@ -34,65 +40,35 @@
 								<input
 									type="color"
 									x-model="$store.dictionary.prefs.colorSidebarBg"
-									@input="$store.dictionary.savePreferences()" />
+									@input="$store.dictionary.save_preferences()" />
 							</label>
 							<label>
 								Hinafarge fu glavna lehtia:
 								<input
 									type="color"
 									x-model="$store.dictionary.prefs.colorMainBg"
-									@input="$store.dictionary.savePreferences()" />
+									@input="$store.dictionary.save_preferences()" />
 							</label>
 							<label>
 								Hinafarge fu kofuga:
 								<input
 									type="color"
 									x-model="$store.dictionary.prefs.colorCardBg"
-									@input="$store.dictionary.savePreferences()" />
+									@input="$store.dictionary.save_preferences()" />
 							</label>
 							<label>
 								Viktifarge:
 								<input
 									type="color"
 									x-model="$store.dictionary.prefs.colorPrimary"
-									@input="$store.dictionary.savePreferences()" />
+									@input="$store.dictionary.save_preferences()" />
 							</label>
 							<label>
 								Nisvikti farge:
 								<input
 									type="color"
 									x-model="$store.dictionary.prefs.colorSecondary"
-									@input="$store.dictionary.savePreferences()" />
-							</label>
-						</div>
-
-						<div class="prefs-section">
-							<h3>Mellanluft</h3>
-							<label>
-								Card Gap:
-								<input
-									type="range"
-									x-model.number="$store.dictionary.prefs.spaceMd"
-									min="0.5"
-									max="3"
-									step="0.1"
-									@input="$store.dictionary.savePreferences()" />
-								<span
-									x-text="$store.dictionary.prefs.spaceMd + 'rem'"></span>
-							</label>
-						</div>
-
-						<div class="prefs-section">
-							<h3>Kurai</h3>
-							<label>
-								Shadow Strength:
-								<input
-									type="range"
-									x-model.number="$store.dictionary.prefs.shadowStrength"
-									min="0.1"
-									max="0.5"
-									step="0.05"
-									@input="$store.dictionary.savePreferences()" />
+									@input="$store.dictionary.save_preferences()" />
 							</label>
 						</div>
 					</div>
@@ -102,18 +78,18 @@
 			<main class="main-content">
 				<div class="search-bar">
 					<button
-						@click="$store.dictionary.fetchAllTerms(searchTerm)">
+						@click="$store.dictionary.fetch_all_terms(search_term)">
 						Zuha
 					</button>
 					<input
 						type="text"
-						x-model="searchTerm"
-						@keydown.enter="$store.dictionary.fetchAllTerms(searchTerm)"
+						x-model="search_term"
+						@keydown.enter="$store.dictionary.fetch_all_terms(search_term)"
 						placeholder="Tasta ko(tel) her..." />
 				</div>
 				<div class="cards-container">
 					<template
-						x-for="item in $store.dictionary.filterResults(searchTerm)"
+						x-for="item in $store.dictionary.filter_results(search_term)"
 						:key="item.lemma_name">
 						<div
 							class="card"
@@ -127,11 +103,30 @@
 								example_text: '',
 								definition_text: '',
 								lemma_detail: null,
+								async put_word_form_text(word_form_id, word_form_text){
+									$store.dictionary.put_word_form_text(word_form_id, word_form_text).then(()=>{
+										this.load_detail();
+									});
+								},
+								async post_new_word_form(lemma_name, lect_name, word_form_text){
+									$store.dictionary.post_new_word_form(lemma_name, lect_name, word_form_text).then(()=>{
+										this.load_detail();
+									});
+								},
+								async delete_word_form(word_form_id, word_form_text){
+									$store.dictionary.delete_word_form(word_form_id, word_form_text).then(()=>{
+										this.load_detail();
+									});
+								},
 								async put_definition(definition_id, definition_text){
-									$store.dictionary.postDefinition(definition_id, definition_text, this.lemma_detail?.lemma_name).then(await this.load_detail());
+									$store.dictionary.put_definition(definition_id, definition_text, this.lemma_detail?.lemma_name).then(()=>{
+										this.load_detail();
+									});
 								},
 								async put_example(example_id, example_text){
-									$store.dictionary.postExample(example_id, example_text, this.lemma_detail?.lemma_name).then(await this.load_detail());
+									$store.dictionary.put_example(example_id, example_text, this.lemma_detail?.lemma_name).then(()=>{
+										this.load_detail();
+									});
 								},
 								async toggle_expand() {
 									if(!this.lemma_detail){
@@ -150,7 +145,7 @@
 									this.expanded = !this.expanded;
 								},
 								async load_detail(){
-									this.lemma_detail = await $store.dictionary.fetchOneLemmaDetail(item.lemma_name);
+									this.lemma_detail = await $store.dictionary.fetch_one_lemma_detail(item.lemma_name);
 								}
 							}">
 							<h3 x-text="item.lemma_name"></h3>
@@ -171,33 +166,71 @@
 							</button>
 
 							<div x-show="expanded && lemma_detail">
+								<!-- wfs -->
 								<h4>Trofal</h4>
 								<table class="is-fullwidth">
 									<template
 										x-for="wf2 in (lemma_detail?.word_forms ?? [])">
-										<tr x-data="{editing:false}">
+										<tr x-data="{
+											editing:false,
+											edited_text: wf2.word_form
+										}">
 											<td style="width: 8em;"
 												x-text="wf2 ? wf2.lect.name : '(empty)'"></td>
 											<td>
 												<span x-text="wf2 ? wf2.word_form : '(empty)'" 
 												@click="editing = true"
-												x-show="!editing"
-												></span>
+												x-show="!editing"></span>
 			
 												<input 
 													type="text" 
 													class="is-fullwidth"
 													@click.outside="editing = false" 
 													x-show="editing" 
-													x-model="wf2.word_form">	
+													x-model="edited_text">
 											</td>
 											<td style="width: 5em;">
-												<button class="tiny hollow primary" x-show="!editing" @click="editing = true" title="kawari">~</button>
-												<button class="tiny edit" x-show="editing" @click="editing = false" title="jame">/</button>
-												<button class="tiny" x-show="editing" @click="editing = false" title="antaa">></button>
+												<button class="tiny hollow primary" x-show="!editing" title="kawari" 
+													@click="editing = true" >~</button>
+												<button class="tiny hollow delete" x-show="!editing" title="keshite" 
+													@click="await delete_word_form(wf2.word_form_id, wf2.word_form)" >x</button>
+												<button class="tiny edit" x-show="editing" title="jame" 
+													@click="editing = false">/</button>
+												<button class="tiny" x-show="editing" title="antaa"
+													@click="await put_word_form_text(wf2.word_form_id, edited_text); editing = false" >></button>
 											</td>
 										</tr>
 									</template>
+
+									<!-- Add new wf -->
+									<tr x-data="{
+										adding_word_form:false,
+										new_word_form_text:'',
+										selected_lect:''
+										}">
+									
+										<td colspan="3" x-show="!adding_word_form">
+											<button class="is-fullwidth hollow primary" 
+												@click="adding_word_form = !adding_word_form">+</button>
+										</td>
+									
+										<td x-show="adding_word_form">
+											<select name="vilgovor" x-model="selected_lect">
+												<template x-for="lect in lects">
+													<option :value="lect.name" x-text="lect.name"></option>
+												</template>
+											</select>
+										</td>
+										<td x-show="adding_word_form">
+											<input type="text" x-model="new_word_form_text">
+										</td>
+										<td x-show="adding_word_form">
+											<button class="tiny edit" x-show="adding_word_form" title="jame" @click="adding_word_form = false">/</button>
+											<button class="tiny" x-show="adding_word_form" title="antaa"
+												@click="await post_new_word_form(item.lemma_name, selected_lect, new_word_form_text); adding_word_form = false">></button>
+										</td>
+									
+									</tr>
 								</table>
 
 								<h4>Imi</h4>
@@ -210,9 +243,12 @@
 										}" @click.outside="editing = false">
 											<span x-show="!editing" x-text="def.definition_text" @click="editing = true"></span>
 											<input type="text" x-show="editing" x-model="edited_text">
-											<button class="float-right tiny hollow primary" x-show="!editing" @click="editing = true" title="kawari">~</button>
-											<button class="float-right tiny edit" x-show="editing" @click="editing = false" title="jame">/</button>
-											<button class="float-right tiny primary" x-show="editing" type="button" @click="await put_definition(def.definition_id, edited_text); editing = false" title="antaa">></button>
+											<button class="float-right tiny hollow primary" title="kawari" x-show="!editing" 
+												@click="editing = true">~</button>
+											<button class="float-right tiny edit" title="jame" x-show="editing" 
+												@click="editing = false">/</button>
+											<button class="float-right tiny primary" title="antaa" x-show="editing" 
+												@click="await put_definition(def.definition_id, edited_text); editing = false">></button>
 										</li>
 									</template>
 								</ul>

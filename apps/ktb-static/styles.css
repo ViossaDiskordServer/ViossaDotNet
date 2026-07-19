@@ -3,6 +3,7 @@
   --color-primary: #0bf;
   --color-secondary: #08e;
   --color-edit: #fb0;
+  --color-delete: #b10;
   --color-main-bg: #eee;
   --color-card-bg: #fff;
   --color-text: #333;
@@ -120,11 +121,19 @@ button:disabled{
 }
 
 .edit {
-  background-color: #fb0;
+  background-color: var(--color-edit);
 }
 
 .edit:hover {
   background-color: #bb0;
+}
+
+.delete {
+  background-color: var(--color-delete);
+}
+
+.delete:hover {
+  background-color: #f00;
 }
 
 .hollow {
@@ -135,7 +144,14 @@ button:disabled{
 
 .hollow.primary {
   border-color: var(--color-primary);
-  
+}
+
+.hollow.edit {
+  border-color: var(--color-edit);
+}
+
+.hollow.delete {
+  border-color: var(--color-delete);
 }
 
 .primary:not(.hollow) {
@@ -188,6 +204,7 @@ button:disabled{
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  resize: horizontal;
 }
 
 .sidebar-header {
