@@ -6,6 +6,8 @@
 		<title>Dictionary Cards</title>
 		<link rel="stylesheet" href="styles.css" />
 		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/marked@18.0.6/lib/marked.umd.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.12/dist/purify.min.js"></script>
 		<script src="https://unpkg.com/alpinejs" defer></script>
 		<script src="script.js"></script>
 	</head>
@@ -16,7 +18,10 @@
 			x-data="{ 
 				search_term: '',
 				showPrefs: false,
-				lects: []
+				lects: [],
+				md(text){
+					return $store.dictionary.md(text);
+				},
 			}"
 			x-init="$store.dictionary.fetch_all_lects().then((lects_response)=>{
 				if(!!lects_response.lects) {
@@ -169,6 +174,9 @@
 								<!-- wfs -->
 								<h4>Trofal</h4>
 								<table class="is-fullwidth">
+									<tbody>
+
+									
 									<template
 										x-for="wf2 in (lemma_detail?.word_forms ?? [])">
 										<tr x-data="{
@@ -201,36 +209,44 @@
 											</td>
 										</tr>
 									</template>
+									</tbody>
 
 									<!-- Add new wf -->
-									<tr x-data="{
-										adding_word_form:false,
-										new_word_form_text:'',
-										selected_lect:''
-										}">
-									
-										<td colspan="3" x-show="!adding_word_form">
-											<button class="is-fullwidth hollow primary" 
-												@click="adding_word_form = !adding_word_form">+</button>
-										</td>
-									
-										<td x-show="adding_word_form">
-											<select name="vilgovor" x-model="selected_lect">
-												<template x-for="lect in lects">
-													<option :value="lect.name" x-text="lect.name"></option>
-												</template>
-											</select>
-										</td>
-										<td x-show="adding_word_form">
-											<input type="text" x-model="new_word_form_text">
-										</td>
-										<td x-show="adding_word_form">
-											<button class="tiny edit" x-show="adding_word_form" title="jame" @click="adding_word_form = false">/</button>
-											<button class="tiny" x-show="adding_word_form" title="antaa"
-												@click="await post_new_word_form(item.lemma_name, selected_lect, new_word_form_text); adding_word_form = false">></button>
-										</td>
-									
-									</tr>
+									<tfoot>
+										<tr x-data="{
+											adding_word_form:false,
+											new_word_form_text:'',
+											selected_lect:'',
+											adding_lect:false, 
+											new_lect_name:''
+											}">
+										
+											<td colspan="3" x-show="!adding_word_form" style="width: 16em;">
+												<button class="is-fullwidth hollow primary" 
+													@click="adding_word_form = !adding_word_form">+</button>
+											</td>
+										
+											<td x-show="adding_word_form">
+												<select name="vilgovor" x-model="selected_lect" x-show="!adding_lect">
+													<template x-for="lect in lects">
+														<option :value="lect.name" x-text="lect.name"></option>
+													</template>
+												</select>
+												<input type="text" x-show="adding_lect" x-model="new_lect_name">
+												<button class="float-right tiny primary" x-show="!adding_lect" @click="adding_lect = true" title="neo govor">+</button>
+												<button class="float-right tiny edit" x-show="adding_lect" title="jame" @click="adding_lect = false">/</button>
+											</td>
+											<td x-show="adding_word_form">
+												<input type="text" x-model="new_word_form_text">
+											</td>
+											<td x-show="adding_word_form">
+												<button class="tiny edit" x-show="adding_word_form" title="jame" @click="adding_word_form = false">/</button>
+												<button class="tiny" x-show="adding_word_form" title="antaa"
+													@click="await post_new_word_form(item.lemma_name, adding_lect ? new_lect_name : selected_lect, new_word_form_text); adding_word_form = false">></button>
+											</td>
+										
+										</tr>
+									</tfoot>
 								</table>
 
 								<h4>Imi</h4>
@@ -241,7 +257,7 @@
 											editing: false,
 											edited_text: def.definition_text.toString()
 										}" @click.outside="editing = false">
-											<span x-show="!editing" x-text="def.definition_text" @click="editing = true"></span>
+											<span x-show="!editing" x-html="md(def.definition_text)" @click="editing = true"></span>
 											<input type="text" x-show="editing" x-model="edited_text">
 											<button class="float-right tiny hollow primary" title="kawari" x-show="!editing" 
 												@click="editing = true">~</button>
@@ -292,7 +308,7 @@
 											edited_text: ex.example_text.toString()
 										}"
 										@click.outside="editing = false">
-											<span x-show="!editing" x-text="ex.example_text" @click="editing = true"></span>
+											<span x-show="!editing" x-html="md(ex.example_text)" @click="editing = true"></span>
 											<input type="text" x-show="editing" x-model="edited_text">
 											<button class="float-right tiny hollow primary" x-show="!editing" @click="editing = true" title="kawari">~</button>
 											<button class="float-right tiny edit" x-show="editing" @click="editing = false" title="jame">/</button>

@@ -79,6 +79,21 @@ function initExpress() {
 		res.status(200).send({ lect });
 	});
 
+	app.post("/lect", (req, res) => {
+		const lect_name = req.query.lect_name?.toString();
+
+		if (!lect_name) {
+			return void res.sendStatus(400);
+		}
+
+		const lect = new Lect();
+		lect.name = lect_name;
+		lect.save().then((lect)=>{
+			res.status(200).send({ lect })
+		});
+
+	});
+
 	app.get("/lects", async (_req, res) => {
 		const lects = await Lect.find();
 		res.status(200).send({ lects });
@@ -261,12 +276,26 @@ function initExpress() {
 
 		let word_form = new WordForm();
 		let lemma = await Lemma.findOne({where:{lemma_name}});
-		let lect = await Lect.findOne({where:{name:lect_name}});
-
-		if(!lect || !lemma){
+		let lect;
+		try{
+			lect = await Lect.findOne({where:{name:lect_name}});
+		} catch {
+			console.info(`Lect ${lect_name} not found.`);
+		}
+		 
+		if(!lemma){
 			console.error(`Error: ${JSON.stringify({lect:lect, lemma:lemma})}`);
 			return void res.status(400).send();
 		}
+
+		if(!lect) {
+			lect = new Lect();
+			lect.name = lect_name;
+			await lect
+				.save()
+				.then((l)=>{console.info(`Created lect: ${JSON.stringify(l)}`)});
+		}
+
 
 		word_form.word_form = word_form_text;
 		word_form.lemma = lemma;

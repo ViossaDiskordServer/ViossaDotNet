@@ -47,7 +47,7 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Verdana', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--color-main-bg);
   color: var(--color-text);
   line-height: 1.5;
@@ -72,13 +72,17 @@ ul {
 }
 
 li {
-  margin-top: calc(var(--space-xs)/2);
+  margin-top: calc(var(--space-xs));
   margin-bottom: calc(var(--space-xs)/2);
   margin-left: var(--space-md);
 }
 
-table {
+tbody {
   table-layout: fixed;
+}
+
+tfoot {
+  table-layout: auto;
 }
 
 .float-right {

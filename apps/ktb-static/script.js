@@ -80,16 +80,26 @@ document.addEventListener("alpine:init", () => {
 			localStorage.setItem("prefs", JSON.stringify(this.prefs));
 			this.update_css_variables();
 		},
-    
-    async fetch_all_lects() {
-      try {
-        const res = await axios.get("http://localhost:1225/lects");
-        console.log(JSON.stringify(res.data));
-        return res.data;
-      } catch (e) {
-        console.error(e);
-      }
-    },
+
+		async fetch_all_lects() {
+			try {
+				const res = await axios.get("http://localhost:1225/lects");
+				return res.data;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+
+		async post_lect(lect_name) {
+			try {
+				const res = await axios.post("http://localhost:1225/lect", {
+					lect_name,
+				});
+				return res.data.lect;
+			} catch (e) {
+				console.error(e);
+			}
+		},
 
 		async fetch_all_terms(search_term) {
 			try {
@@ -180,13 +190,17 @@ document.addEventListener("alpine:init", () => {
 
 		filter_results(search_term) {
 			if (!search_term) return this.search_results.results;
-			return this.search_results.results.filter(
-				(item) =>
-					item.word_forms
-						.map((wf) => wf.word_form.toLowerCase())
-						.join()
-						.includes(search_term.toLowerCase()),
+			return this.search_results.results.filter((item) =>
+				item.word_forms
+					.map((wf) => wf.word_form.toLowerCase())
+					.join()
+					.includes(search_term.toLowerCase()),
 			);
+		},
+
+		md(text){
+			console.log(marked.parse(text));
+			return DOMPurify.sanitize(marked.parse(text), {ALLOWED_TAGS: ['br', 'em', 'strong', 'code', '#text']});
 		},
 	});
 });
