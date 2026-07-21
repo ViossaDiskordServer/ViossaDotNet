@@ -167,6 +167,19 @@ function initExpress() {
 		res.status(200).send({lemma_detail});
 	});
 
+	app.delete("/definition/:definition_id", async (_req, res) =>{
+		const definition_id:number = parseInt(_req.params.definition_id); 
+
+		if(!definition_id){
+			console.error(`Error: Could not find word form ${JSON.stringify({definition_id:definition_id})}`);
+			return void res.status(400).send();
+		}
+
+		Definition.delete({definition_id: definition_id});
+
+		res.status(200).send();
+	});
+
 	/* examples */
 
 	app.put("/example", async (_req, res) => {
@@ -212,6 +225,19 @@ function initExpress() {
 		});
 
 		res.status(200).send({lemma_detail});
+	});
+
+	app.delete("/example/:example_id", async (_req, res) =>{
+		const example_id:number = parseInt(_req.params.example_id); 
+
+		if(!example_id){
+			console.error(`Error: Could not find word form ${JSON.stringify({example_id:example_id})}`);
+			return void res.status(400).send();
+		}
+
+		Example.delete({example_id: example_id});
+
+		res.status(200).send();
 	});
 
 	/* word forms */

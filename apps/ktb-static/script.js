@@ -2,7 +2,7 @@
 document.addEventListener("alpine:init", () => {
 	Alpine.store("dictionary", {
 		search_results: {
-			terms: 0,
+			terms: 1,
 			results: [
 				{
 					lemma_name: "wiigel",
@@ -136,6 +136,20 @@ document.addEventListener("alpine:init", () => {
 			}
 		},
 
+		async delete_definition(definition_id, definition_text) {
+			if (
+				window.confirm(`Du keshite imi ${definition_id}.\nPravda?`)
+			) {
+				try {
+					const res = await axios.delete(
+						`http://localhost:1225/definition/${definition_id}`,
+					);
+				} catch (e) {
+					console.error(e);
+				}
+			}
+		},
+
 		async put_example(example_id, example_text, lemma_name) {
 			try {
 				const res = await axios.put("http://localhost:1225/example", {
@@ -146,6 +160,20 @@ document.addEventListener("alpine:init", () => {
 				return res.data.lemma_detail;
 			} catch (e) {
 				console.error(e);
+			}
+		},
+
+		async delete_example(example_id, example_text) {
+			if (
+				window.confirm(`Du keshite tato ${example_id}.\nPravda?`)
+			) {
+				try {
+					const res = await axios.delete(
+						`http://localhost:1225/example/${example_id}`,
+					);
+				} catch (e) {
+					console.error(e);
+				}
 			}
 		},
 
@@ -162,6 +190,12 @@ document.addEventListener("alpine:init", () => {
 		},
 
 		async post_new_word_form(lemma_name, lect_name, word_form_text) {
+			if(!lemma_name || !lect_name || !word_form_text) {
+				console.error(`Missing parameter:\n${JSON.stringify({
+					lemma_name, lect_name, word_form_text
+				})}`);
+			}
+
 			try {
 				const res = await axios.post(
 					"http://localhost:1225/word-form",
@@ -199,7 +233,7 @@ document.addEventListener("alpine:init", () => {
 		},
 
 		md(text){
-			console.log(marked.parse(text));
+			console.debug(marked.parse(text));
 			return DOMPurify.sanitize(marked.parse(text), {ALLOWED_TAGS: ['br', 'em', 'strong', 'code', '#text']});
 		},
 	});

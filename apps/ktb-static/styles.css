@@ -116,6 +116,7 @@ button:disabled{
 }
 
 .flex-row {
+  gap: var(--space-md);
   display: flex;
   flex-direction: row;
 }
