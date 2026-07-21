@@ -209,8 +209,6 @@
 								<h4>Trofal</h4>
 								<table class="is-fullwidth">
 									<tbody>
-
-									
 									<template
 										x-for="wf2 in (lemma_detail?.word_forms ?? [])">
 										<tr x-data="{
@@ -232,14 +230,16 @@
 													x-model="edited_text">
 											</td>
 											<td style="width: 5em;">
-												<button class="tiny hollow primary" x-show="!editing" title="kawari" 
-													@click="editing = true" >~</button>
-												<button class="tiny hollow delete" x-show="!editing" title="keshite" 
-													@click="await delete_word_form(wf2.word_form_id, wf2.word_form)" >x</button>
-												<button class="tiny edit" x-show="editing" title="jame" 
-													@click="editing = false">/</button>
-												<button class="tiny" x-show="editing" title="antaa"
-													@click="await put_word_form_text(wf2.word_form_id, edited_text); editing = false" >></button>
+												<div class="float-right">
+													<button class="tiny hollow primary" x-show="!editing" title="kawari" 
+														@click="editing = true" >~</button>
+													<button class="tiny hollow delete" x-show="!editing" title="keshite" 
+														@click="await delete_word_form(wf2.word_form_id, wf2.word_form)" >x</button>
+													<button class="tiny edit" x-show="editing" title="jame" 
+														@click="editing = false">/</button>
+													<button class="tiny" x-show="editing" title="antaa"
+														@click="await put_word_form_text(wf2.word_form_id, edited_text); editing = false" >></button>
+												</div>
 											</td>
 										</tr>
 									</template>
