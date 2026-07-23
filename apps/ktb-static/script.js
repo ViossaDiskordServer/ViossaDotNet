@@ -1,4 +1,5 @@
-// script.js
+let HOST = 'http://localhost:1225'
+
 document.addEventListener("alpine:init", () => {
 	Alpine.store("dictionary", {
 		search_results: {
@@ -83,7 +84,7 @@ document.addEventListener("alpine:init", () => {
 
 		async fetch_all_lects() {
 			try {
-				const res = await axios.get("http://localhost:1225/lects");
+				const res = await axios.get(`${HOST}/lects`);
 				return res.data;
 			} catch (e) {
 				console.error(e);
@@ -92,7 +93,7 @@ document.addEventListener("alpine:init", () => {
 
 		async post_lect(lect_name) {
 			try {
-				const res = await axios.post("http://localhost:1225/lect", {
+				const res = await axios.post(`${HOST}/lect`, {
 					lect_name,
 				});
 				return res.data.lect;
@@ -103,7 +104,7 @@ document.addEventListener("alpine:init", () => {
 
 		async fetch_all_terms(search_term) {
 			try {
-				const res = await axios.get("http://localhost:1225/search", {
+				const res = await axios.get(`${HOST}/search`, {
 					params: { search_term: search_term },
 				});
 				this.search_results = res.data;
@@ -115,7 +116,7 @@ document.addEventListener("alpine:init", () => {
 		async fetch_one_lemma_detail(lemma_name) {
 			try {
 				const res = await axios.get(
-					"http://localhost:1225/lemma-detail",
+					`${HOST}/lemma-detail`,
 					{ params: { lemma_name } },
 				);
 				return res.data.lemma_detail;
@@ -127,7 +128,7 @@ document.addEventListener("alpine:init", () => {
 		async put_definition(definition_id, definition_text, lemma_name) {
 			try {
 				const res = await axios.put(
-					"http://localhost:1225/definition",
+					`${HOST}/definition`,
 					{ definition_id, definition_text, lemma_name },
 				);
 				return res.data.lemma_detail;
@@ -142,7 +143,7 @@ document.addEventListener("alpine:init", () => {
 			) {
 				try {
 					const res = await axios.delete(
-						`http://localhost:1225/definition/${definition_id}`,
+						`${HOST}/definition/${definition_id}`,
 					);
 				} catch (e) {
 					console.error(e);
@@ -152,7 +153,7 @@ document.addEventListener("alpine:init", () => {
 
 		async put_example(example_id, example_text, lemma_name) {
 			try {
-				const res = await axios.put("http://localhost:1225/example", {
+				const res = await axios.put(`${HOST}/example`, {
 					example_id,
 					example_text,
 					lemma_name,
@@ -169,7 +170,7 @@ document.addEventListener("alpine:init", () => {
 			) {
 				try {
 					const res = await axios.delete(
-						`http://localhost:1225/example/${example_id}`,
+						`${HOST}/example/${example_id}`,
 					);
 				} catch (e) {
 					console.error(e);
@@ -179,7 +180,7 @@ document.addEventListener("alpine:init", () => {
 
 		async put_word_form_text(word_form_id, word_form_text) {
 			try {
-				const res = await axios.put("http://localhost:1225/word-form", {
+				const res = await axios.put(`${HOST}/word-form`, {
 					word_form_id,
 					word_form_text,
 				});
@@ -198,8 +199,21 @@ document.addEventListener("alpine:init", () => {
 
 			try {
 				const res = await axios.post(
-					"http://localhost:1225/word-form",
+					`${HOST}/word-form`,
 					{ lemma_name, lect_name, word_form_text },
+				);
+				return res.data.lemma_detail;
+			} catch (e) {
+				console.error(e);
+			}
+		},
+
+		async post_lemma(lect_name, word_form_text){
+			/* Accepts a new word form for a lemma and the corresponding lect, initializing with the provided form. */
+			try {
+				const res = await axios.post(
+					`${HOST}/lemma`,
+					{ lect_name, word_form_text },
 				);
 				return res.data.lemma_detail;
 			} catch (e) {
@@ -213,7 +227,7 @@ document.addEventListener("alpine:init", () => {
 			) {
 				try {
 					const res = await axios.delete(
-						`http://localhost:1225/word-form/${word_form_id}`,
+						`${HOST}/word-form/${word_form_id}`,
 					);
 					return res.data.lemma_detail;
 				} catch (e) {

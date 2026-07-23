@@ -1,28 +1,20 @@
-# Viossa.net
+# Viossa.net kotoba-tumam
 
 bråtula viossa.net måde! We're here to build an informational website about Viossa.
 
 ## The Stack
 **What will we be using to build this site?**
 
-### Core
+### Backend
+- [Node.js](https://nodejs.org/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [pnpm](https://pnpm.io/)
 - [Turborepo](https://turborepo.com/)
 
 ### Frontend
-- [Vue 3](https://vuejs.org/)
-- [Vite](https://vite.dev/)
+- The ktb frontend is purely coded in HTML, CSS, and browser JS.
+- [AlpineJS](https://alpinejs.dev/)
 
-Additionally, we will be following [**atomic design principles**](https://bradfrost.com/blog/post/atomic-web-design/) to organize the components of the project.
-
-### Styling
-- [Bulma](https://bulma.io/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Sass](https://sass-lang.com/)
-
-### Backend
-- [Node.js](https://nodejs.org/)
 
 ### Linting
 - [Prettier](https://prettier.io/)
@@ -46,15 +38,12 @@ Additionally, we will be following [**atomic design principles**](https://bradfr
 This project uses Turborepo for task management/caching. Install Turborepo globally on your machine to allow for executing turbo commands more easily: `pnpm i -g turbo` (this is needed to continue with the instructions below)
 
 ### Frontend (Viossa.net)
-1. Ensure you're in the root directory of the project (`ViossaDotNet`)
-1. Move into the app's directory: `cd apps/vdn-static`
-1. To run the site, use `turbo dev`. This will set up watchers to build all libraries used by the frontend, as well as hot-refreshing the site as changes are made to it.
-1. To view the website running locally, visit http://localhost:1224/ in your browser!
+1. The frontend no longer requires a compilation step. Yippee!
 
 ### Backend (Viossa DB)
 1. Ensure you're in the root directory of the project (`ViossaDotNet`)
 1. Move into the app's directory: `cd apps/vdb-backend`
-1. To run the site, use `turbo start`. This will build all of the app's dependencies and then start the application.
+1. To run the API, use `turbo start`. This will build all of the app's dependencies and then start the application.
    1. **NOTE:** Backend apps are not watched/hot-refreshed like frontend apps! If you make changes, you must kill the app and re-run it to apply changes.
 1. To view a sample response from the backend API, visit http://localhost:1225/sample in your browser!
 

@@ -21,8 +21,47 @@
 				lects: [],
 				current_result_page: 0,
 				results_per_page: 30,
+				new_lemma_form_open: false,
 				md(text){
 					return $store.dictionary.md(text);
+				},
+				async put_word_form_text(word_form_id, word_form_text){
+					$store.dictionary.put_word_form_text(word_form_id, word_form_text).then(()=>{
+						this.load_detail();
+					});
+				},
+				async post_new_word_form(lemma_name, lect_name, word_form_text){
+					$store.dictionary.post_new_word_form(lemma_name, lect_name, word_form_text).then(()=>{
+						this.load_detail();
+					});
+				},
+				async delete_word_form(word_form_id, word_form_text){
+					$store.dictionary.delete_word_form(word_form_id, word_form_text).then(()=>{
+						this.load_detail();
+					});
+				},
+				async put_definition(definition_id, definition_text){
+					$store.dictionary.put_definition(definition_id, definition_text, this.lemma_detail?.lemma_name).then(()=>{
+						this.load_detail();
+					});
+				},
+				async delete_definition(definition_id, definition_text){
+					$store.dictionary.delete_definition(definition_id, definition_text).then(()=>{
+						this.load_detail();
+					});
+				},
+				async put_example(example_id, example_text){
+					$store.dictionary.put_example(example_id, example_text, this.lemma_detail?.lemma_name).then(()=>{
+						this.load_detail();
+					});
+				},
+				async post_lemma(lect_name, word_form_text){
+					$store.dictionary.post_lemma(lect_name, word_form_text).then(lemma=>console.info(JSON.stringify(lemma)));
+				},
+				async delete_example(example_id, example_text){
+					$store.dictionary.delete_example(example_id, example_text).then(()=>{
+						this.load_detail();
+					});
 				},
 			}"
 			x-init="$store.dictionary.fetch_all_lects().then((lects_response)=>{
@@ -32,7 +71,6 @@
 			});">
 			<aside class="sidebar">
 				<div class="preferences-pane">
-
 					<button
 						@click="showPrefs = !showPrefs"
 						class="prefs-toggle is-fullwidth">
@@ -83,39 +121,53 @@
 			</aside>
 
 			<main class="main-content">
-				<div class="search-bar">
-					<button
-						@click="$store.dictionary.fetch_all_terms(search_term)">
-						Zuha
-					</button>
-					<input
-						type="text"
-						x-model="search_term"
-						@keydown.enter="$store.dictionary.fetch_all_terms(search_term)"
-						placeholder="Tasta ko(tel) her..." />
+				<div class="top-bar sticky top">
+					<div class="search-bar">
+						<button
+							@click="$store.dictionary.fetch_all_terms(search_term)">
+							Zuha
+						</button>
+						<input
+							type="text"
+							x-model="search_term"
+							@keydown.enter="$store.dictionary.fetch_all_terms(search_term)"
+							placeholder="Tasta ko(tel) her..." />
+						<button
+							class="hollow primary"
+							@click="new_lemma_form_open = true">
+							+
+						</button>
+					</div>
+					<div
+						class="flex-row"
+						x-data="{
+							page_count: 1,
+							item_count: 0
+						}"
+						x-effect="current_result_page = Math.min(current_result_page, page_count-1); page_count = Math.ceil($store.dictionary.search_results.terms/results_per_page); item_count = $store.dictionary.search_results.terms;">
+						<button
+							class="hollow primary"
+							:disabled="!(item_count > results_per_page && current_result_page > 0)"
+							@click="current_result_page-=1">
+							<strong>←</strong>
+						</button>
+						<div
+							x-text="`${current_result_page + 1} / ${page_count}`"></div>
+						<button
+							class="hollow primary"
+							:disabled="!(item_count > results_per_page && current_result_page+1 < page_count)"
+							@click="current_result_page+=1">
+							<strong>→</strong>
+						</button>
+						<select x-model="results_per_page">
+							<option value="15">15</option>
+							<option value="30">30</option>
+							<option value="60">60</option>
+							<option value="120">120</option>
+						</select>
+					</div>
 				</div>
-				<div class="flex-row" 
-					x-data="{
-						page_count: 1,
-						item_count: 0
-					}"
-					x-effect="current_result_page = Math.min(current_result_page, page_count-1); page_count = Math.ceil($store.dictionary.search_results.terms/results_per_page); item_count = $store.dictionary.search_results.terms;">
-					<button 
-						class="hollow primary" 
-						x-show="item_count > results_per_page && current_result_page > 0"
-						@click="current_result_page-=1"><strong>←</strong></button>
-					<div x-text="`${current_result_page + 1} / ${page_count}`"></div>
-					<button 
-						class="hollow primary" 
-						x-show="item_count > results_per_page && current_result_page+1 < page_count"
-						@click="current_result_page+=1"><strong>→</strong></button>
-					<select x-model="results_per_page">
-						<option value="15">15</option>
-						<option value="30">30</option>
-						<option value="60">60</option>
-						<option value="120">120</option>
-					</select>
-				</div>
+
 				<div class="cards-container">
 					<template
 						x-for="item in $store.dictionary.filter_results(search_term).slice(current_result_page*results_per_page, Math.min((current_result_page+1)*results_per_page, $store.dictionary.search_results.terms))"
@@ -132,41 +184,7 @@
 								example_text: '',
 								definition_text: '',
 								lemma_detail: null,
-								async put_word_form_text(word_form_id, word_form_text){
-									$store.dictionary.put_word_form_text(word_form_id, word_form_text).then(()=>{
-										this.load_detail();
-									});
-								},
-								async post_new_word_form(lemma_name, lect_name, word_form_text){
-									$store.dictionary.post_new_word_form(lemma_name, lect_name, word_form_text).then(()=>{
-										this.load_detail();
-									});
-								},
-								async delete_word_form(word_form_id, word_form_text){
-									$store.dictionary.delete_word_form(word_form_id, word_form_text).then(()=>{
-										this.load_detail();
-									});
-								},
-								async put_definition(definition_id, definition_text){
-									$store.dictionary.put_definition(definition_id, definition_text, this.lemma_detail?.lemma_name).then(()=>{
-										this.load_detail();
-									});
-								},
-								async delete_definition(definition_id, definition_text){
-									$store.dictionary.delete_definition(definition_id, definition_text).then(()=>{
-										this.load_detail();
-									});
-								},
-								async put_example(example_id, example_text){
-									$store.dictionary.put_example(example_id, example_text, this.lemma_detail?.lemma_name).then(()=>{
-										this.load_detail();
-									});
-								},
-								async delete_example(example_id, example_text){
-									$store.dictionary.delete_example(example_id, example_text).then(()=>{
-										this.load_detail();
-									});
-								},
+								
 								async toggle_expand() {
 									if(!this.lemma_detail){
 										/* If there isn't a lemma detail loaded yet, get it then expand. */
@@ -209,80 +227,157 @@
 								<h4>Trofal</h4>
 								<table class="is-fullwidth">
 									<tbody>
-									<template
-										x-for="wf2 in (lemma_detail?.word_forms ?? [])">
-										<tr x-data="{
+										<template
+											x-for="wf2 in (lemma_detail?.word_forms ?? [])">
+											<tr
+												x-data="{
 											editing:false,
 											edited_text: wf2.word_form
 										}">
-											<td style="width: 8em;"
-												x-text="wf2 ? wf2.lect.name : '(empty)'"></td>
-											<td>
-												<span x-text="wf2 ? wf2.word_form : '(empty)'" 
-												@click="editing = true"
-												x-show="!editing"></span>
-			
-												<input 
-													type="text" 
-													class="is-fullwidth"
-													@click.outside="editing = false" 
-													x-show="editing" 
-													x-model="edited_text">
-											</td>
-											<td style="width: 5em;">
-												<div class="float-right">
-													<button class="tiny hollow primary" x-show="!editing" title="kawari" 
-														@click="editing = true" >~</button>
-													<button class="tiny hollow delete" x-show="!editing" title="keshite" 
-														@click="await delete_word_form(wf2.word_form_id, wf2.word_form)" >x</button>
-													<button class="tiny edit" x-show="editing" title="jame" 
-														@click="editing = false">/</button>
-													<button class="tiny" x-show="editing" title="antaa"
-														@click="await put_word_form_text(wf2.word_form_id, edited_text); editing = false" >></button>
-												</div>
-											</td>
-										</tr>
-									</template>
+												<td
+													style="width: 8em"
+													x-text="wf2 ? wf2.lect.name : '(empty)'"></td>
+												<td>
+													<span
+														x-text="wf2 ? wf2.word_form : '(empty)'"
+														@click="editing = true"
+														x-show="!editing"></span>
+
+													<input
+														type="text"
+														class="is-fullwidth"
+														@click.outside="editing = false"
+														x-show="editing"
+														x-model="edited_text" />
+												</td>
+												<td style="width: 5em">
+													<div class="float-right">
+														<button
+															class="tiny hollow primary"
+															x-show="!editing"
+															title="kawari"
+															@click="editing = true">
+															~
+														</button>
+														<button
+															class="tiny hollow delete"
+															x-show="!editing"
+															title="keshite"
+															@click="await delete_word_form(wf2.word_form_id, wf2.word_form)">
+															×
+														</button>
+														<button
+															class="tiny edit"
+															x-show="editing"
+															title="jame"
+															@click="editing = false">
+															/
+														</button>
+														<button
+															class="tiny"
+															x-show="editing"
+															title="antaa"
+															@click="await put_word_form_text(wf2.word_form_id, edited_text); editing = false">
+															>
+														</button>
+													</div>
+												</td>
+											</tr>
+										</template>
 									</tbody>
 
 									<!-- Add new wf -->
 									<tfoot>
-										<tr x-data="{
+										<tr
+											x-data="{
 											adding_word_form:false,
 											new_word_form_text:'',
 											selected_lect:'',
 											adding_lect:false, 
 											new_lect_name:''
 											}">
-										
-											<td colspan="3" x-show="!adding_word_form">
-												<button class="is-fullwidth hollow primary" 
-													@click="adding_word_form = !adding_word_form">+</button>
+											<td
+												colspan="3"
+												x-show="!adding_word_form">
+												<button
+													class="is-fullwidth hollow primary"
+													@click="adding_word_form = !adding_word_form">
+													+
+												</button>
 											</td>
-										
-											<td colspan="3" x-show="adding_word_form"  style="width: 12em;">
-												<div style="display: flex; flex-direction: row; gap: 2em; justify-content: space-between;">
+
+											<td
+												colspan="3"
+												x-show="adding_word_form"
+												style="width: 12em">
+												<div
+													style="
+														display: flex;
+														flex-direction: row;
+														gap: 2em;
+														justify-content: space-between;
+													">
 													<div>
-														<select name="vilgovor" x-model="selected_lect" x-show="!adding_lect">
-															<option value="" selected disabled hidden>Sentaku...</option>
-															<template x-for="lect in lects">
-																<option :value="lect.name" x-text="lect.name"></option>
+														<select
+															name="vilgovor"
+															x-model="selected_lect"
+															x-show="!adding_lect">
+															<option
+																value=""
+																selected
+																disabled
+																hidden>
+																Sentaku...
+															</option>
+															<template
+																x-for="lect in lects">
+																<option
+																	:value="lect.name"
+																	x-text="lect.name"></option>
 															</template>
 														</select>
-														<input type="text" x-show="adding_lect" x-model="new_lect_name">
-														<button class="float-right tiny primary" x-show="!adding_lect" @click="adding_lect = true" title="neo govor">+</button>
-														<button class="float-right tiny edit" x-show="adding_lect" title="jame" @click="adding_lect = false">/</button>
+														<input
+															type="text"
+															x-show="adding_lect"
+															x-model="new_lect_name" />
+														<button
+															class="float-right tiny primary"
+															x-show="!adding_lect"
+															@click="adding_lect = true"
+															title="neo govor">
+															+
+														</button>
+														<button
+															class="float-right tiny edit"
+															x-show="adding_lect"
+															title="jame"
+															@click="adding_lect = false">
+															/
+														</button>
 													</div>
 													<div>
-														<input type="text" x-model="new_word_form_text">
+														<input
+															type="text"
+															x-model="new_word_form_text" />
 													</div>
 													<div class="float-right">
-														<button class="tiny edit" x-show="adding_word_form" title="jame" @click="adding_word_form = false">/</button>
-														<button class="tiny" x-show="adding_word_form" title="antaa"
-															@click="await post_new_word_form(item.lemma_name, adding_lect ? new_lect_name : selected_lect, new_word_form_text); adding_word_form = false">></button>
+														<button
+															class="tiny edit"
+															x-show="adding_word_form"
+															title="jame"
+															@click="adding_word_form = false">
+															/
+														</button>
+														<button
+															class="tiny"
+															x-show="adding_word_form"
+															title="antaa"
+															:disabled="!(selected_lect || new_lect_name)"
+															@click="await post_new_word_form(item.lemma_name, adding_lect ? new_lect_name : selected_lect, new_word_form_text); adding_word_form = false">
+															>
+														</button>
 													</div>
 												</div>
-												
 											</td>
 										</tr>
 									</tfoot>
@@ -290,23 +385,51 @@
 
 								<h4>Imi</h4>
 								<ul>
-									<template x-for="def in (lemma_detail?.definitions ?? [])">
+									<template
+										x-for="def in (lemma_detail?.definitions ?? [])">
 										<li
-										x-data="{
+											x-data="{
 											editing: false,
 											edited_text: def.definition_text.toString()
-										}" @click.outside="editing = false">
-											<span x-show="!editing" x-html="md(def.definition_text)" @click="editing = true"></span>
-											<input type="text" x-show="editing" x-model="edited_text">
+										}"
+											@click.outside="editing = false">
+											<span
+												x-show="!editing"
+												x-html="md(def.definition_text)"
+												@click="editing = true"></span>
+											<input
+												type="text"
+												x-show="editing"
+												x-model="edited_text" />
 											<div class="float-right">
-												<button class="tiny hollow primary" title="kawari" x-show="!editing" 
-													@click="editing = true">~</button>
-												<button class="tiny edit" title="jame" x-show="editing" 
-													@click="editing = false">/</button>
-												<button class="tiny primary" title="antaa" x-show="editing" 
-													@click="await put_definition(def.definition_id, edited_text); editing = false">></button>
-												<button class="tiny hollow delete" x-show="!editing" title="keshite" 
-													@click="await delete_definition(def.definition_id, def.definition_text)" >x</button>
+												<button
+													class="tiny hollow primary"
+													title="kawari"
+													x-show="!editing"
+													@click="editing = true">
+													~
+												</button>
+												<button
+													class="tiny edit"
+													title="jame"
+													x-show="editing"
+													@click="editing = false">
+													/
+												</button>
+												<button
+													class="tiny primary"
+													title="antaa"
+													x-show="editing"
+													@click="await put_definition(def.definition_id, edited_text); editing = false">
+													>
+												</button>
+												<button
+													class="tiny hollow delete"
+													x-show="!editing"
+													title="keshite"
+													@click="await delete_definition(def.definition_id, def.definition_text)">
+													×
+												</button>
 											</div>
 										</li>
 									</template>
@@ -334,7 +457,7 @@
 										Popoczta
 									</button>
 								</div>
-								
+
 								<button
 									class="is-fullwidth hollow primary"
 									x-show="!adding_definition"
@@ -344,23 +467,52 @@
 
 								<h4>Tatoeba</h4>
 								<ul>
-									<template x-for="ex in (lemma_detail?.examples ?? [])">
-										<li x-data="{
+									<template
+										x-for="ex in (lemma_detail?.examples ?? [])">
+										<li
+											x-data="{
 											editing:false,
 											edited_text: ex.example_text.toString()
 										}"
-										@click.outside="editing = false">
-											<span x-show="!editing" x-html="md(ex.example_text)" @click="editing = true"></span>
-											<input type="text" x-show="editing" x-model="edited_text">
+											@click.outside="editing = false">
+											<span
+												x-show="!editing"
+												x-html="md(ex.example_text)"
+												@click="editing = true"></span>
+											<input
+												type="text"
+												x-show="editing"
+												x-model="edited_text" />
 											<div class="float-right">
-												<button class="tiny hollow primary" x-show="!editing" 
-													@click="editing = true" title="kawari">~</button>
-												<button class="tiny edit" x-show="editing" 
-													@click="editing = false" title="jame">/</button>
-												<button class="tiny" x-show="editing" type="button" 
-													@click="await put_example(ex.example_id, edited_text); editing = false" title="antaa">></button>
-												<button class="tiny hollow delete" x-show="!editing" title="keshite" 
-													@click="await delete_example(ex.example_id, ex.example_text)">x</button>
+												<button
+													class="tiny hollow primary"
+													x-show="!editing"
+													@click="editing = true"
+													title="kawari">
+													~
+												</button>
+												<button
+													class="tiny edit"
+													x-show="editing"
+													@click="editing = false"
+													title="jame">
+													/
+												</button>
+												<button
+													class="tiny"
+													x-show="editing"
+													type="button"
+													@click="await put_example(ex.example_id, edited_text); editing = false"
+													title="antaa">
+													>
+												</button>
+												<button
+													class="tiny hollow delete"
+													x-show="!editing"
+													title="keshite"
+													@click="await delete_example(ex.example_id, ex.example_text)">
+													×
+												</button>
 											</div>
 										</li>
 									</template>
@@ -397,6 +549,89 @@
 					</template>
 				</div>
 			</main>
+
+			<div
+				x-show="new_lemma_form_open"
+				class="modal"
+				x-data="{
+					adding_word_form:false,
+					adding_lect:false, 
+					new_word_form_text:'',
+					selected_lect:'',
+					new_lect_name:''
+				}"
+				@click.self="new_lemma_form_open = false;">
+				<div class="card">
+					<h3>Neo kotoba...</h3>
+					<div class="flex-row">
+						<div>
+							<label>
+								<div>Viljena govor</div>
+								<div>
+									<select
+										name="vilgovor"
+										x-model="selected_lect"
+										x-show="!adding_lect">
+										<option
+											value=""
+											selected
+											disabled
+											hidden>
+											Sentaku...
+										</option>
+										<template x-for="lect in lects">
+											<option
+												:value="lect.name"
+												x-text="lect.name"></option>
+										</template>
+									</select>
+									<input
+										type="text"
+										x-show="adding_lect"
+										x-model="new_lect_name" />
+									<button
+										class="float-right tiny primary"
+										x-show="!adding_lect"
+										@click="adding_lect = true"
+										title="neo govor">
+										+
+									</button>
+									<button
+										class="float-right tiny edit"
+										x-show="adding_lect"
+										title="jame"
+										@click="adding_lect = false">
+										/
+									</button>
+								</div>
+							</label>
+						</div>
+						<label>
+							<div>Kakufal</div>
+							<div>
+								<input
+									type="text"
+									x-model="new_word_form_text" />
+							</div>
+						</label>
+					</div>
+					<div style="margin-top: var(--space-sm)">
+						<button
+							class="edit"
+							@click="new_lemma_form_open = false">
+							/
+						</button>
+						<button
+							type="button"
+							@click="post_lemma(new_lect_name?new_lect_name:selected_lect, new_word_form_text)
+								.then(()=>{
+									new_lemma_form_open = false; 
+								})">
+							Popoczta
+						</button>
+					</div>
+				</div>
+			</div>
 		</div>
 	</body>
 </html>

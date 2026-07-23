@@ -102,6 +102,49 @@ tfoot {
   margin:  var(--space-xs);
 }
 
+.relative {
+  position: relative;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+}
+
+.top {
+  z-index: 1;
+}
+
+.modal {
+  z-index: 2;
+  position: absolute;
+  background-color: #000000aa;
+  height: 100%;
+  width: 100%;
+}
+
+.modal .card {
+  max-width: 480px;
+  margin: auto;
+  
+  margin-top: 4rem;
+}
+
+.top-bar {
+  padding: var(--space-sm);
+  border: 1px solid var(--color-text-secondary);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-card-bg);
+}
+
 button.tiny {
   min-width: 2em;
   max-width: 2em;
@@ -111,8 +154,10 @@ button.tiny {
 }
 
 button:disabled{
-  background-color: #555;
+  background-color: #aaa;
   color: #fff;
+  border-color: #999;
+  cursor: not-allowed;
 }
 
 .flex-row {
@@ -130,7 +175,7 @@ button:disabled{
 }
 
 .edit:hover {
-  background-color: #bb0;
+  background-color: rgb(187, 159, 0);
 }
 
 .delete {
@@ -262,10 +307,15 @@ button:disabled{
 }
 
 /* Search Bar */
+
+.search-bar {
+  margin: var(--space-sm);
+}
+
 .search-bar input {
   display: inline-block;
-  width: 80%;
-  padding: var(--space-sm) var(--space-md);
+  width: 16rem;
+  padding: var(--space-xs) var(--space-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: 1rem;

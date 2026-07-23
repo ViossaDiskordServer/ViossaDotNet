@@ -27,18 +27,14 @@ function initExpress() {
 	const app = express();
 	const PORT = 1225;
 
-	const lect_repository = appDataSource.getRepository(Lect);
-	const word_form_repository = appDataSource.getRepository(WordForm);
-	const lemma_repository = appDataSource.getRepository(Lemma);
-
 	app.use(cors(), express.json());
 
 	app.get("/sample", (_req, res) => {
 		res.status(200).send(SAMPLE);
 	});
 
-	app.get("/search", async (req, res) => {
-		const search_term = req.query.search_term?.toString();
+	app.get("/search", async (_req, res) => {
+		const search_term = _req.query.search_term?.toString();
 
 		let word_forms: WordForm[];
 		let lemmas: Lemma[];
@@ -64,8 +60,8 @@ function initExpress() {
 		res.status(200).send({ terms: lemmas.length, results: lemmas });
 	});
 
-	app.get("/lect", async (req, res) => {
-		const name = req.query.name?.toString();
+	app.get("/lect", async (_req, res) => {
+		const name = _req.query.name?.toString();
 
 		if (!name) {
 			return void res.sendStatus(400);
@@ -79,8 +75,8 @@ function initExpress() {
 		res.status(200).send({ lect });
 	});
 
-	app.post("/lect", (req, res) => {
-		const lect_name = req.query.lect_name?.toString();
+	app.post("/lect", (_req, res) => {
+		const lect_name = _req.query.lect_name?.toString();
 
 		if (!lect_name) {
 			return void res.sendStatus(400);
@@ -120,7 +116,74 @@ function initExpress() {
 		res.status(200).send({ lemma_detail });
 	});
 
-	/* Definitions */
+	app.post("/lemma", async (_req, res) => {
+		const lect_name = _req.body.lect_name ?? null;
+		const word_form_text = _req.body.word_form_text?.toString();
+
+		if(!word_form_text || /^\s*$/.test(word_form_text) || !lect_name){
+			console.error(`Error: ${JSON.stringify(_req.body)}`);
+			return void res.status(400).send();
+		}
+
+		let word_form = new WordForm();
+		let lemma = new Lemma();
+
+		let lect;
+		try{
+			lect = await Lect.findOne({where:{name:lect_name}});
+		} catch {
+			console.info(`Lect ${lect_name} not found.`);
+		}
+
+		if(!lect) {
+			lect = new Lect();
+			lect.name = lect_name;
+			await lect
+				.save()
+				.then((l)=>{console.info(`Created lect: ${JSON.stringify(l)}`)});
+		}
+
+		
+		lemma.lemma_name = word_form_text;
+
+		word_form.word_form = word_form_text;
+		word_form.lemma = lemma;
+		word_form.lect = lect;
+
+		lemma.word_forms = [word_form];
+
+		Lemma.save(lemma);
+		
+		let lemma_detail = await Lemma.findOne({
+			where: {
+				lemma_name: word_form.lemma.lemma_name
+			},
+			relations: {
+				word_forms: {
+					lect: true
+				},
+				examples: true,
+				definitions: true,
+				media: true,
+				parts_of_speech: true
+			}
+		});
+
+		res.status(200).send({lemma_detail});
+	});
+
+	app.get("/definition/:definition_id", async (_req, res) =>{
+		const definition_id:number = parseInt(_req.params.definition_id); 
+
+		if(!definition_id){
+			console.error(`Error: Could not find word form ${JSON.stringify({definition_id})}`);
+			return void res.status(400).send();
+		}
+
+		let definition = await Definition.findOne({where:{definition_id}}).then();
+
+		res.status(200).send({definition});
+	});
 
 	app.put("/definition", async (_req, res) => {
 		const definition_text = _req.body.definition_text?.toString();
@@ -171,7 +234,7 @@ function initExpress() {
 		const definition_id:number = parseInt(_req.params.definition_id); 
 
 		if(!definition_id){
-			console.error(`Error: Could not find word form ${JSON.stringify({definition_id:definition_id})}`);
+			console.error(`Error: Could not find word form ${JSON.stringify({definition_id})}`);
 			return void res.status(400).send();
 		}
 
@@ -181,6 +244,19 @@ function initExpress() {
 	});
 
 	/* examples */
+
+	app.get("/example/:example_id", async (_req, res) =>{
+		const example_id:number = parseInt(_req.params.example_id); 
+
+		if(!example_id){
+			console.error(`Error: Could not find word form ${JSON.stringify({example_id})}`);
+			return void res.status(400).send();
+		}
+
+		let example = await Example.findOne({where:{example_id}}).then();
+
+		res.status(200).send({definition: example});
+	});
 
 	app.put("/example", async (_req, res) => {
 		const example_text = _req.body.example_text?.toString();
